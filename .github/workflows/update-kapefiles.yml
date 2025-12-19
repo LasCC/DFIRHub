@@ -1,75 +1,17 @@
-name: Update KapeFiles
+name: Weekly KapeFiles Update
 
 on:
   schedule:
-    # Run weekly on Monday at 00:00 UTC
+    # Run every Monday at 00:00 UTC
     - cron: '0 0 * * 1'
   workflow_dispatch:
     # Allow manual triggering
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  update-submodule:
+  trigger-build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      - name: Update KapeFiles submodule
+      - name: Trigger Netlify Build
         run: |
-          cd src/content/kapefiles
-          git fetch origin
-          git checkout origin/master
-          cd ../../..
-
-      - name: Check for changes
-        id: changes
-        run: |
-          if git diff --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "### KapeFiles Changes" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            cd src/content/kapefiles
-            OLD_COMMIT=$(git rev-parse HEAD~1 2>/dev/null || echo "")
-            NEW_COMMIT=$(git rev-parse HEAD)
-            echo "Updated to commit: \`${NEW_COMMIT:0:7}\`" >> $GITHUB_STEP_SUMMARY
-            if [ -n "$OLD_COMMIT" ]; then
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "#### New/Modified files:" >> $GITHUB_STEP_SUMMARY
-              git diff --name-only $OLD_COMMIT $NEW_COMMIT | head -20 >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
-
-      - name: Create Pull Request
-        if: steps.changes.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: update KapeFiles submodule"
-          title: "chore: Update KapeFiles artifacts"
-          body: |
-            This PR updates the KapeFiles submodule to the latest version from [EricZimmerman/KapeFiles](https://github.com/EricZimmerman/KapeFiles).
-
-            ## What's included
-            - Latest forensic artifact definitions
-            - New KAPE targets and modules
-            - Updated documentation
-
-            ## Auto-generated
-            This PR was automatically created by the weekly KapeFiles update workflow.
-
-            ---
-            Review the changes and merge when ready. The site will automatically rebuild with the new artifacts.
-          branch: chore/update-kapefiles
-          delete-branch: true
-          labels: |
-            dependencies
-            automated
+          curl -X POST -d {} ${{ secrets.NETLIFY_BUILD_HOOK }}
+          echo "Netlify build triggered. KapeFiles will be updated during build."

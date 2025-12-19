@@ -201,16 +201,7 @@ const categories = [
 ---
 
 <Layout title="DFIRHub">
-    <div class="min-h-screen bg-background relative">
-        <!-- Radial Gradient Background -->
-        <div
-            class="absolute inset-0 z-0 pointer-events-none"
-            aria-hidden="true"
-            style="background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.04), transparent);"
-        >
-        </div>
-
-        <Header client:load showSearch={false} />
+    <Header client:load showSearch={false} />
 
         <main class="mx-auto max-w-6xl px-4">
             <!-- Hero -->
@@ -389,8 +380,7 @@ const categories = [
             </section>
         </main>
 
-        <Footer client:load />
-    </div>
+    <Footer client:load />
 </Layout>
 
 <style>
