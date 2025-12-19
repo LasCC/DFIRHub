@@ -6,131 +6,131 @@
   NODE_VERSION = "20"
 
 # Quick access redirects for popular artifacts
-# Format: /artifact-slug -> /artefact/artifact-slug
+# Popular shortcuts below, or use /a/<slug> for any artifact dynamically
 
 # Execution artifacts
 [[redirects]]
   from = "/srum"
-  to = "/artefact/srum"
+  to = "/artifact/srum"
   status = 301
 
 [[redirects]]
   from = "/prefetch"
-  to = "/artefact/prefetch"
+  to = "/artifact/prefetch"
   status = 301
 
 [[redirects]]
   from = "/amcache"
-  to = "/artefact/amcache"
+  to = "/artifact/amcache"
   status = 301
 
 [[redirects]]
   from = "/shimcache"
-  to = "/artefact/shimcache"
+  to = "/artifact/shimcache"
   status = 301
 
 # Browser artifacts
 [[redirects]]
   from = "/chrome"
-  to = "/artefact/chrome"
+  to = "/artifact/chrome"
   status = 301
 
 [[redirects]]
   from = "/firefox"
-  to = "/artefact/firefox"
+  to = "/artifact/firefox"
   status = 301
 
 [[redirects]]
   from = "/edge"
-  to = "/artefact/edge"
+  to = "/artifact/edge"
   status = 301
 
 # Registry artifacts
 [[redirects]]
   from = "/ntuser"
-  to = "/artefact/registryhivesuser"
+  to = "/artifact/registryhivesuser"
   status = 301
 
 [[redirects]]
   from = "/sam"
-  to = "/artefact/registryhivessystem"
+  to = "/artifact/registryhivessystem"
   status = 301
 
 # User activity
 [[redirects]]
   from = "/shellbags"
-  to = "/artefact/shellbags"
+  to = "/artifact/shellbags"
   status = 301
 
 [[redirects]]
   from = "/jumplists"
-  to = "/artefact/jumplists"
+  to = "/artifact/jumplists"
   status = 301
 
 [[redirects]]
   from = "/lnk"
-  to = "/artefact/lnkfilesandumpdirectories"
+  to = "/artifact/lnkfilesandumpdirectories"
   status = 301
 
 # Event logs
 [[redirects]]
   from = "/eventlogs"
-  to = "/artefact/eventlogs"
+  to = "/artifact/eventlogs"
   status = 301
 
 [[redirects]]
   from = "/evtx"
-  to = "/artefact/eventlogs"
+  to = "/artifact/eventlogs"
   status = 301
 
 # Filesystem
 [[redirects]]
   from = "/mft"
-  to = "/artefact/-mft"
+  to = "/artifact/-mft"
   status = 301
 
 [[redirects]]
   from = "/usnjrnl"
-  to = "/artefact/-j"
+  to = "/artifact/-j"
   status = 301
 
 [[redirects]]
   from = "/recyclebin"
-  to = "/artefact/recyclebin"
+  to = "/artifact/recyclebin"
   status = 301
 
 # Persistence
 [[redirects]]
   from = "/tasks"
-  to = "/artefact/scheduledtasks"
+  to = "/artifact/scheduledtasks"
   status = 301
 
 [[redirects]]
   from = "/startup"
-  to = "/artefact/startupinfo"
+  to = "/artifact/startupinfo"
   status = 301
 
 # Remote access
 [[redirects]]
   from = "/rdp"
-  to = "/artefact/rdpcache"
+  to = "/artifact/rdpcache"
   status = 301
 
 # Triage collections
 [[redirects]]
   from = "/triage"
-  to = "/artefact/kapetriage"
+  to = "/artifact/kapetriage"
   status = 301
 
 [[redirects]]
   from = "/sans"
-  to = "/artefact/sans-triage"
+  to = "/artifact/sans-triage"
   status = 301
 
-# Short URL scheme: /a/slug -> /artefact/slug
+# Short URL scheme: /a/slug -> /artifact/slug
 [[redirects]]
   from = "/a/*"
-  to = "/artefact/:splat"
+  to = "/artifact/:splat"
   status = 301
 
 # SPA fallback for client-side routing (if needed)
