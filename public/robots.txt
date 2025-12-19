@@ -1,0 +1,16 @@
+# DFIRHub Robots.txt
+# https://dfirhub.com
+
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://dfirhub.com/sitemap-index.xml
+
+# Block search result pages with filters (duplicate content)
+Disallow: /artefacts?*
+
+# Allow all crawlers to access assets
+User-agent: *
+Allow: /pagefind/
+Allow: /_astro/

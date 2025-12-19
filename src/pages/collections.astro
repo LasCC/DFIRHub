@@ -1,0 +1,304 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Header } from "../components/layout/Header";
+import { Footer } from "../components/layout/Footer";
+import {
+    getCompoundTargets,
+    resolveCompoundReferences,
+    type KapeTarget,
+} from "../lib/kapefiles";
+
+const collections = getCompoundTargets();
+
+// Sort collections by number of referenced targets (most comprehensive first)
+const sortedCollections = [...collections].sort(
+    (a, b) => b.referencedTargets.length - a.referencedTargets.length,
+);
+
+// Highlight featured collections
+const featuredNames = [
+    "KapeTriage",
+    "BasicCollection",
+    "SANS_Triage",
+    "EvidenceOfExecution",
+];
+const featured = sortedCollections.filter((c) =>
+    featuredNames.some((name) =>
+        c.name.toLowerCase().includes(name.toLowerCase()),
+    ),
+);
+const others = sortedCollections.filter(
+    (c) =>
+        !featuredNames.some((name) =>
+            c.name.toLowerCase().includes(name.toLowerCase()),
+        ),
+);
+---
+
+<Layout
+    title="Triage Collections"
+    description="Pre-built KAPE triage collections for rapid forensic acquisition"
+>
+    <Header client:load />
+
+    <main id="main-content" class="flex-1 relative" tabindex="-1">
+        <div class="mx-auto max-w-6xl px-4 py-8">
+            <!-- Breadcrumb -->
+            <nav
+                class="mb-6 text-xs text-muted-foreground animate-in"
+                aria-label="Breadcrumb"
+            >
+                <ol class="flex items-center gap-1">
+                    <li>
+                        <a
+                            href="/"
+                            class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                        >
+                            <span class="text-primary">~</span>/
+                        </a>
+                    </li>
+                    <li class="flex items-center gap-1">
+                        <span aria-hidden="true">/</span>
+                        <span class="text-foreground px-1" aria-current="page"
+                            >collections</span
+                        >
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <header class="mb-8 animate-in" style="animation-delay: 50ms;">
+                <h1 class="text-2xl font-semibold mb-2">Triage Collections</h1>
+                <p class="text-sm text-muted-foreground">
+                    <span class="text-cyan-400">{collections.length}</span> pre-built
+                    KAPE compound targets for rapid forensic acquisition
+                </p>
+            </header>
+
+            <!-- Info Box -->
+            <div
+                class="mb-8 p-4 border border-cyan-500/30 bg-cyan-500/5 rounded-lg animate-in"
+                style="animation-delay: 100ms;"
+            >
+                <p class="text-sm text-muted-foreground">
+                    <span class="text-cyan-400">Compound targets</span> combine multiple
+                    individual targets into a single collection. Use these for comprehensive
+                    triage acquisition with a single KAPE command.
+                </p>
+            </div>
+
+            <!-- Featured Collections -->
+            {
+                featured.length > 0 && (
+                    <section
+                        class="mb-10 animate-in"
+                        style="animation-delay: 150ms;"
+                        aria-labelledby="featured-heading"
+                    >
+                        <h2
+                            id="featured-heading"
+                            class="text-xs uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2"
+                        >
+                            <span class="text-primary/50" aria-hidden="true">
+                                //
+                            </span>
+                            featured collections
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {featured.map((collection) => {
+                                const resolved =
+                                    resolveCompoundReferences(collection);
+                                const totalPaths = resolved.reduce(
+                                    (acc, t) =>
+                                        acc +
+                                        t.targets.filter(
+                                            (e) => !e.path.endsWith(".tkape"),
+                                        ).length,
+                                    0,
+                                );
+                                return (
+                                    <a
+                                        href={`/artefact/${collection.slug}`}
+                                        class="group block border border-cyan-500/30 bg-cyan-500/5 rounded-xl hover:bg-cyan-500/10 transition-colors focus-ring p-5"
+                                    >
+                                        <div class="flex items-start justify-between gap-3 mb-3">
+                                            <h3 class="text-lg font-medium text-cyan-400 group-hover:text-cyan-300 transition-colors">
+                                                {collection.name}
+                                            </h3>
+                                            <span class="px-2 py-1 text-[10px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 shrink-0">
+                                                featured
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-muted-foreground mb-4 line-clamp-2">
+                                            {collection.description}
+                                        </p>
+                                        <div class="flex items-center gap-4 text-xs text-muted-foreground">
+                                            <span>
+                                                <span class="text-cyan-400">
+                                                    {
+                                                        collection
+                                                            .referencedTargets
+                                                            .length
+                                                    }
+                                                </span>{" "}
+                                                targets
+                                            </span>
+                                            <span>
+                                                <span class="text-cyan-400">
+                                                    {resolved.length}
+                                                </span>{" "}
+                                                resolved
+                                            </span>
+                                            <span>
+                                                <span class="text-cyan-400">
+                                                    {totalPaths}
+                                                </span>{" "}
+                                                paths
+                                            </span>
+                                        </div>
+                                    </a>
+                                );
+                            })}
+                        </div>
+                    </section>
+                )
+            }
+
+            <!-- All Collections -->
+            <section
+                class="animate-in"
+                style="animation-delay: 200ms;"
+                aria-labelledby="all-heading"
+            >
+                <h2
+                    id="all-heading"
+                    class="text-xs uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2"
+                >
+                    <span class="text-primary/50" aria-hidden="true">//</span>
+                    all collections
+                    <span class="text-cyan-400"
+                        >({others.length + featured.length})</span
+                    >
+                </h2>
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                >
+                    {
+                        sortedCollections.map((collection) => (
+                            <a
+                                href={`/artefact/${collection.slug}`}
+                                class="group block border border-border bg-card/20 rounded-lg hover:bg-card/40 hover:border-cyan-500/30 transition-colors focus-ring p-4"
+                            >
+                                <div class="flex items-start justify-between gap-2 mb-2">
+                                    <h3 class="text-sm font-medium group-hover:text-cyan-400 transition-colors truncate">
+                                        {collection.name}
+                                    </h3>
+                                    <span class="text-[10px] text-cyan-400 shrink-0">
+                                        {collection.referencedTargets.length}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-muted-foreground line-clamp-2 mb-3">
+                                    {collection.description ||
+                                        "Compound target collection"}
+                                </p>
+                                <div class="text-[10px] text-muted-foreground">
+                                    by {collection.author}
+                                </div>
+                            </a>
+                        ))
+                    }
+                </div>
+            </section>
+
+            <!-- Quick KAPE Command -->
+            <section
+                class="mt-10 animate-in"
+                style="animation-delay: 250ms;"
+                aria-labelledby="quick-command-heading"
+            >
+                <h2
+                    id="quick-command-heading"
+                    class="text-xs uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2"
+                >
+                    <span class="text-primary/50" aria-hidden="true">//</span>
+                    quick kape command
+                </h2>
+                <div class="border border-border bg-card/20 rounded-lg p-4">
+                    <p class="text-xs text-muted-foreground mb-3">
+                        Run KapeTriage collection (most comprehensive) with a
+                        single command:
+                    </p>
+                    <div class="relative">
+                        <pre
+                            class="p-4 bg-black/50 text-xs overflow-x-auto">
+              <code class="text-green-400">
+                <span class="text-primary select-none">$ </span>kape.exe --tsource C: --tdest D:\Evidence --target KapeTriage --vss
+              </code>
+            </pre>
+                        <button
+                            id="copy-quick-command"
+                            class="absolute top-2 right-2 px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground bg-secondary/50 border border-border transition-colors focus-ring"
+                            data-command="kape.exe --tsource C: --tdest D:\Evidence --target KapeTriage --vss"
+                        >
+                            copy
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <Footer client:load />
+</Layout>
+
+<style>
+    .animate-in {
+        opacity: 0;
+        animation: animate-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes animate-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .animate-in {
+            animation: none;
+            opacity: 1;
+        }
+    }
+</style>
+
+<script>
+    const copyBtn = document.getElementById("copy-quick-command");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", async () => {
+            const command = copyBtn.getAttribute("data-command");
+            if (command) {
+                try {
+                    await navigator.clipboard.writeText(command);
+                    copyBtn.textContent = "copied!";
+                    setTimeout(() => {
+                        copyBtn.textContent = "copy";
+                    }, 2000);
+                } catch (err) {
+                    console.error("Failed to copy:", err);
+                }
+            }
+        });
+    }
+</script>

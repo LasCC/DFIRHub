@@ -1,0 +1,590 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Header } from "../components/layout/Header";
+import { Footer } from "../components/layout/Footer";
+import { CategoryFilters } from "../components/artefacts/CategoryFilters";
+import {
+    loadAllTargets,
+    getCategories,
+    getStats,
+    type KapeTarget,
+} from "../lib/kapefiles";
+
+const targets = loadAllTargets();
+const categories = getCategories();
+const stats = getStats();
+
+// LOLBin slugs
+const lolbinSlugs = new Set([
+    "bits",
+    "certutil",
+    "powershellconsole",
+    "powershelltranscripts",
+    "powershell7config",
+    "wbem",
+    "scheduledtasks",
+    "mof",
+]);
+const lolbinCount = targets.filter((t) =>
+    lolbinSlugs.has(t.slug.toLowerCase()),
+).length;
+
+// Scenario artifact mappings
+const scenarioArtifacts: Record<string, string[]> = {
+    "lateral-movement": [
+        "rdpcache",
+        "eventlogs-rdp",
+        "eventlogs",
+        "psexec",
+        "bits",
+        "smbclient",
+        "networkprofiles",
+        "rdp",
+    ],
+    "browser-forensics": [
+        "chrome",
+        "firefox",
+        "edge",
+        "ienetcache",
+        "browsercache",
+        "chromiumextensions",
+        "browser",
+    ],
+    persistence: [
+        "scheduledtasks",
+        "registryhivesuser",
+        "registryhivessystem",
+        "startupfolders",
+        "services",
+        "wbem",
+        "mof",
+        "registry",
+    ],
+    execution: [
+        "prefetch",
+        "amcache",
+        "shimcache",
+        "srum",
+        "appcompatpca",
+        "userassist",
+        "bam",
+    ],
+    "user-activity": [
+        "shellbags",
+        "recentfilecache",
+        "jumplists",
+        "lnkfiles",
+        "thumbcache",
+        "wordwheelquery",
+        "recent",
+        "mru",
+    ],
+    "anti-forensics": [
+        "$mft",
+        "$j",
+        "$logfile",
+        "recyclebin",
+        "$usnjrnl",
+        "vss",
+        "thumbcache",
+        "usn",
+    ],
+};
+
+// Group targets by category
+const targetsByCategory = categories.reduce(
+    (acc, cat) => {
+        acc[cat] = targets.filter((t) => t.category === cat);
+        return acc;
+    },
+    {} as Record<string, KapeTarget[]>,
+);
+
+// Get category color
+function getCategoryColor(category: string): string {
+    const colors: Record<string, string> = {
+        Windows: "text-blue-400 border-blue-500/30",
+        Browsers: "text-amber-400 border-amber-500/30",
+        Apps: "text-green-400 border-green-500/30",
+        Antivirus: "text-red-400 border-red-500/30",
+        Logs: "text-orange-400 border-orange-500/30",
+        P2P: "text-purple-400 border-purple-500/30",
+        Compound: "text-cyan-400 border-cyan-500/30",
+    };
+    return colors[category] || "text-zinc-400 border-zinc-500/30";
+}
+
+// Serialize data for client-side filtering
+const allTargetsJson = JSON.stringify(
+    targets.map((t) => ({
+        slug: t.slug,
+        name: t.name,
+        category: t.category,
+        isCompound: t.isCompound,
+        isLolbin: lolbinSlugs.has(t.slug.toLowerCase()),
+    })),
+);
+const scenarioArtifactsJson = JSON.stringify(scenarioArtifacts);
+
+// Build filter categories for CategoryFilters component
+const filterCategories = [
+    { id: "all", label: "All", count: stats.total },
+    { id: "lolbin", label: "LOLBins", count: lolbinCount, special: true },
+    ...categories.map((cat) => ({
+        id: cat.toLowerCase(),
+        label: cat,
+        count: stats.byCategory[cat] || 0,
+    })),
+];
+---
+
+<Layout
+    title="All Artefacts"
+    description="Browse all KAPE forensic artifact targets"
+>
+    <Header client:load />
+
+    <main id="main-content" class="flex-1 relative" tabindex="-1">
+        <div class="mx-auto max-w-6xl px-4 py-8">
+            <!-- Breadcrumb -->
+            <nav
+                class="mb-6 text-xs text-muted-foreground animate-in"
+                aria-label="Breadcrumb"
+            >
+                <ol class="flex items-center gap-1">
+                    <li>
+                        <a
+                            href="/"
+                            class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                        >
+                            <span class="text-primary">~</span>/
+                        </a>
+                    </li>
+                    <li class="flex items-center gap-1">
+                        <span aria-hidden="true">/</span>
+                        <span class="text-foreground px-1" aria-current="page"
+                            >artefacts</span
+                        >
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <header class="mb-8 animate-in" style="animation-delay: 50ms;">
+                <h1 class="text-2xl font-semibold mb-2">All Artefacts</h1>
+                <p class="text-sm text-muted-foreground">
+                    Browse <span class="text-primary">{stats.total}</span> KAPE forensic
+                    artifact targets
+                </p>
+            </header>
+
+            <!-- Active Filter Banner (hidden by default, shown via JS) -->
+            <div
+                id="filter-banner"
+                class="hidden mb-6 p-4 border border-primary/30 bg-primary/5 animate-in"
+                style="animation-delay: 75ms;"
+            >
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-muted-foreground"
+                            >Filtered by:</span
+                        >
+                        <span
+                            id="filter-label"
+                            class="text-sm font-medium text-primary"></span>
+                        <span
+                            id="filter-count"
+                            class="text-xs text-muted-foreground"></span>
+                    </div>
+                    <a
+                        href="/artefacts"
+                        class="text-xs text-primary hover:text-primary/80 transition-colors"
+                    >
+                        clear filter ×
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div
+                class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-in"
+                style="animation-delay: 100ms;"
+            >
+                <div class="border border-border bg-card/30 rounded-lg p-4">
+                    <div class="text-2xl font-semibold text-primary">
+                        {stats.total}
+                    </div>
+                    <div class="text-xs text-muted-foreground">
+                        total targets
+                    </div>
+                </div>
+                <div class="border border-border bg-card/30 rounded-lg p-4">
+                    <div class="text-2xl font-semibold text-cyan-400">
+                        {stats.compounds}
+                    </div>
+                    <div class="text-xs text-muted-foreground">collections</div>
+                </div>
+                <div class="border border-border bg-card/30 rounded-lg p-4">
+                    <div class="text-2xl font-semibold text-green-400">
+                        {stats.individuals}
+                    </div>
+                    <div class="text-xs text-muted-foreground">
+                        individual targets
+                    </div>
+                </div>
+                <div class="border border-border bg-card/30 rounded-lg p-4">
+                    <div class="text-2xl font-semibold text-amber-400">
+                        {categories.length}
+                    </div>
+                    <div class="text-xs text-muted-foreground">categories</div>
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="mb-8 animate-in" style="animation-delay: 150ms;">
+                <CategoryFilters client:load categories={filterCategories} />
+            </div>
+
+            <!-- Default View: Targets by Category (hidden when filtered) -->
+            <div id="default-view">
+                {
+                    categories.map((category, catIndex) => (
+                        <section
+                            class="category-section mb-10 animate-in"
+                            data-category={category.toLowerCase()}
+                            style={
+                                "animation-delay: " +
+                                (200 + catIndex * 50) +
+                                "ms;"
+                            }
+                            aria-labelledby={
+                                "category-" + category.toLowerCase()
+                            }
+                        >
+                            <div class="flex items-center justify-between mb-4">
+                                <h2
+                                    id={"category-" + category.toLowerCase()}
+                                    class="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2"
+                                >
+                                    <span
+                                        class="text-primary/50"
+                                        aria-hidden="true"
+                                    >
+                                        //
+                                    </span>
+                                    {category}
+                                    <span
+                                        class={
+                                            getCategoryColor(category).split(
+                                                " ",
+                                            )[0]
+                                        }
+                                    >
+                                        ({targetsByCategory[category].length})
+                                    </span>
+                                </h2>
+                                <a
+                                    href={"/category/" + category.toLowerCase()}
+                                    class="text-xs text-primary hover:text-primary/80 transition-colors focus-ring rounded-sm px-2 py-1"
+                                >
+                                    view all →
+                                </a>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {targetsByCategory[category]
+                                    .slice(0, 6)
+                                    .map((target) => (
+                                        <a
+                                            href={"/artefact/" + target.slug}
+                                            class={
+                                                "group block border rounded-lg " +
+                                                getCategoryColor(
+                                                    category,
+                                                ).split(" ")[1] +
+                                                " bg-card/20 hover:bg-card/40 transition-colors focus-ring p-4"
+                                            }
+                                        >
+                                            <div class="flex items-start justify-between gap-2 mb-2">
+                                                <h3 class="text-sm font-medium group-hover:text-primary transition-colors truncate">
+                                                    {target.name}
+                                                </h3>
+                                                {target.isCompound && (
+                                                    <span class="px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 shrink-0">
+                                                        collection
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p class="text-xs text-muted-foreground line-clamp-2">
+                                                {target.description ||
+                                                    "No description available"}
+                                            </p>
+                                            <div class="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
+                                                {!target.isCompound && (
+                                                    <span>
+                                                        {
+                                                            target.targets.filter(
+                                                                (e) =>
+                                                                    !e.path.endsWith(
+                                                                        ".tkape",
+                                                                    ),
+                                                            ).length
+                                                        }{" "}
+                                                        paths
+                                                    </span>
+                                                )}
+                                                {target.isCompound && (
+                                                    <span>
+                                                        {
+                                                            target
+                                                                .referencedTargets
+                                                                .length
+                                                        }{" "}
+                                                        targets
+                                                    </span>
+                                                )}
+                                                <span class="text-muted-foreground/30">
+                                                    •
+                                                </span>
+                                                <span>{target.author}</span>
+                                            </div>
+                                        </a>
+                                    ))}
+                            </div>
+                            {targetsByCategory[category].length > 6 && (
+                                <div class="mt-3 text-center">
+                                    <a
+                                        href={
+                                            "/category/" +
+                                            category.toLowerCase()
+                                        }
+                                        class="text-xs text-muted-foreground hover:text-foreground transition-colors focus-ring rounded-sm px-3 py-1.5"
+                                    >
+                                        +
+                                        {targetsByCategory[category].length - 6}{" "}
+                                        more in {category.toLowerCase()}
+                                    </a>
+                                </div>
+                            )}
+                        </section>
+                    ))
+                }
+            </div>
+
+            <!-- Filtered View: All matching artifacts (hidden by default) -->
+            <div id="filtered-view" class="hidden">
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                >
+                    {
+                        targets.map((target) => (
+                            <a
+                                href={"/artefact/" + target.slug}
+                                data-slug={target.slug.toLowerCase()}
+                                data-category={target.category.toLowerCase()}
+                                data-lolbin={
+                                    lolbinSlugs.has(target.slug.toLowerCase())
+                                        ? "true"
+                                        : undefined
+                                }
+                                class={
+                                    "filtered-card group block border rounded-lg " +
+                                    getCategoryColor(target.category).split(
+                                        " ",
+                                    )[1] +
+                                    " bg-card/20 hover:bg-card/40 transition-colors focus-ring p-4"
+                                }
+                            >
+                                <div class="flex items-start justify-between gap-2 mb-2">
+                                    <h3 class="text-sm font-medium group-hover:text-primary transition-colors truncate">
+                                        {target.name}
+                                    </h3>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        {lolbinSlugs.has(
+                                            target.slug.toLowerCase(),
+                                        ) && (
+                                            <span class="px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-amber-400 border border-amber-500/30 bg-amber-500/10">
+                                                lolbin
+                                            </span>
+                                        )}
+                                        {target.isCompound && (
+                                            <span class="px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10">
+                                                collection
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <p class="text-xs text-muted-foreground line-clamp-2">
+                                    {target.description ||
+                                        "No description available"}
+                                </p>
+                                <div class="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
+                                    <span
+                                        class={
+                                            "uppercase " +
+                                            getCategoryColor(
+                                                target.category,
+                                            ).split(" ")[0]
+                                        }
+                                    >
+                                        {target.category}
+                                    </span>
+                                    <span class="text-muted-foreground/30">
+                                        •
+                                    </span>
+                                    {!target.isCompound && (
+                                        <span>
+                                            {
+                                                target.targets.filter(
+                                                    (e) =>
+                                                        !e.path.endsWith(
+                                                            ".tkape",
+                                                        ),
+                                                ).length
+                                            }{" "}
+                                            paths
+                                        </span>
+                                    )}
+                                    {target.isCompound && (
+                                        <span>
+                                            {target.referencedTargets.length}{" "}
+                                            targets
+                                        </span>
+                                    )}
+                                </div>
+                            </a>
+                        ))
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <Footer client:load />
+</Layout>
+
+<style>
+    .animate-in {
+        opacity: 0;
+        animation: animate-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes animate-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .animate-in {
+            animation: none;
+            opacity: 1;
+        }
+    }
+</style>
+
+<script define:vars={{ allTargetsJson, scenarioArtifactsJson }}>
+    // Parse URL parameters for filtering
+    const params = new URLSearchParams(window.location.search);
+    const filterParam = params.get("filter");
+    const scenarioParam = params.get("scenario");
+
+    const allTargets = JSON.parse(allTargetsJson);
+    const scenarioArtifacts = JSON.parse(scenarioArtifactsJson);
+
+    const filterBanner = document.getElementById("filter-banner");
+    const filterLabel = document.getElementById("filter-label");
+    const filterCount = document.getElementById("filter-count");
+    const defaultView = document.getElementById("default-view");
+    const filteredView = document.getElementById("filtered-view");
+    const filteredCards = document.querySelectorAll(".filtered-card");
+
+    // Scenario labels for display
+    const scenarioLabels = {
+        "lateral-movement": "Lateral Movement",
+        "browser-forensics": "Browser Forensics",
+        persistence: "Persistence",
+        execution: "Program Execution",
+        "user-activity": "User Activity",
+        "anti-forensics": "Data Recovery",
+    };
+
+    function applyFilter() {
+        let matchingSlugs = new Set();
+        let label = "";
+        let isFiltered = false;
+
+        if (filterParam) {
+            isFiltered = true;
+            if (filterParam === "lolbin") {
+                label = "LOLBins";
+                allTargets.forEach((t) => {
+                    if (t.isLolbin) matchingSlugs.add(t.slug.toLowerCase());
+                });
+            } else {
+                // Category filter
+                label =
+                    filterParam.charAt(0).toUpperCase() + filterParam.slice(1);
+                allTargets.forEach((t) => {
+                    if (
+                        t.category.toLowerCase() === filterParam.toLowerCase()
+                    ) {
+                        matchingSlugs.add(t.slug.toLowerCase());
+                    }
+                });
+            }
+        } else if (scenarioParam && scenarioArtifacts[scenarioParam]) {
+            isFiltered = true;
+            label = scenarioLabels[scenarioParam] || scenarioParam;
+            const patterns = scenarioArtifacts[scenarioParam];
+            allTargets.forEach((t) => {
+                const slugLower = t.slug.toLowerCase();
+                if (patterns.some((p) => slugLower.includes(p.toLowerCase()))) {
+                    matchingSlugs.add(slugLower);
+                }
+            });
+        }
+
+        if (
+            isFiltered &&
+            filterBanner &&
+            filterLabel &&
+            filterCount &&
+            defaultView &&
+            filteredView
+        ) {
+            // Show filter banner
+            filterBanner.classList.remove("hidden");
+            filterLabel.textContent = label;
+            filterCount.textContent = "(" + matchingSlugs.size + " artifacts)";
+
+            // Switch views
+            defaultView.classList.add("hidden");
+            filteredView.classList.remove("hidden");
+
+            // Filter the cards in filtered view
+            filteredCards.forEach((card) => {
+                const slug = card.getAttribute("data-slug");
+                if (matchingSlugs.has(slug)) {
+                    card.classList.remove("hidden");
+                } else {
+                    card.classList.add("hidden");
+                }
+            });
+        }
+    }
+
+    // Apply filter on page load
+    applyFilter();
+</script>

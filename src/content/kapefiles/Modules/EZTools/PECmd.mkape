@@ -1,0 +1,28 @@
+Description: 'PECmd: process prefetch files'
+Category: ProgramExecution
+Author: Eric Zimmerman and Andrew Rathbun
+Version: 1.1
+Id: 7ef84a6b-5115-45bb-af2a-3249a3237e75
+BinaryUrl: https://f001.backblazeb2.com/file/EricZimmermanTools/PECmd.zip
+ExportFormat: csv
+Processors:
+    -
+        Executable: PECmd.exe
+        CommandLine: -d %sourceDirectory% --csv %destinationDirectory% --mp -q
+        ExportFormat: csv
+    -
+        Executable: PECmd.exe
+        CommandLine: -d %sourceDirectory% --html %destinationDirectory% --mp -q
+        ExportFormat: html
+    -
+        Executable: PECmd.exe
+        CommandLine: -d %sourceDirectory% --json %destinationDirectory% --mp -q
+        ExportFormat: json
+
+# Documentation
+# https://github.com/EricZimmerman/PECmd
+# https://binaryforay.blogspot.com/2016/01/introducing-pecmd.html
+# https://www.youtube.com/watch?v=f4RAtR_3zcs
+# https://www.youtube.com/watch?v=GhCZfCzn2l0
+# https://leanpub.com/eztoolsmanuals
+# --mp added for higher precision timestamps

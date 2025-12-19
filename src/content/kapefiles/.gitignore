@@ -1,0 +1,6 @@
+kape.exe
+gkape.exe
+*.cli
+.DS_Store
+*.swp
+*ConsoleLog.txt

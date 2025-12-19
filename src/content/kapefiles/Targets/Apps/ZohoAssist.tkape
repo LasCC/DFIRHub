@@ -1,0 +1,71 @@
+Description: Zoho Assist artifacts
+Author: Andrew Rathbun
+Version: 1.1
+Id: c4013577-f69b-4c7b-9893-73ab34faa35e
+RecreateDirectories: true
+Targets:
+    -
+        Name: Zoho Assist log files in AppData\Local
+        Category: Apps
+        Path: C:\Users\%user%\AppData\Local\ZohoMeeting\log
+        Recursive: true
+        Comment: "Zoho Assist log files in AppData\Local"
+    -
+        Name: Zoho Assist .conf files in AppData\Local
+        Category: Apps
+        Path: C:\Users\%user%\AppData\Local\ZohoMeeting
+        Recursive: false
+        FileMask: "*.conf"
+        Comment: "Grabs all .conf files present in this folder (Connection/Settings)"
+    -
+        Name: Zoho Assist log files in ProgramData
+        Category: Apps
+        Path: C:\ProgramData\ZohoMeeting\log
+        Recursive: true
+        Comment: "Zoho Assist log files in ProgramData"
+    -
+        Name: Zoho Assist .conf files
+        Category: Apps
+        Path: C:\ProgramData\ZohoMeeting
+        Recursive: true
+        FileMask: "*.conf"
+        Comment: "Grabs all .conf files present in this folder (Connection/Proxy/Settings)"
+    -
+        Name: Zoho Assist log files in Program Files*
+        Category: Apps
+        Path: C:\Program Files*\ZohoMeeting\UnAttended\ZohoMeeting\logs
+        Recursive: true
+        Comment: "Zoho Assist log files in Program Files*"
+    -
+        Name: Zoho Assist .conf files in  Program Files*
+        Category: Apps
+        Path: C:\Program Files*\ZohoMeeting\UnAttended\ZohoMeeting
+        FileMask: "*.conf"
+        Comment: "Grabs all .conf files present in this folder (Service/Settings)"
+    -
+        Name: Zoho Assist .txt files in  Program Files*
+        Category: Apps
+        Path: C:\Program Files*\ZohoMeeting\UnAttended\ZohoMeeting
+        FileMask: "*.txt"
+        Comment: "Grabs all .txt files present in this folder (Service/Settings)"
+
+# Documentation
+# https://www.zoho.com/assist/kb/logs.html
+# https://www.linkedin.com/pulse/wheres-my-logs-uems-zoho-meeting-edition-geir-olav-skei-ua2rf
+# Logs appear to be in local time, NOT UTC
+#
+# Examples of files that can be found:
+# C:\Users\%user%\AppData\Local\ZohoMeeting\Connection.conf
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\ACServer.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\Connect.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\LogFile1.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\LogFile2.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\LogFile3.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\LogFileTemp.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\ScreenSharingModule.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\SessionAuditReport_XXXXXXXXX.log - This file will have a play-by-play of applications opened, similar to: TIMESTAMP - Foreground Active Window 	: The WinSCP window was opened
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\SockUtil.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\UIApp.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\log\ZAAudioClient.log
+# C:\Users\%user%\AppData\Local\ZohoMeeting\Settings 2.conf
+# C:\Users\%user%\AppData\Local\ZohoMeeting\Settings.conf

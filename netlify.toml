@@ -1,0 +1,140 @@
+[build]
+  command = "git submodule update --init --recursive && bun install && bun run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Quick access redirects for popular artifacts
+# Format: /artifact-slug -> /artefact/artifact-slug
+
+# Execution artifacts
+[[redirects]]
+  from = "/srum"
+  to = "/artefact/srum"
+  status = 301
+
+[[redirects]]
+  from = "/prefetch"
+  to = "/artefact/prefetch"
+  status = 301
+
+[[redirects]]
+  from = "/amcache"
+  to = "/artefact/amcache"
+  status = 301
+
+[[redirects]]
+  from = "/shimcache"
+  to = "/artefact/shimcache"
+  status = 301
+
+# Browser artifacts
+[[redirects]]
+  from = "/chrome"
+  to = "/artefact/chrome"
+  status = 301
+
+[[redirects]]
+  from = "/firefox"
+  to = "/artefact/firefox"
+  status = 301
+
+[[redirects]]
+  from = "/edge"
+  to = "/artefact/edge"
+  status = 301
+
+# Registry artifacts
+[[redirects]]
+  from = "/ntuser"
+  to = "/artefact/registryhivesuser"
+  status = 301
+
+[[redirects]]
+  from = "/sam"
+  to = "/artefact/registryhivessystem"
+  status = 301
+
+# User activity
+[[redirects]]
+  from = "/shellbags"
+  to = "/artefact/shellbags"
+  status = 301
+
+[[redirects]]
+  from = "/jumplists"
+  to = "/artefact/jumplists"
+  status = 301
+
+[[redirects]]
+  from = "/lnk"
+  to = "/artefact/lnkfilesandumpdirectories"
+  status = 301
+
+# Event logs
+[[redirects]]
+  from = "/eventlogs"
+  to = "/artefact/eventlogs"
+  status = 301
+
+[[redirects]]
+  from = "/evtx"
+  to = "/artefact/eventlogs"
+  status = 301
+
+# Filesystem
+[[redirects]]
+  from = "/mft"
+  to = "/artefact/-mft"
+  status = 301
+
+[[redirects]]
+  from = "/usnjrnl"
+  to = "/artefact/-j"
+  status = 301
+
+[[redirects]]
+  from = "/recyclebin"
+  to = "/artefact/recyclebin"
+  status = 301
+
+# Persistence
+[[redirects]]
+  from = "/tasks"
+  to = "/artefact/scheduledtasks"
+  status = 301
+
+[[redirects]]
+  from = "/startup"
+  to = "/artefact/startupinfo"
+  status = 301
+
+# Remote access
+[[redirects]]
+  from = "/rdp"
+  to = "/artefact/rdpcache"
+  status = 301
+
+# Triage collections
+[[redirects]]
+  from = "/triage"
+  to = "/artefact/kapetriage"
+  status = 301
+
+[[redirects]]
+  from = "/sans"
+  to = "/artefact/sans-triage"
+  status = 301
+
+# Short URL scheme: /a/slug -> /artefact/slug
+[[redirects]]
+  from = "/a/*"
+  to = "/artefact/:splat"
+  status = 301
+
+# SPA fallback for client-side routing (if needed)
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

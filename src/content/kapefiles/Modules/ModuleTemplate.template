@@ -1,0 +1,24 @@
+Description: Name of application/artifact here
+Category: Misc
+Author: FirstName LastName
+Version: 1.0
+Id: eb5a737f-cfa1-483b-a452-3bd1efc4dbef # Change this, and delete this comment before merging, please
+BinaryUrl: https://url.goes.here.com
+ExportFormat: csv
+FileMask: FileName.exe
+Processors:
+    -
+        Executable: Folder\binary.exe
+        CommandLine: -d %sourceDirectory% --csv %destinationDirectory%
+        ExportFormat: csv
+    -
+        Executable: Folder\binary.exe
+        CommandLine: -d %sourceDirectory% --xml %destinationDirectory%
+        ExportFormat: xml
+    -
+        Executable: Folder\binary.exe
+        CommandLine: -d %sourceDirectory% --json %destinationDirectory%
+        ExportFormat: json
+
+# Documentation
+# N/A if no Documentation present. End with new line. Be sure to check out the ModuleGuide.guide for more information!

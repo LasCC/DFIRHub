@@ -1,0 +1,338 @@
+---
+import "../styles/global.css";
+import { KeyboardShortcuts } from "../components/layout/KeyboardShortcuts";
+
+interface Props {
+    title: string;
+    description?: string;
+    image?: string;
+    type?: "website" | "article";
+    noindex?: boolean;
+}
+
+const {
+    title,
+    description = "Digital Forensics and Incident Response artifact search and reference tool. Search 350+ Windows forensic artifacts, KAPE targets, and collection paths.",
+    image = "/og-image.png",
+    type = "website",
+    noindex = false,
+} = Astro.props;
+
+const siteUrl = "https://dfirhub.com";
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
+const fullTitle =
+    title === "DFIRHub"
+        ? "DFIRHub - DFIR Artifact Search & Reference"
+        : `${title} | DFIRHub`;
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="generator" content={Astro.generator} />
+
+        <!-- Primary Meta Tags -->
+        <title>{fullTitle}</title>
+        <meta name="title" content={fullTitle} />
+        <meta name="description" content={description} />
+        <meta
+            name="keywords"
+            content="DFIR, digital forensics, incident response, KAPE, forensic artifacts, Windows forensics, malware analysis, threat hunting, evidence collection"
+        />
+        <meta name="author" content="DFIRHub" />
+        {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+        <!-- Canonical URL -->
+        <link rel="canonical" href={canonicalUrl} />
+
+        <!-- Theme -->
+        <meta name="theme-color" content="#09090b" />
+        <meta name="color-scheme" content="dark" />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content={type} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={fullTitle} />
+        <meta property="og:description" content={description} />
+        <meta property="og:image" content={`${siteUrl}${image}`} />
+        <meta property="og:site_name" content="DFIRHub" />
+        <meta property="og:locale" content="en_US" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content={canonicalUrl} />
+        <meta name="twitter:title" content={fullTitle} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={`${siteUrl}${image}`} />
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="/favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="/favicon-16x16.png"
+        />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="/apple-touch-icon.png"
+        />
+        <link rel="manifest" href="/site.webmanifest" />
+
+        <!-- IBM Plex Mono - Technical, utilitarian feel -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Structured Data (JSON-LD) -->
+        <script
+            type="application/ld+json"
+            set:html={JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "DFIRHub",
+                url: siteUrl,
+                description:
+                    "Digital Forensics and Incident Response artifact search and reference tool",
+                potentialAction: {
+                    "@type": "SearchAction",
+                    target: {
+                        "@type": "EntryPoint",
+                        urlTemplate: `${siteUrl}/artefacts?q={search_term_string}`,
+                    },
+                    "query-input": "required name=search_term_string",
+                },
+            })}
+        />
+
+        <!-- Page-specific head content -->
+        <slot name="head" />
+    </head>
+    <body
+        class="min-h-screen bg-background text-foreground antialiased scrollbar-thin"
+    >
+        <!-- Subtle Radial Gradient Background -->
+        <div
+            class="fixed inset-0 z-0 pointer-events-none"
+            aria-hidden="true"
+            style="background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.04), transparent);"
+        />
+
+        <!-- Skip Link for Accessibility -->
+        <a href="#main-content" class="skip-link"> Skip to main content </a>
+
+        <!-- Live Region for Screen Reader Announcements -->
+        <div
+            id="live-announcer"
+            class="live-region"
+            aria-live="polite"
+            aria-atomic="true"
+        >
+        </div>
+
+        <div class="relative flex min-h-screen flex-col">
+            <slot />
+        </div>
+
+        <!-- Keyboard Shortcuts Help Modal -->
+        <KeyboardShortcuts client:load />
+        <div id="keyboard-help-trigger" class="hidden"></div>
+
+        <!-- Global Keyboard Shortcuts Handler -->
+        <script>
+            // Keyboard navigation state
+            let isKeyboardUser = false;
+
+            // Detect keyboard vs mouse navigation
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Tab") {
+                    isKeyboardUser = true;
+                    document.body.classList.add("keyboard-navigation");
+                }
+            });
+
+            document.addEventListener("mousedown", () => {
+                isKeyboardUser = false;
+                document.body.classList.remove("keyboard-navigation");
+            });
+
+            // Global keyboard shortcuts
+            document.addEventListener("keydown", (e) => {
+                const target = e.target as HTMLElement;
+                const isInputField =
+                    ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+                    target.isContentEditable;
+
+                // Don't trigger shortcuts when typing in inputs
+                if (isInputField && e.key !== "Escape") {
+                    return;
+                }
+
+                // "/" - Focus search
+                if (e.key === "/" && !e.metaKey && !e.ctrlKey) {
+                    e.preventDefault();
+                    const searchInput =
+                        document.querySelector<HTMLInputElement>(
+                            "[data-search-input]",
+                        );
+                    const searchTrigger =
+                        document.querySelector<HTMLButtonElement>(
+                            "[data-search-trigger]",
+                        );
+
+                    if (searchInput) {
+                        searchInput.focus();
+                    } else if (searchTrigger) {
+                        searchTrigger.click();
+                    }
+                    announce("Search focused");
+                }
+
+                // "?" - Show keyboard shortcuts help
+                if (e.key === "?" && e.shiftKey) {
+                    e.preventDefault();
+                    const helpTrigger = document.getElementById(
+                        "keyboard-help-trigger",
+                    );
+                    if (helpTrigger) {
+                        helpTrigger.click();
+                    }
+                }
+
+                // "g" then "h" - Go home (vim-style navigation)
+                if (e.key === "g" && !e.metaKey && !e.ctrlKey) {
+                    const handleSecondKey = (secondEvent: KeyboardEvent) => {
+                        document.removeEventListener(
+                            "keydown",
+                            handleSecondKey,
+                        );
+                        clearTimeout(timeout);
+
+                        if (secondEvent.key === "h") {
+                            secondEvent.preventDefault();
+                            window.location.href = "/";
+                        } else if (secondEvent.key === "a") {
+                            secondEvent.preventDefault();
+                            window.location.href = "/artefacts";
+                        } else if (secondEvent.key === "c") {
+                            secondEvent.preventDefault();
+                            window.location.href = "/collections";
+                        } else if (secondEvent.key === "b") {
+                            secondEvent.preventDefault();
+                            window.location.href = "/builder";
+                        }
+                    };
+
+                    const timeout = setTimeout(() => {
+                        document.removeEventListener(
+                            "keydown",
+                            handleSecondKey,
+                        );
+                    }, 1000);
+
+                    document.addEventListener("keydown", handleSecondKey);
+                }
+
+                // Escape - Close modals, blur inputs
+                if (e.key === "Escape") {
+                    const activeElement = document.activeElement as HTMLElement;
+                    if (activeElement && activeElement.blur) {
+                        activeElement.blur();
+                    }
+                }
+
+                // Arrow key navigation for lists
+                if (e.key === "j" || e.key === "k") {
+                    const focusableItems =
+                        document.querySelectorAll<HTMLElement>(
+                            '[role="listitem"] a, [role="option"], .artifact-link',
+                        );
+
+                    if (focusableItems.length > 0) {
+                        const currentIndex = Array.from(
+                            focusableItems,
+                        ).findIndex((item) => item === document.activeElement);
+
+                        let nextIndex: number;
+                        if (e.key === "j") {
+                            nextIndex =
+                                currentIndex < focusableItems.length - 1
+                                    ? currentIndex + 1
+                                    : 0;
+                        } else {
+                            nextIndex =
+                                currentIndex > 0
+                                    ? currentIndex - 1
+                                    : focusableItems.length - 1;
+                        }
+
+                        focusableItems[nextIndex]?.focus();
+                        e.preventDefault();
+                    }
+                }
+            });
+
+            // Screen reader announcement helper
+            function announce(message: string) {
+                const announcer = document.getElementById("live-announcer");
+                if (announcer) {
+                    announcer.textContent = message;
+                    // Clear after announcement
+                    setTimeout(() => {
+                        announcer.textContent = "";
+                    }, 1000);
+                }
+            }
+
+            // Expose announce function globally
+            (window as any).announce = announce;
+
+            // Focus management for SPA-like navigation
+            document.addEventListener("astro:page-load", () => {
+                // Focus main content after navigation
+                const mainContent = document.getElementById("main-content");
+                if (mainContent && isKeyboardUser) {
+                    mainContent.focus();
+                }
+            });
+        </script>
+
+        <!-- Keyboard navigation styles -->
+        <style is:global>
+            /* Only show focus rings for keyboard users */
+            body:not(.keyboard-navigation) *:focus {
+                outline: none;
+            }
+
+            body.keyboard-navigation *:focus-visible {
+                outline: 2px solid var(--color-primary);
+                outline-offset: 2px;
+            }
+
+            /* Enhanced focus for interactive elements */
+            body.keyboard-navigation a:focus,
+            body.keyboard-navigation button:focus,
+            body.keyboard-navigation [role="button"]:focus {
+                outline: 2px solid var(--color-primary);
+                outline-offset: 2px;
+            }
+
+            /* Main content focus style */
+            #main-content:focus {
+                outline: none;
+            }
+        </style>
+    </body>
+</html>

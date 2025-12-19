@@ -1,0 +1,301 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { Header } from "../../components/layout/Header";
+import { Footer } from "../../components/layout/Footer";
+import {
+    loadAllTargets,
+    getCategories,
+    type KapeTarget,
+} from "../../lib/kapefiles";
+
+export async function getStaticPaths() {
+    const targets = loadAllTargets();
+    const categories = getCategories();
+
+    return categories.map((category) => ({
+        params: { category: category.toLowerCase() },
+        props: {
+            category,
+            targets: targets.filter((t) => t.category === category),
+        },
+    }));
+}
+
+interface Props {
+    category: string;
+    targets: KapeTarget[];
+}
+
+const { category, targets } = Astro.props;
+
+// Category display info
+const categoryInfo: Record<
+    string,
+    { color: string; borderColor: string; description: string }
+> = {
+    Windows: {
+        color: "text-blue-400",
+        borderColor: "border-blue-500/30",
+        description:
+            "Core Windows operating system artifacts including registry, event logs, prefetch, and system files.",
+    },
+    Browsers: {
+        color: "text-amber-400",
+        borderColor: "border-amber-500/30",
+        description:
+            "Web browser artifacts including history, cookies, downloads, cache, and session data.",
+    },
+    Apps: {
+        color: "text-green-400",
+        borderColor: "border-green-500/30",
+        description:
+            "Third-party application artifacts including messaging apps, cloud storage, productivity software, and more.",
+    },
+    Antivirus: {
+        color: "text-red-400",
+        borderColor: "border-red-500/30",
+        description:
+            "Antivirus and endpoint protection artifacts including logs, quarantine, and detection history.",
+    },
+    Logs: {
+        color: "text-orange-400",
+        borderColor: "border-orange-500/30",
+        description: "System and application log files for forensic analysis.",
+    },
+    P2P: {
+        color: "text-purple-400",
+        borderColor: "border-purple-500/30",
+        description: "Peer-to-peer and file sharing application artifacts.",
+    },
+    Compound: {
+        color: "text-cyan-400",
+        borderColor: "border-cyan-500/30",
+        description:
+            "Compound targets that combine multiple individual targets for comprehensive triage collection.",
+    },
+};
+
+const info = categoryInfo[category] || {
+    color: "text-zinc-400",
+    borderColor: "border-zinc-500/30",
+    description: "Forensic artifact targets.",
+};
+
+// Sort targets: non-compound first, then alphabetically
+const sortedTargets = [...targets].sort((a, b) => {
+    if (a.isCompound !== b.isCompound) {
+        return a.isCompound ? 1 : -1;
+    }
+    return a.name.localeCompare(b.name);
+});
+---
+
+<Layout title={`${category} Artefacts`} description={info.description}>
+    <Header client:load />
+
+    <main id="main-content" class="flex-1 relative" tabindex="-1">
+        <div class="mx-auto max-w-6xl px-4 py-8">
+            <!-- Breadcrumb -->
+            <nav
+                class="mb-6 text-xs text-muted-foreground animate-in"
+                aria-label="Breadcrumb"
+            >
+                <ol class="flex items-center gap-1">
+                    <li>
+                        <a
+                            href="/"
+                            class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                        >
+                            <span class="text-primary">~</span>/
+                        </a>
+                    </li>
+                    <li class="flex items-center gap-1">
+                        <span aria-hidden="true">/</span>
+                        <a
+                            href="/artefacts"
+                            class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                            >artefacts</a
+                        >
+                    </li>
+                    <li class="flex items-center gap-1">
+                        <span aria-hidden="true">/</span>
+                        <span class="text-foreground px-1" aria-current="page"
+                            >{category.toLowerCase()}</span
+                        >
+                    </li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <header class="mb-8 animate-in" style="animation-delay: 50ms;">
+                <div class="flex items-start gap-4">
+                    <div
+                        class={`w-3 h-3 mt-2 rounded-full bg-current ${info.color}`}
+                        aria-hidden="true"
+                    >
+                    </div>
+                    <div>
+                        <h1 class={`text-2xl font-semibold mb-2 ${info.color}`}>
+                            {category}
+                        </h1>
+                        <p class="text-sm text-muted-foreground max-w-2xl">
+                            {info.description}
+                        </p>
+                        <p class="text-xs text-muted-foreground mt-2">
+                            <span class="text-primary">{targets.length}</span> targets
+                            {
+                                targets.filter((t) => t.isCompound).length >
+                                    0 && (
+                                    <span class="ml-2 text-cyan-400">
+                                        (
+                                        {
+                                            targets.filter((t) => t.isCompound)
+                                                .length
+                                        }{" "}
+                                        compound)
+                                    </span>
+                                )
+                            }
+                        </p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Category Filter -->
+            <div
+                class="mb-6 flex flex-wrap gap-2 animate-in"
+                style="animation-delay: 100ms;"
+            >
+                <span class="text-xs text-muted-foreground py-1.5"
+                    >categories:</span
+                >
+                {
+                    Object.keys(categoryInfo).map((cat) => (
+                        <a
+                            href={`/category/${cat.toLowerCase()}`}
+                            class={`px-3 py-1.5 text-xs border transition-colors focus-ring rounded-sm ${
+                                cat === category
+                                    ? `${categoryInfo[cat].borderColor} ${categoryInfo[cat].color} bg-secondary/50`
+                                    : "border-border text-muted-foreground hover:text-foreground hover:bg-secondary/30"
+                            }`}
+                        >
+                            {cat.toLowerCase()}
+                        </a>
+                    ))
+                }
+            </div>
+
+            <!-- Targets Grid -->
+            <div
+                class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in"
+                style="animation-delay: 150ms;"
+            >
+                {
+                    sortedTargets.map((target) => (
+                        <a
+                            href={`/artefact/${target.slug}`}
+                            class={`group block p-4 border rounded-lg ${info.borderColor} bg-card/20 hover:border-primary/30 hover:bg-card/40 transition-all focus-ring`}
+                        >
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <h3 class="text-sm font-medium group-hover:text-primary transition-colors truncate">
+                                    {target.name}
+                                </h3>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    {target.isCompound && (
+                                        <span class="px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10">
+                                            collection
+                                        </span>
+                                    )}
+                                    <span
+                                        class="text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                        aria-hidden="true"
+                                    >
+                                        →
+                                    </span>
+                                </div>
+                            </div>
+                            {target.description && (
+                                <p class="text-xs text-muted-foreground line-clamp-2 mb-3">
+                                    {target.description}
+                                </p>
+                            )}
+                            <div class="flex items-center gap-3 text-[10px] text-muted-foreground">
+                                {!target.isCompound ? (
+                                    <span>
+                                        {
+                                            target.targets.filter(
+                                                (e) =>
+                                                    !e.path.endsWith(".tkape"),
+                                            ).length
+                                        }{" "}
+                                        paths
+                                    </span>
+                                ) : (
+                                    <span class="text-cyan-400">
+                                        {target.referencedTargets.length}{" "}
+                                        targets
+                                    </span>
+                                )}
+                                <span class="text-muted-foreground/30">•</span>
+                                <span>{target.author}</span>
+                            </div>
+                        </a>
+                    ))
+                }
+            </div>
+
+            {
+                targets.length === 0 && (
+                    <div
+                        class="text-center py-12 animate-in"
+                        style="animation-delay: 150ms;"
+                    >
+                        <p class="text-muted-foreground">
+                            No targets found in this category.
+                        </p>
+                        <a
+                            href="/artefacts"
+                            class="text-primary hover:text-primary/80 transition-colors mt-2 inline-block"
+                        >
+                            ← browse all artefacts
+                        </a>
+                    </div>
+                )
+            }
+        </div>
+    </main>
+
+    <Footer client:load />
+</Layout>
+
+<style>
+    .animate-in {
+        opacity: 0;
+        animation: animate-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes animate-in {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .animate-in {
+            animation: none;
+            opacity: 1;
+        }
+    }
+</style>

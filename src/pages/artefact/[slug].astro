@@ -1,0 +1,492 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { Header } from "../../components/layout/Header";
+import { Footer } from "../../components/layout/Footer";
+import { CommandGenerator } from "../../components/artefact/CommandGenerator";
+import { PathBrowser } from "../../components/artefact/PathBrowser";
+import { CyberChefLinks } from "../../components/artefact/CyberChefLinks";
+import {
+    ArtefactPageContainer,
+    ArtefactBreadcrumb,
+    ArtefactHeader,
+    ArtefactSection,
+    ArtefactCard,
+    ArtefactFooter,
+    ArtefactList,
+    ArtefactListItem,
+} from "../../components/artefact/ArtefactContent";
+import {
+    loadAllTargets,
+    resolveCompoundReferences,
+    findCollectionsContaining,
+    type KapeTarget,
+} from "../../lib/kapefiles";
+
+export async function getStaticPaths() {
+    const targets = loadAllTargets();
+    return targets.map((target) => ({
+        params: { slug: target.slug },
+        props: { target },
+    }));
+}
+
+interface Props {
+    target: KapeTarget;
+}
+
+const { target } = Astro.props;
+
+// Resolve compound targets to their individual targets
+const resolvedTargets = target.isCompound
+    ? resolveCompoundReferences(target)
+    : undefined;
+
+// Find collections that include this target
+const includedInCollections = findCollectionsContaining(target.slug);
+
+// Get category color
+function getCategoryColor(category: string): string {
+    const colors: Record<string, string> = {
+        Windows: "text-blue-400",
+        Browsers: "text-amber-400",
+        Apps: "text-green-400",
+        Antivirus: "text-red-400",
+        Logs: "text-orange-400",
+        P2P: "text-purple-400",
+        Compound: "text-cyan-400",
+    };
+    return colors[category] || "text-zinc-400";
+}
+
+// Get category border color
+function getCategoryBorderColor(category: string): string {
+    const colors: Record<string, string> = {
+        Windows: "border-blue-500/30",
+        Browsers: "border-amber-500/30",
+        Apps: "border-green-500/30",
+        Antivirus: "border-red-500/30",
+        Logs: "border-orange-500/30",
+        P2P: "border-purple-500/30",
+        Compound: "border-cyan-500/30",
+    };
+    return colors[category] || "border-zinc-500/30";
+}
+
+// SEO description with context
+const pathCount = target.isCompound
+    ? target.referencedTargets.length + " targets"
+    : target.targets.filter((e) => !e.path.endsWith(".tkape")).length +
+      " paths";
+const seoDescription = target.description
+    ? target.description +
+      " KAPE target with " +
+      pathCount +
+      " for Windows forensic collection."
+    : target.name +
+      " - Windows forensic artifact with " +
+      pathCount +
+      ". KAPE collection target for DFIR investigations.";
+
+// JSON-LD for artifact page
+const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    headline: target.name + " - Windows Forensic Artifact",
+    description: seoDescription,
+    author: {
+        "@type": "Person",
+        name: target.author,
+    },
+    publisher: {
+        "@type": "Organization",
+        name: "DFIRHub",
+    },
+    mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": "https://dfirhub.com/artefact/" + target.slug,
+    },
+    about: {
+        "@type": "Thing",
+        name: "Digital Forensics",
+        description: "Windows forensic artifact for incident response",
+    },
+    keywords: [
+        "DFIR",
+        "forensics",
+        target.name,
+        target.category,
+        "KAPE",
+        "Windows forensics",
+    ].join(", "),
+};
+---
+
+<Layout title={target.name} description={seoDescription}>
+    <!-- Artifact-specific JSON-LD -->
+    <script
+        type="application/ld+json"
+        set:html={JSON.stringify(jsonLd)}
+        slot="head"
+    />
+
+    <Header client:load />
+
+    <main id="main-content" class="flex-1 relative" tabindex="-1">
+        <div class="mx-auto max-w-6xl px-4 py-8">
+            <ArtefactPageContainer client:load>
+                <!-- Breadcrumb Navigation -->
+                <ArtefactBreadcrumb
+                    className="mb-6 text-xs text-muted-foreground"
+                >
+                    <ol class="flex items-center flex-wrap gap-1" role="list">
+                        <li>
+                            <a
+                                href="/"
+                                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                            >
+                                <span class="text-primary">~</span>/
+                            </a>
+                        </li>
+                        <li class="flex items-center gap-1">
+                            <span aria-hidden="true">/</span>
+                            <a
+                                href="/artefacts"
+                                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                                >artefacts</a
+                            >
+                        </li>
+                        <li class="flex items-center gap-1">
+                            <span aria-hidden="true">/</span>
+                            <a
+                                href={"/category/" +
+                                    target.category.toLowerCase()}
+                                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                            >
+                                {target.category.toLowerCase()}
+                            </a>
+                        </li>
+                        <li class="flex items-center gap-1">
+                            <span aria-hidden="true">/</span>
+                            <span
+                                class="text-foreground px-1"
+                                aria-current="page">{target.slug}</span
+                            >
+                        </li>
+                    </ol>
+                </ArtefactBreadcrumb>
+
+                <!-- Header -->
+                <ArtefactHeader className="mb-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h1
+                                class="text-2xl font-semibold mb-3"
+                                id="artefact-title"
+                            >
+                                {target.name}
+                            </h1>
+                            <div
+                                class="flex flex-wrap gap-2"
+                                role="list"
+                                aria-label="Target metadata"
+                            >
+                                <a
+                                    href={"/category/" +
+                                        target.category.toLowerCase()}
+                                    class={"px-2 py-1 text-[10px] uppercase tracking-wider border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors focus-ring rounded-sm " +
+                                        getCategoryColor(target.category)}
+                                    role="listitem"
+                                >
+                                    {target.category}
+                                </a>
+                                {
+                                    target.isCompound && (
+                                        <span
+                                            class="px-2 py-1 text-[10px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 rounded-sm"
+                                            role="listitem"
+                                        >
+                                            compound
+                                        </span>
+                                    )
+                                }
+                                <span
+                                    class="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground border border-border bg-secondary/30 rounded-sm"
+                                    role="listitem"
+                                >
+                                    v{target.version}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-right text-xs text-muted-foreground">
+                            <p>
+                                Author: <span class="text-foreground"
+                                    >{target.author}</span
+                                >
+                            </p>
+                        </div>
+                    </div>
+                </ArtefactHeader>
+
+                <!-- Description -->
+                {
+                    target.description && (
+                        <ArtefactCard
+                            className={
+                                "mb-8 p-5 border bg-card/30 rounded-lg " +
+                                getCategoryBorderColor(target.category)
+                            }
+                        >
+                            <h2
+                                id="description-heading"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                            >
+                                <span
+                                    class="text-primary/50"
+                                    aria-hidden="true"
+                                >
+                                    //
+                                </span>
+                                description
+                            </h2>
+                            <p class="text-sm leading-relaxed whitespace-pre-line">
+                                {target.description}
+                            </p>
+                        </ArtefactCard>
+                    )
+                }
+
+                <!-- Compound Target Info -->
+                {
+                    target.isCompound && resolvedTargets && (
+                        <ArtefactSection
+                            className="mb-8"
+                            ariaLabel="includes-heading"
+                        >
+                            <h2
+                                id="includes-heading"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                            >
+                                <span
+                                    class="text-primary/50"
+                                    aria-hidden="true"
+                                >
+                                    //
+                                </span>
+                                includes
+                                <span class="text-primary">
+                                    ({resolvedTargets.length})
+                                </span>
+                            </h2>
+                            <ArtefactList className="border border-border bg-card/20 rounded-lg divide-y divide-border">
+                                {target.referencedTargets
+                                    .slice(0, 20)
+                                    .map((ref) => {
+                                        const refName = ref.replace(
+                                            /\.tkape$/,
+                                            "",
+                                        );
+                                        const foundTarget =
+                                            resolvedTargets.find(
+                                                (t) =>
+                                                    t.sourceFile
+                                                        .replace(/\.tkape$/, "")
+                                                        .toLowerCase() ===
+                                                    refName.toLowerCase(),
+                                            );
+                                        return (
+                                            <ArtefactListItem>
+                                                <a
+                                                    href={
+                                                        foundTarget
+                                                            ? "/artefact/" +
+                                                              foundTarget.slug
+                                                            : "#"
+                                                    }
+                                                    class="flex items-center justify-between px-4 py-2 hover:bg-primary/5 transition-colors group"
+                                                >
+                                                    <span class="text-sm">
+                                                        {refName}
+                                                    </span>
+                                                    {foundTarget && (
+                                                        <span class="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                                                            {
+                                                                foundTarget.targets.filter(
+                                                                    (e) =>
+                                                                        !e.path.endsWith(
+                                                                            ".tkape",
+                                                                        ),
+                                                                ).length
+                                                            }{" "}
+                                                            paths →
+                                                        </span>
+                                                    )}
+                                                </a>
+                                            </ArtefactListItem>
+                                        );
+                                    })}
+                                {target.referencedTargets.length > 20 && (
+                                    <ArtefactListItem>
+                                        <div class="px-4 py-2 text-xs text-muted-foreground">
+                                            +
+                                            {target.referencedTargets.length -
+                                                20}{" "}
+                                            more targets
+                                        </div>
+                                    </ArtefactListItem>
+                                )}
+                            </ArtefactList>
+                        </ArtefactSection>
+                    )
+                }
+
+                <!-- Paths -->
+                <ArtefactSection className="mb-8" ariaLabel="paths-heading">
+                    <h2
+                        id="paths-heading"
+                        class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                    >
+                        <span class="text-primary/50" aria-hidden="true"
+                            >//</span
+                        >
+                        paths
+                    </h2>
+                    <PathBrowser
+                        client:load
+                        target={target}
+                        resolvedTargets={resolvedTargets}
+                    />
+                </ArtefactSection>
+
+                <!-- Tool Commands -->
+                <ArtefactSection className="mb-8" ariaLabel="commands-heading">
+                    <h2
+                        id="commands-heading"
+                        class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                    >
+                        <span class="text-primary/50" aria-hidden="true"
+                            >//</span
+                        >
+                        collection commands
+                    </h2>
+                    <CommandGenerator client:load target={target} />
+                </ArtefactSection>
+
+                <!-- CyberChef Links -->
+                <ArtefactSection className="mb-8">
+                    <CyberChefLinks client:load target={target} />
+                </ArtefactSection>
+
+                <!-- Documentation / References -->
+                {
+                    target.documentation.length > 0 && (
+                        <ArtefactSection
+                            className="mb-8"
+                            ariaLabel="references-heading"
+                        >
+                            <h2
+                                id="references-heading"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                            >
+                                <span
+                                    class="text-primary/50"
+                                    aria-hidden="true"
+                                >
+                                    //
+                                </span>
+                                references
+                            </h2>
+                            <ArtefactList className="space-y-2">
+                                {target.documentation.map((url) => (
+                                    <ArtefactListItem>
+                                        <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="group flex items-center gap-2 text-xs text-primary hover:text-primary/80 transition-colors focus-ring rounded-sm py-1"
+                                        >
+                                            <span
+                                                class="text-muted-foreground group-hover:text-primary transition-colors"
+                                                aria-hidden="true"
+                                            >
+                                                →
+                                            </span>
+                                            <span class="truncate">{url}</span>
+                                            <span class="sr-only">
+                                                (opens in new tab)
+                                            </span>
+                                        </a>
+                                    </ArtefactListItem>
+                                ))}
+                            </ArtefactList>
+                        </ArtefactSection>
+                    )
+                }
+
+                <!-- Included In Collections -->
+                {
+                    includedInCollections.length > 0 && (
+                        <ArtefactSection
+                            className="mb-8"
+                            ariaLabel="collections-heading"
+                        >
+                            <h2
+                                id="collections-heading"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                            >
+                                <span
+                                    class="text-primary/50"
+                                    aria-hidden="true"
+                                >
+                                    //
+                                </span>
+                                included in collections
+                            </h2>
+                            <div class="flex flex-wrap gap-2" role="list">
+                                {includedInCollections.map((collection) => (
+                                    <a
+                                        href={"/artefact/" + collection.slug}
+                                        class="px-3 py-1.5 text-xs text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 transition-colors focus-ring rounded-md"
+                                        role="listitem"
+                                    >
+                                        {collection.name}
+                                    </a>
+                                ))}
+                            </div>
+                        </ArtefactSection>
+                    )
+                }
+
+                <!-- Source File -->
+                <ArtefactFooter
+                    className="text-xs text-muted-foreground/50 pt-4 border-t border-border/30"
+                >
+                    <span>source: </span>
+                    <a
+                        href={"https://github.com/EricZimmerman/KapeFiles/blob/master/Targets/" +
+                            target.category +
+                            "/" +
+                            target.sourceFile}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-primary/50 hover:text-primary transition-colors focus-ring rounded-sm"
+                    >
+                        KapeFiles/{target.category}/{target.sourceFile}
+                        <span class="sr-only">(opens in new tab)</span>
+                    </a>
+                </ArtefactFooter>
+            </ArtefactPageContainer>
+        </div>
+    </main>
+
+    <Footer client:load />
+</Layout>
+
+<style>
+    /* Framer Motion handles animations, but provide fallback for no-JS */
+    @media (prefers-reduced-motion: reduce) {
+        :global([data-framer-motion]) {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+</style>

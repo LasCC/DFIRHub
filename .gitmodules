@@ -1,0 +1,3 @@
+[submodule "src/content/kapefiles"]
+	path = src/content/kapefiles
+	url = https://github.com/EricZimmerman/KapeFiles.git
