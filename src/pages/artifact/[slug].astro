@@ -2,19 +2,19 @@
 import Layout from "../../layouts/Layout.astro";
 import { Header } from "../../components/layout/Header";
 import { Footer } from "../../components/layout/Footer";
-import { CommandGenerator } from "../../components/artefact/CommandGenerator";
-import { PathBrowser } from "../../components/artefact/PathBrowser";
-import { CyberChefLinks } from "../../components/artefact/CyberChefLinks";
+import { CommandGenerator } from "../../components/artifact/CommandGenerator";
+import { PathBrowser } from "../../components/artifact/PathBrowser";
+import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
 import {
-    ArtefactPageContainer,
-    ArtefactBreadcrumb,
-    ArtefactHeader,
-    ArtefactSection,
-    ArtefactCard,
-    ArtefactFooter,
-    ArtefactList,
-    ArtefactListItem,
-} from "../../components/artefact/ArtefactContent";
+    ArtifactPageContainer,
+    ArtifactBreadcrumb,
+    ArtifactHeader,
+    ArtifactSection,
+    ArtifactCard,
+    ArtifactFooter,
+    ArtifactList,
+    ArtifactListItem,
+} from "../../components/artifact/ArtifactContent";
 import {
     loadAllTargets,
     resolveCompoundReferences,
@@ -103,7 +103,7 @@ const jsonLd = {
     },
     mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": "https://dfirhub.com/artefact/" + target.slug,
+        "@id": "https://dfirhub.com/artifact/" + target.slug,
     },
     about: {
         "@type": "Thing",
@@ -133,9 +133,9 @@ const jsonLd = {
 
     <main id="main-content" class="flex-1 relative" tabindex="-1">
         <div class="mx-auto max-w-6xl px-4 py-8">
-            <ArtefactPageContainer client:load>
+            <ArtifactPageContainer client:load>
                 <!-- Breadcrumb Navigation -->
-                <ArtefactBreadcrumb
+                <ArtifactBreadcrumb
                     className="mb-6 text-xs text-muted-foreground"
                 >
                     <ol class="flex items-center flex-wrap gap-1" role="list">
@@ -150,9 +150,9 @@ const jsonLd = {
                         <li class="flex items-center gap-1">
                             <span aria-hidden="true">/</span>
                             <a
-                                href="/artefacts"
+                                href="/artifacts"
                                 class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
-                                >artefacts</a
+                                >artifacts</a
                             >
                         </li>
                         <li class="flex items-center gap-1">
@@ -173,15 +173,15 @@ const jsonLd = {
                             >
                         </li>
                     </ol>
-                </ArtefactBreadcrumb>
+                </ArtifactBreadcrumb>
 
                 <!-- Header -->
-                <ArtefactHeader className="mb-8">
+                <ArtifactHeader className="mb-8">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <h1
                                 class="text-2xl font-semibold mb-3"
-                                id="artefact-title"
+                                id="artifact-title"
                             >
                                 {target.name}
                             </h1>
@@ -225,12 +225,12 @@ const jsonLd = {
                             </p>
                         </div>
                     </div>
-                </ArtefactHeader>
+                </ArtifactHeader>
 
                 <!-- Description -->
                 {
                     target.description && (
-                        <ArtefactCard
+                        <ArtifactCard
                             className={
                                 "mb-8 p-5 border bg-card/30 rounded-lg " +
                                 getCategoryBorderColor(target.category)
@@ -251,14 +251,14 @@ const jsonLd = {
                             <p class="text-sm leading-relaxed whitespace-pre-line">
                                 {target.description}
                             </p>
-                        </ArtefactCard>
+                        </ArtifactCard>
                     )
                 }
 
                 <!-- Compound Target Info -->
                 {
                     target.isCompound && resolvedTargets && (
-                        <ArtefactSection
+                        <ArtifactSection
                             className="mb-8"
                             ariaLabel="includes-heading"
                         >
@@ -277,7 +277,7 @@ const jsonLd = {
                                     ({resolvedTargets.length})
                                 </span>
                             </h2>
-                            <ArtefactList className="border border-border bg-card/20 rounded-lg divide-y divide-border">
+                            <ArtifactList className="border border-border bg-card/20 rounded-lg divide-y divide-border">
                                 {target.referencedTargets
                                     .slice(0, 20)
                                     .map((ref) => {
@@ -294,11 +294,11 @@ const jsonLd = {
                                                     refName.toLowerCase(),
                                             );
                                         return (
-                                            <ArtefactListItem>
+                                            <ArtifactListItem>
                                                 <a
                                                     href={
                                                         foundTarget
-                                                            ? "/artefact/" +
+                                                            ? "/artifact/" +
                                                               foundTarget.slug
                                                             : "#"
                                                     }
@@ -321,26 +321,26 @@ const jsonLd = {
                                                         </span>
                                                     )}
                                                 </a>
-                                            </ArtefactListItem>
+                                            </ArtifactListItem>
                                         );
                                     })}
                                 {target.referencedTargets.length > 20 && (
-                                    <ArtefactListItem>
+                                    <ArtifactListItem>
                                         <div class="px-4 py-2 text-xs text-muted-foreground">
                                             +
                                             {target.referencedTargets.length -
                                                 20}{" "}
                                             more targets
                                         </div>
-                                    </ArtefactListItem>
+                                    </ArtifactListItem>
                                 )}
-                            </ArtefactList>
-                        </ArtefactSection>
+                            </ArtifactList>
+                        </ArtifactSection>
                     )
                 }
 
                 <!-- Paths -->
-                <ArtefactSection className="mb-8" ariaLabel="paths-heading">
+                <ArtifactSection className="mb-8" ariaLabel="paths-heading">
                     <h2
                         id="paths-heading"
                         class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
@@ -355,10 +355,10 @@ const jsonLd = {
                         target={target}
                         resolvedTargets={resolvedTargets}
                     />
-                </ArtefactSection>
+                </ArtifactSection>
 
                 <!-- Tool Commands -->
-                <ArtefactSection className="mb-8" ariaLabel="commands-heading">
+                <ArtifactSection className="mb-8" ariaLabel="commands-heading">
                     <h2
                         id="commands-heading"
                         class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
@@ -369,17 +369,17 @@ const jsonLd = {
                         collection commands
                     </h2>
                     <CommandGenerator client:load target={target} />
-                </ArtefactSection>
+                </ArtifactSection>
 
                 <!-- CyberChef Links -->
-                <ArtefactSection className="mb-8">
+                <ArtifactSection className="mb-8">
                     <CyberChefLinks client:load target={target} />
-                </ArtefactSection>
+                </ArtifactSection>
 
                 <!-- Documentation / References -->
                 {
                     target.documentation.length > 0 && (
-                        <ArtefactSection
+                        <ArtifactSection
                             className="mb-8"
                             ariaLabel="references-heading"
                         >
@@ -395,9 +395,9 @@ const jsonLd = {
                                 </span>
                                 references
                             </h2>
-                            <ArtefactList className="space-y-2">
+                            <ArtifactList className="space-y-2">
                                 {target.documentation.map((url) => (
-                                    <ArtefactListItem>
+                                    <ArtifactListItem>
                                         <a
                                             href={url}
                                             target="_blank"
@@ -415,17 +415,17 @@ const jsonLd = {
                                                 (opens in new tab)
                                             </span>
                                         </a>
-                                    </ArtefactListItem>
+                                    </ArtifactListItem>
                                 ))}
-                            </ArtefactList>
-                        </ArtefactSection>
+                            </ArtifactList>
+                        </ArtifactSection>
                     )
                 }
 
                 <!-- Included In Collections -->
                 {
                     includedInCollections.length > 0 && (
-                        <ArtefactSection
+                        <ArtifactSection
                             className="mb-8"
                             ariaLabel="collections-heading"
                         >
@@ -444,7 +444,7 @@ const jsonLd = {
                             <div class="flex flex-wrap gap-2" role="list">
                                 {includedInCollections.map((collection) => (
                                     <a
-                                        href={"/artefact/" + collection.slug}
+                                        href={"/artifact/" + collection.slug}
                                         class="px-3 py-1.5 text-xs text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 transition-colors focus-ring rounded-md"
                                         role="listitem"
                                     >
@@ -452,12 +452,12 @@ const jsonLd = {
                                     </a>
                                 ))}
                             </div>
-                        </ArtefactSection>
+                        </ArtifactSection>
                     )
                 }
 
                 <!-- Source File -->
-                <ArtefactFooter
+                <ArtifactFooter
                     className="text-xs text-muted-foreground/50 pt-4 border-t border-border/30"
                 >
                     <span>source: </span>
@@ -473,8 +473,8 @@ const jsonLd = {
                         KapeFiles/{target.category}/{target.sourceFile}
                         <span class="sr-only">(opens in new tab)</span>
                     </a>
-                </ArtefactFooter>
-            </ArtefactPageContainer>
+                </ArtifactFooter>
+            </ArtifactPageContainer>
         </div>
     </main>
 

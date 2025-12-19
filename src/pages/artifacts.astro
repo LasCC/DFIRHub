@@ -2,7 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import { Header } from "../components/layout/Header";
 import { Footer } from "../components/layout/Footer";
-import { CategoryFilters } from "../components/artefacts/CategoryFilters";
+import { CategoryFilters } from "../components/artifacts/CategoryFilters";
 import {
     loadAllTargets,
     getCategories,
@@ -163,7 +163,7 @@ const filterCategories = [
                     <li class="flex items-center gap-1">
                         <span aria-hidden="true">/</span>
                         <span class="text-foreground px-1" aria-current="page"
-                            >artefacts</span
+                            >artifacts</span
                         >
                     </li>
                 </ol>
@@ -197,7 +197,7 @@ const filterCategories = [
                             class="text-xs text-muted-foreground"></span>
                     </div>
                     <a
-                        href="/artefacts"
+                        href="/artifacts"
                         class="text-xs text-primary hover:text-primary/80 transition-colors"
                     >
                         clear filter ×
@@ -295,7 +295,7 @@ const filterCategories = [
                                     .slice(0, 6)
                                     .map((target) => (
                                         <a
-                                            href={"/artefact/" + target.slug}
+                                            href={"/artifact/" + target.slug}
                                             class={
                                                 "group block border rounded-lg " +
                                                 getCategoryColor(
@@ -378,7 +378,7 @@ const filterCategories = [
                     {
                         targets.map((target) => (
                             <a
-                                href={"/artefact/" + target.slug}
+                                href={"/artifact/" + target.slug}
                                 data-slug={target.slug.toLowerCase()}
                                 data-category={target.category.toLowerCase()}
                                 data-lolbin={

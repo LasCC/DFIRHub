@@ -90,7 +90,7 @@ const reducedItemVariants = {
 };
 
 // Main wrapper
-export function ArtefactPageContainer({ children }: { children: ReactNode }) {
+export function ArtifactPageContainer({ children }: { children: ReactNode }) {
 	const shouldReduceMotion = useReducedMotion();
 
 	return (
@@ -107,7 +107,7 @@ export function ArtefactPageContainer({ children }: { children: ReactNode }) {
 }
 
 // Breadcrumb navigation
-export function ArtefactBreadcrumb({
+export function ArtifactBreadcrumb({
 	children,
 	className = "",
 }: {
@@ -126,7 +126,7 @@ export function ArtefactBreadcrumb({
 }
 
 // Header section
-export function ArtefactHeader({
+export function ArtifactHeader({
 	children,
 	className = "",
 }: {
@@ -141,7 +141,7 @@ export function ArtefactHeader({
 }
 
 // Generic section
-export function ArtefactSection({
+export function ArtifactSection({
 	children,
 	className = "",
 	ariaLabel,
@@ -162,7 +162,7 @@ export function ArtefactSection({
 }
 
 // Card/Box section
-export function ArtefactCard({
+export function ArtifactCard({
 	children,
 	className = "",
 }: {
@@ -177,7 +177,7 @@ export function ArtefactCard({
 }
 
 // Footer section
-export function ArtefactFooter({
+export function ArtifactFooter({
 	children,
 	className = "",
 }: {
@@ -214,7 +214,7 @@ const listItemVariants = {
 	},
 };
 
-export function ArtefactList({
+export function ArtifactList({
 	children,
 	className = "",
 }: {
@@ -228,7 +228,7 @@ export function ArtefactList({
 	);
 }
 
-export function ArtefactListItem({
+export function ArtifactListItem({
 	children,
 	className = "",
 }: {

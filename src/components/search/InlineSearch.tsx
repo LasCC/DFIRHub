@@ -36,10 +36,10 @@ declare global {
 
 // Quick access items with keyboard shortcuts
 const quickAccessItems = [
-	{ href: "/artefact/prefetch", label: "Prefetch", shortcut: "1" },
-	{ href: "/artefact/amcache", label: "Amcache", shortcut: "2" },
-	{ href: "/artefact/eventlogs", label: "EventLogs", shortcut: "3" },
-	{ href: "/artefact/srum", label: "SRUM", shortcut: "4" },
+	{ href: "/artifact/prefetch", label: "Prefetch", shortcut: "1" },
+	{ href: "/artifact/amcache", label: "Amcache", shortcut: "2" },
+	{ href: "/artifact/eventlogs", label: "EventLogs", shortcut: "3" },
+	{ href: "/artifact/srum", label: "SRUM", shortcut: "4" },
 ];
 
 export function InlineSearch() {
@@ -164,7 +164,7 @@ export function InlineSearch() {
 
 	// Extract artifact name from URL
 	const getArtifactName = (url: string): string => {
-		const match = url.match(/\/artefact\/([^/]+)/);
+		const match = url.match(/\/artifact\/([^/]+)/);
 		return match ? match[1] : url;
 	};
 

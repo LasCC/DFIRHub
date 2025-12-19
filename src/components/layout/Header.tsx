@@ -37,8 +37,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
 	{
-		href: "/artefacts",
-		label: "artefacts",
+		href: "/artifacts",
+		label: "artifacts",
 		icon: <Package className="h-3.5 w-3.5" />,
 		shortcut: "g a",
 	},

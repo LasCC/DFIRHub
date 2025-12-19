@@ -88,14 +88,6 @@ const fullTitle =
         />
         <link rel="manifest" href="/site.webmanifest" />
 
-        <!-- IBM Plex Mono - Technical, utilitarian feel -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
-
         <!-- Structured Data (JSON-LD) -->
         <script
             type="application/ld+json"
@@ -110,7 +102,7 @@ const fullTitle =
                     "@type": "SearchAction",
                     target: {
                         "@type": "EntryPoint",
-                        urlTemplate: `${siteUrl}/artefacts?q={search_term_string}`,
+                        urlTemplate: `${siteUrl}/artifacts?q={search_term_string}`,
                     },
                     "query-input": "required name=search_term_string",
                 },
@@ -128,7 +120,8 @@ const fullTitle =
             class="fixed inset-0 z-0 pointer-events-none"
             aria-hidden="true"
             style="background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.04), transparent);"
-        />
+        >
+        </div>
 
         <!-- Skip Link for Accessibility -->
         <a href="#main-content" class="skip-link"> Skip to main content </a>
@@ -225,7 +218,7 @@ const fullTitle =
                             window.location.href = "/";
                         } else if (secondEvent.key === "a") {
                             secondEvent.preventDefault();
-                            window.location.href = "/artefacts";
+                            window.location.href = "/artifacts";
                         } else if (secondEvent.key === "c") {
                             secondEvent.preventDefault();
                             window.location.href = "/collections";

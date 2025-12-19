@@ -14,7 +14,7 @@ const shortcutGroups: ShortcutGroup[] = [
 		title: "Navigation",
 		shortcuts: [
 			{ keys: ["g", "h"], description: "Go to home" },
-			{ keys: ["g", "a"], description: "Go to all artefacts" },
+			{ keys: ["g", "a"], description: "Go to all artifacts" },
 			{ keys: ["g", "c"], description: "Go to collections" },
 			{ keys: ["g", "b"], description: "Go to builder" },
 		],

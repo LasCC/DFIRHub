@@ -112,9 +112,9 @@ const sortedTargets = [...targets].sort((a, b) => {
                     <li class="flex items-center gap-1">
                         <span aria-hidden="true">/</span>
                         <a
-                            href="/artefacts"
+                            href="/artifacts"
                             class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
-                            >artefacts</a
+                            >artifacts</a
                         >
                     </li>
                     <li class="flex items-center gap-1">
@@ -193,7 +193,7 @@ const sortedTargets = [...targets].sort((a, b) => {
                 {
                     sortedTargets.map((target) => (
                         <a
-                            href={`/artefact/${target.slug}`}
+                            href={`/artifact/${target.slug}`}
                             class={`group block p-4 border rounded-lg ${info.borderColor} bg-card/20 hover:border-primary/30 hover:bg-card/40 transition-all focus-ring`}
                         >
                             <div class="flex items-start justify-between gap-2 mb-2">
@@ -254,10 +254,10 @@ const sortedTargets = [...targets].sort((a, b) => {
                             No targets found in this category.
                         </p>
                         <a
-                            href="/artefacts"
+                            href="/artifacts"
                             class="text-primary hover:text-primary/80 transition-colors mt-2 inline-block"
                         >
-                            ← browse all artefacts
+                            ← browse all artifacts
                         </a>
                     </div>
                 )

@@ -187,7 +187,7 @@ export function AnimatedSearch() {
 					)
 				)
 					// Filter out non-artifact pages (landing page, tools, builder, etc.)
-					.filter((r) => r.url.startsWith("/artefact/"))
+					.filter((r) => r.url.startsWith("/artifact/"))
 					.slice(0, 8);
 
 				setResults(searchResults);

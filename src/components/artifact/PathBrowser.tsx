@@ -150,7 +150,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 									</span>
 								</span>
 								<a
-									href={`/artefact/${group.slug}`}
+									href={`/artifact/${group.slug}`}
 									onClick={(e) => e.stopPropagation()}
 									className="text-[10px] text-primary hover:text-primary/80 transition-colors"
 								>

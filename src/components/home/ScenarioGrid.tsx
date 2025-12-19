@@ -74,7 +74,7 @@ export function ScenarioGrid({ scenarios }: ScenarioGridProps) {
 				return (
 					<a
 						key={scenario.id}
-						href={`/artefacts?scenario=${scenario.id}`}
+						href={`/artifacts?scenario=${scenario.id}`}
 						className={cardClass}
 					>
 						<div className="flex items-start justify-between mb-3">

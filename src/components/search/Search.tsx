@@ -191,7 +191,7 @@ export function Search({ showTrigger = true }: SearchProps) {
 
 	// Extract artifact name from URL
 	const getArtifactName = (url: string): string => {
-		const match = url.match(/\/artefact\/([^/]+)/);
+		const match = url.match(/\/artifact\/([^/]+)/);
 		return match ? match[1] : url;
 	};
 
@@ -319,13 +319,13 @@ export function Search({ showTrigger = true }: SearchProps) {
 								</span>
 							</CommandItem>
 							<CommandItem
-								onSelect={() => handleSelect("/artefacts")}
+								onSelect={() => handleSelect("/artifacts")}
 								className="text-sm group"
 							>
 								<span className="text-primary mr-2" aria-hidden="true">
 									→
 								</span>
-								<span>all_artefacts</span>
+								<span>all_artifacts</span>
 								<span className="ml-auto flex items-center gap-1 text-muted-foreground/50">
 									<kbd className="kbd text-[9px]">g</kbd>
 									<kbd className="kbd text-[9px]">a</kbd>

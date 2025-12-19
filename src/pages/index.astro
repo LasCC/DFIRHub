@@ -181,7 +181,7 @@ const popularArtifactsRow2 = popularSlugsRow2
     )
     .filter(Boolean);
 
-// Category pills for quick filtering (links to /artefacts with filter)
+// Category pills for quick filtering (links to /artifacts with filter)
 const categories = [
     { id: "all", label: "All", count: stats.total },
     { id: "lolbin", label: "LOLBins", count: lolbinCount, special: true },
@@ -234,8 +234,8 @@ const categories = [
                         categories.map((cat) => {
                             const href =
                                 cat.id === "all"
-                                    ? "/artefacts"
-                                    : "/artefacts?filter=" + cat.id;
+                                    ? "/artifacts"
+                                    : "/artifacts?filter=" + cat.id;
                             const baseClass =
                                 "px-4 py-2 text-sm rounded-full border transition-all";
                             const colorClass = cat.special
@@ -275,7 +275,7 @@ const categories = [
                         <span class="text-primary">//</span> POPULAR ARTIFACTS
                     </h2>
                     <a
-                        href="/artefacts"
+                        href="/artifacts"
                         class="text-xs text-primary hover:text-primary/80 transition-colors"
                     >
                         view all →
@@ -303,7 +303,7 @@ const categories = [
                                     ...popularArtifactsRow1,
                                 ].map((artifact) => {
                                     if (!artifact) return null;
-                                    const href = "/artefact/" + artifact.slug;
+                                    const href = "/artifact/" + artifact.slug;
                                     const pathCount = artifact.isCompound
                                         ? artifact.referencedTargets.length +
                                           " targets"
@@ -349,7 +349,7 @@ const categories = [
                                     ...popularArtifactsRow2,
                                 ].map((artifact) => {
                                     if (!artifact) return null;
-                                    const href = "/artefact/" + artifact.slug;
+                                    const href = "/artifact/" + artifact.slug;
                                     const pathCount = artifact.isCompound
                                         ? artifact.referencedTargets.length +
                                           " targets"
