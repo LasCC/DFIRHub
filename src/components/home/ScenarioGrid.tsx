@@ -64,12 +64,12 @@ const colorMap = {
 
 export function ScenarioGrid({ scenarios }: ScenarioGridProps) {
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
 			{scenarios.map((scenario) => {
 				const Icon =
 					iconMap[scenario.id as keyof typeof iconMap] || HiOutlineCpuChip;
 				const colors = colorMap[scenario.color] || colorMap.cyan;
-				const cardClass = `group block p-5 border border-border/50 rounded-xl ${colors.border} ${colors.bg} transition-all`;
+				const cardClass = `group block p-4 sm:p-5 border border-border/50 rounded-xl ${colors.border} ${colors.bg} transition-all`;
 
 				return (
 					<a
@@ -77,23 +77,23 @@ export function ScenarioGrid({ scenarios }: ScenarioGridProps) {
 						href={`/artifacts?scenario=${scenario.id}`}
 						className={cardClass}
 					>
-						<div className="flex items-start justify-between mb-3">
-							<Icon className={`w-6 h-6 ${colors.icon}`} />
-							<span className="text-xs text-muted-foreground">
+						<div className="flex items-start justify-between mb-2 sm:mb-3">
+							<Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${colors.icon}`} />
+							<span className="text-[10px] sm:text-xs text-muted-foreground">
 								{scenario.count} artifacts
 							</span>
 						</div>
-						<h3 className="font-medium mb-1 group-hover:text-foreground transition-colors">
+						<h3 className="font-medium text-sm sm:text-base mb-1 group-hover:text-foreground transition-colors">
 							{scenario.title}
 						</h3>
-						<p className="text-sm text-muted-foreground mb-3">
+						<p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
 							{scenario.description}
 						</p>
 						<div className="flex flex-wrap gap-1">
 							{scenario.keywords.slice(0, 4).map((kw) => (
 								<span
 									key={kw}
-									className="px-2 py-0.5 text-[10px] text-muted-foreground/70 bg-secondary/30 rounded"
+									className="px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] text-muted-foreground/70 bg-secondary/30 rounded"
 								>
 									{kw}
 								</span>

@@ -201,26 +201,27 @@ const categories = [
 ---
 
 <Layout title="DFIRHub">
-    <Header client:load showSearch={false} />
+    <div class="min-h-screen w-full overflow-x-hidden">
+        <Header client:load showSearch={false} />
 
         <main class="mx-auto max-w-6xl px-4">
             <!-- Hero -->
-            <div class="text-center py-16 border-b border-border/30">
-                <h1 class="text-3xl font-semibold mb-3">
+            <div class="text-center py-10 sm:py-16 border-b border-border/30">
+                <h1 class="text-2xl sm:text-3xl font-semibold mb-3">
                     Find DFIR artifacts <span class="text-primary">fast</span>
                 </h1>
-                <p class="text-muted-foreground mb-8">
+                <p class="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
                     Search {stats.total} Windows forensic artifacts, paths, and collection
                     targets
                 </p>
 
                 <!-- Search -->
-                <div class="max-w-lg mx-auto mb-8">
+                <div class="max-w-lg mx-auto mb-6 sm:mb-8">
                     <AnimatedSearch client:load />
                 </div>
 
                 <!-- Category Pills -->
-                <div class="flex flex-wrap justify-center gap-2">
+                <div class="flex flex-wrap justify-center gap-1.5 sm:gap-2">
                     {
                         categories.map((cat) => {
                             const href =
@@ -228,7 +229,7 @@ const categories = [
                                     ? "/artifacts"
                                     : "/artifacts?filter=" + cat.id;
                             const baseClass =
-                                "px-4 py-2 text-sm rounded-full border transition-all";
+                                "px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm rounded-full border transition-all";
                             const colorClass = cat.special
                                 ? "text-primary border-primary/30 hover:border-primary hover:bg-primary/10"
                                 : "text-muted-foreground border-border hover:border-foreground hover:text-foreground";
@@ -249,9 +250,9 @@ const categories = [
             </div>
 
             <!-- Investigate by Scenario -->
-            <section class="py-12 border-b border-border/30">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-sm text-muted-foreground">
+            <section class="py-8 sm:py-12 border-b border-border/30">
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <h2 class="text-xs sm:text-sm text-muted-foreground">
                         <span class="text-primary">//</span> INVESTIGATE BY SCENARIO
                     </h2>
                 </div>
@@ -260,9 +261,9 @@ const categories = [
             </section>
 
             <!-- Popular Artifacts - Marquee -->
-            <section class="py-12">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-sm text-muted-foreground">
+            <section class="py-8 sm:py-12">
+                <div class="flex items-center justify-between mb-4 sm:mb-6">
+                    <h2 class="text-xs sm:text-sm text-muted-foreground">
                         <span class="text-primary">//</span> POPULAR ARTIFACTS
                     </h2>
                     <a
@@ -277,11 +278,11 @@ const categories = [
                 <div class="relative overflow-hidden">
                     <!-- Fade edges -->
                     <div
-                        class="pointer-events-none absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background to-transparent z-10"
+                        class="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-background to-transparent z-10"
                     >
                     </div>
                     <div
-                        class="pointer-events-none absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent z-10"
+                        class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-background to-transparent z-10"
                     >
                     </div>
 
@@ -304,16 +305,16 @@ const categories = [
                                     return (
                                         <a
                                             href={href}
-                                            class="marquee-item group flex-shrink-0 w-56 p-4 border border-border/50 rounded-xl hover:border-primary/50 hover:bg-card/50 transition-all"
+                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 border border-border/50 rounded-xl hover:border-primary/50 hover:bg-card/50 transition-all"
                                         >
-                                            <h3 class="font-medium text-sm mb-1 group-hover:text-primary transition-colors truncate">
+                                            <h3 class="font-medium text-xs sm:text-sm mb-1 group-hover:text-primary transition-colors truncate">
                                                 {artifact.name}
                                             </h3>
-                                            <p class="text-xs text-muted-foreground mb-2 truncate">
+                                            <p class="text-[10px] sm:text-xs text-muted-foreground mb-2 truncate">
                                                 {artifact.description ||
                                                     "Forensic artifact"}
                                             </p>
-                                            <div class="flex items-center gap-2 text-[10px]">
+                                            <div class="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-[10px]">
                                                 <span class="text-muted-foreground/50 uppercase">
                                                     {artifact.category}
                                                 </span>
@@ -350,16 +351,16 @@ const categories = [
                                     return (
                                         <a
                                             href={href}
-                                            class="marquee-item group flex-shrink-0 w-56 p-4 border border-border/50 rounded-xl hover:border-primary/50 hover:bg-card/50 transition-all"
+                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 border border-border/50 rounded-xl hover:border-primary/50 hover:bg-card/50 transition-all"
                                         >
-                                            <h3 class="font-medium text-sm mb-1 group-hover:text-primary transition-colors truncate">
+                                            <h3 class="font-medium text-xs sm:text-sm mb-1 group-hover:text-primary transition-colors truncate">
                                                 {artifact.name}
                                             </h3>
-                                            <p class="text-xs text-muted-foreground mb-2 truncate">
+                                            <p class="text-[10px] sm:text-xs text-muted-foreground mb-2 truncate">
                                                 {artifact.description ||
                                                     "Forensic artifact"}
                                             </p>
-                                            <div class="flex items-center gap-2 text-[10px]">
+                                            <div class="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-[10px]">
                                                 <span class="text-muted-foreground/50 uppercase">
                                                     {artifact.category}
                                                 </span>
@@ -380,7 +381,8 @@ const categories = [
             </section>
         </main>
 
-    <Footer client:load />
+        <Footer client:load />
+    </div>
 </Layout>
 
 <style>
