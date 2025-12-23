@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
-interface AnimatedArtefactPageProps {
+interface AnimatedArtifactPageProps {
 	children: ReactNode;
 }
 
 // Stagger container for the entire page
-export function AnimatedArtefactPage({ children }: AnimatedArtefactPageProps) {
+export function AnimatedArtifactPage({ children }: AnimatedArtifactPageProps) {
 	return (
 		<motion.div
 			initial="hidden"

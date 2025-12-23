@@ -133,6 +133,42 @@
   to = "/artifact/:splat"
   status = 301
 
+# Category redirects (legacy URLs)
+[[redirects]]
+  from = "/category/windows"
+  to = "/artifacts?category=windows"
+  status = 301
+
+[[redirects]]
+  from = "/category/browsers"
+  to = "/artifacts?category=browsers"
+  status = 301
+
+[[redirects]]
+  from = "/category/apps"
+  to = "/artifacts?category=apps"
+  status = 301
+
+[[redirects]]
+  from = "/category/antivirus"
+  to = "/artifacts?category=antivirus"
+  status = 301
+
+[[redirects]]
+  from = "/category/logs"
+  to = "/artifacts?category=logs"
+  status = 301
+
+[[redirects]]
+  from = "/category/p2p"
+  to = "/artifacts?category=p2p"
+  status = 301
+
+[[redirects]]
+  from = "/category/compound"
+  to = "/artifacts?category=compound"
+  status = 301
+
 # SPA fallback for client-side routing (if needed)
 [[redirects]]
   from = "/*"

@@ -129,9 +129,11 @@ const jsonLd = {
         slot="head"
     />
 
-    <Header client:load />
+    <div transition:name="header" transition:animate="none">
+        <Header client:load />
+    </div>
 
-    <main id="main-content" class="flex-1 relative" tabindex="-1">
+    <main id="main-content" class="flex-1 relative" tabindex="-1" transition:name="main" transition:animate="slide">
         <div class="mx-auto max-w-6xl px-4 py-8">
             <ArtifactPageContainer client:load>
                 <!-- Breadcrumb Navigation -->
@@ -158,7 +160,7 @@ const jsonLd = {
                         <li class="flex items-center gap-1">
                             <span aria-hidden="true">/</span>
                             <a
-                                href={"/category/" +
+                                href={"/artifacts?category=" +
                                     target.category.toLowerCase()}
                                 class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
                             >
@@ -191,7 +193,7 @@ const jsonLd = {
                                 aria-label="Target metadata"
                             >
                                 <a
-                                    href={"/category/" +
+                                    href={"/artifacts?category=" +
                                         target.category.toLowerCase()}
                                     class={"px-2 py-1 text-[10px] uppercase tracking-wider border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors focus-ring rounded-sm " +
                                         getCategoryColor(target.category)}

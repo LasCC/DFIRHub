@@ -42,12 +42,20 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme {
-    /* Core palette - deeper blacks with higher contrast */
-    --color-background: #09090b;
+    /* ─── Surface Layers (for depth) ─── */
+    /* Each level increases lightness by ~0.02-0.03 for subtle layering */
+    --surface-0: #09090b;      /* Deepest - page background */
+    --surface-1: #0c0c0f;      /* Base cards/sections */
+    --surface-2: #111114;      /* Raised elements */
+    --surface-3: #161619;      /* Highlighted/interactive */
+    --surface-4: #1c1c20;      /* Most elevated */
+
+    /* Core palette */
+    --color-background: var(--surface-0);
     --color-foreground: #fafafa;
-    --color-card: #0c0c0e;
+    --color-card: var(--surface-1);
     --color-card-foreground: #fafafa;
-    --color-popover: #0c0c0e;
+    --color-popover: var(--surface-2);
     --color-popover-foreground: #fafafa;
 
     /* Primary green - cyberpunk terminal */
@@ -55,11 +63,11 @@
     --color-primary-foreground: #022c22;
 
     /* Secondary muted */
-    --color-secondary: #18181b;
+    --color-secondary: var(--surface-2);
     --color-secondary-foreground: #a1a1aa;
 
     /* Muted grays */
-    --color-muted: #18181b;
+    --color-muted: var(--surface-2);
     --color-muted-foreground: #71717a;
 
     /* Accent amber - alerts and highlights */
@@ -75,7 +83,29 @@
     --color-input: #27272a;
     --color-ring: #10b981;
 
-    /* iOS-like squircle radii - larger for visible rounded effect */
+    /* ─── Depth Shadows ─── */
+    /* Light top edge + dark bottom = realistic depth */
+    --shadow-sm:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.03),
+        0 1px 2px 0 rgba(0, 0, 0, 0.4),
+        0 1px 3px 0 rgba(0, 0, 0, 0.3);
+
+    --shadow-md:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+        0 2px 4px 0 rgba(0, 0, 0, 0.4),
+        0 4px 8px -2px rgba(0, 0, 0, 0.3);
+
+    --shadow-lg:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+        0 4px 8px 0 rgba(0, 0, 0, 0.4),
+        0 8px 16px -4px rgba(0, 0, 0, 0.3);
+
+    /* Inset shadow for recessed elements */
+    --shadow-inset:
+        inset 0 2px 4px 0 rgba(0, 0, 0, 0.3),
+        inset 0 -1px 0 0 rgba(255, 255, 255, 0.02);
+
+    /* iOS-like squircle radii */
     --radius-sm: 6px;
     --radius-md: 8px;
     --radius-lg: 12px;
@@ -463,6 +493,7 @@
     }
 
     /* ─── Keyboard Navigation Indicator ─── */
+    /* Light top edge + dark bottom for physical key look */
     .kbd {
         display: inline-flex;
         align-items: center;
@@ -470,15 +501,23 @@
         min-width: 20px;
         height: 20px;
         padding: 0 6px;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 500;
         font-family: var(--font-mono);
-        background: linear-gradient(180deg, #27272a 0%, #18181b 100%);
-        border: 1px solid #3f3f46;
-        border-bottom-width: 2px;
+        background: linear-gradient(
+            180deg,
+            var(--surface-4) 0%,
+            var(--surface-2) 100%
+        );
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 5px;
         color: var(--color-muted-foreground);
         text-transform: uppercase;
         letter-spacing: 0.02em;
+        box-shadow:
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+            0 1px 2px 0 rgba(0, 0, 0, 0.5),
+            0 2px 4px -1px rgba(0, 0, 0, 0.3);
     }
 
     /* ─── Accessible Hidden (Screen Reader Only) ─── */
@@ -729,6 +768,52 @@
     }
 }
 
+/* Aurora background animations */
+@keyframes aurora-1 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    25% {
+        transform: translate(5%, 3%) scale(1.05);
+    }
+    50% {
+        transform: translate(-3%, 5%) scale(0.95);
+    }
+    75% {
+        transform: translate(3%, -3%) scale(1.02);
+    }
+}
+
+@keyframes aurora-2 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    25% {
+        transform: translate(-5%, 5%) scale(0.98);
+    }
+    50% {
+        transform: translate(5%, -3%) scale(1.05);
+    }
+    75% {
+        transform: translate(-3%, 3%) scale(1);
+    }
+}
+
+.animate-aurora-1 {
+    animation: aurora-1 20s ease-in-out infinite;
+}
+
+.animate-aurora-2 {
+    animation: aurora-2 25s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-aurora-1,
+    .animate-aurora-2 {
+        animation: none;
+    }
+}
+
 @keyframes typing {
     from {
         width: 0;
@@ -917,5 +1002,84 @@
     .scanlines::before,
     .noise::after {
         display: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   View Transitions
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Customize the default page transition */
+::view-transition-old(root) {
+    animation: fade-out 0.2s ease-out forwards;
+}
+
+::view-transition-new(root) {
+    animation: fade-in 0.3s ease-out forwards;
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Header persists - no transition animation */
+::view-transition-old(header),
+::view-transition-new(header) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* Main content slides up on enter */
+::view-transition-new(main) {
+    animation: slide-up-enter 0.3s ease-out forwards;
+}
+
+::view-transition-old(main) {
+    animation: slide-down-exit 0.2s ease-out forwards;
+}
+
+@keyframes slide-up-enter {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-down-exit {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root),
+    ::view-transition-old(main),
+    ::view-transition-new(main) {
+        animation: none;
     }
 }

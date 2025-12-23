@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -381,41 +382,61 @@ export function InlineSearch() {
 								<span>results</span>
 								<span className="text-primary">({results.length})</span>
 							</div>
-							{results.map((result, index) => (
-								<a
-									key={result.id}
-									id={`result-${index}`}
-									href={result.url}
-									role="option"
-									aria-selected={selectedIndex === index}
-									className={`block px-4 py-3 transition-colors duration-150 focus-ring ${
-										selectedIndex === index
-											? "bg-primary/10 border-l-2 border-primary"
-											: "hover:bg-primary/5 border-l-2 border-transparent"
-									} ${index > 0 ? "border-t border-border/30" : ""}`}
-									onMouseEnter={() => setSelectedIndex(index)}
-								>
-									<div className="flex items-center gap-2 mb-1">
-										<ChevronRight
-											className={`h-3 w-3 transition-all duration-150 ${
-												selectedIndex === index
-													? "text-primary translate-x-0.5"
-													: "text-muted-foreground/50"
-											}`}
-											aria-hidden="true"
-										/>
-										<span className="text-sm font-medium">
-											{result.meta.title || getArtifactName(result.url)}
-										</span>
-									</div>
-									{result.excerpt && (
-										<p
-											className="text-xs text-muted-foreground/70 line-clamp-2 pl-5"
-											dangerouslySetInnerHTML={{ __html: result.excerpt }}
-										/>
-									)}
-								</a>
-							))}
+							<motion.div
+								initial="hidden"
+								animate="visible"
+								variants={{
+									hidden: { opacity: 0 },
+									visible: {
+										opacity: 1,
+										transition: { staggerChildren: 0.04 }
+									}
+								}}
+							>
+								{results.map((result, index) => (
+									<motion.a
+										key={result.id}
+										id={`result-${index}`}
+										href={result.url}
+										role="option"
+										aria-selected={selectedIndex === index}
+										variants={{
+											hidden: { opacity: 0, x: -12 },
+											visible: {
+												opacity: 1,
+												x: 0,
+												transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
+											}
+										}}
+										className={`block px-4 py-3 transition-colors duration-150 focus-ring ${
+											selectedIndex === index
+												? "bg-primary/10 border-l-2 border-primary"
+												: "hover:bg-primary/5 border-l-2 border-transparent"
+										} ${index > 0 ? "border-t border-border/30" : ""}`}
+										onMouseEnter={() => setSelectedIndex(index)}
+									>
+										<div className="flex items-center gap-2 mb-1">
+											<ChevronRight
+												className={`h-3 w-3 transition-all duration-150 ${
+													selectedIndex === index
+														? "text-primary translate-x-0.5"
+														: "text-muted-foreground/50"
+												}`}
+												aria-hidden="true"
+											/>
+											<span className="text-sm font-medium">
+												{result.meta.title || getArtifactName(result.url)}
+											</span>
+										</div>
+										{result.excerpt && (
+											<p
+												className="text-xs text-muted-foreground/70 line-clamp-2 pl-5"
+												dangerouslySetInnerHTML={{ __html: result.excerpt }}
+											/>
+										)}
+									</motion.a>
+								))}
+							</motion.div>
 						</div>
 					)}
 

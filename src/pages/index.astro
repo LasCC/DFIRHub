@@ -4,6 +4,7 @@ import { Header } from "../components/layout/Header";
 import { Footer } from "../components/layout/Footer";
 import { AnimatedSearch } from "../components/search/AnimatedSearch";
 import { ScenarioGrid } from "../components/home/ScenarioGrid";
+import { ScrollReveal } from "../components/artifact/ArtifactContent";
 import { loadAllTargets, getStats } from "../lib/kapefiles";
 
 const stats = getStats();
@@ -250,29 +251,32 @@ const categories = [
             </div>
 
             <!-- Investigate by Scenario -->
-            <section class="py-8 sm:py-12 border-b border-border/30">
-                <div class="flex items-center justify-between mb-4 sm:mb-6">
-                    <h2 class="text-xs sm:text-sm text-muted-foreground">
-                        <span class="text-primary">//</span> INVESTIGATE BY SCENARIO
-                    </h2>
-                </div>
+            <ScrollReveal client:load>
+                <section class="py-8 sm:py-12 border-b border-border/30">
+                    <div class="flex items-center justify-between mb-4 sm:mb-6">
+                        <h2 class="text-xs sm:text-sm text-muted-foreground">
+                            <span class="text-primary">//</span> INVESTIGATE BY SCENARIO
+                        </h2>
+                    </div>
 
-                <ScenarioGrid client:load scenarios={scenariosWithCounts} />
-            </section>
+                    <ScenarioGrid client:load scenarios={scenariosWithCounts} />
+                </section>
+            </ScrollReveal>
 
             <!-- Popular Artifacts - Marquee -->
-            <section class="py-8 sm:py-12">
-                <div class="flex items-center justify-between mb-4 sm:mb-6">
-                    <h2 class="text-xs sm:text-sm text-muted-foreground">
-                        <span class="text-primary">//</span> POPULAR ARTIFACTS
-                    </h2>
-                    <a
-                        href="/artifacts"
-                        class="text-xs text-primary hover:text-primary/80 transition-colors"
-                    >
-                        view all →
-                    </a>
-                </div>
+            <ScrollReveal client:load delay={0.1}>
+                <section class="py-8 sm:py-12">
+                    <div class="flex items-center justify-between mb-4 sm:mb-6">
+                        <h2 class="text-xs sm:text-sm text-muted-foreground">
+                            <span class="text-primary">//</span> POPULAR ARTIFACTS
+                        </h2>
+                        <a
+                            href="/artifacts"
+                            class="text-xs text-primary hover:text-primary/80 transition-colors"
+                        >
+                            view all →
+                        </a>
+                    </div>
 
                 <!-- Marquee Container -->
                 <div class="relative overflow-hidden">
@@ -378,7 +382,8 @@ const categories = [
                         </div>
                     </div>
                 </div>
-            </section>
+                </section>
+            </ScrollReveal>
         </main>
 
         <Footer client:load />

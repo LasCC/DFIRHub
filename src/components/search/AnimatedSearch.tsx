@@ -297,11 +297,30 @@ export function AnimatedSearch() {
 						)}
 
 						{results.length > 0 && (
-							<div className="py-1">
+							<motion.div
+								className="py-1"
+								initial="hidden"
+								animate="visible"
+								variants={{
+									hidden: { opacity: 0 },
+									visible: {
+										opacity: 1,
+										transition: { staggerChildren: 0.035 }
+									}
+								}}
+							>
 								{results.map((result, index) => (
-									<a
+									<motion.a
 										key={result.id}
 										href={result.url}
+										variants={{
+											hidden: { opacity: 0, x: -12 },
+											visible: {
+												opacity: 1,
+												x: 0,
+												transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] }
+											}
+										}}
 										className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
 											selectedIndex === index
 												? "bg-primary/10 text-primary"
@@ -310,18 +329,18 @@ export function AnimatedSearch() {
 										onMouseEnter={() => setSelectedIndex(index)}
 									>
 										<ChevronRight
-											className={`h-3 w-3 transition-colors ${
+											className={`h-3 w-3 transition-all duration-150 ${
 												selectedIndex === index
-													? "text-primary"
+													? "text-primary translate-x-0.5"
 													: "text-muted-foreground/30"
 											}`}
 										/>
 										<span className="font-medium">
 											{result.meta.title || result.url}
 										</span>
-									</a>
+									</motion.a>
 								))}
-							</div>
+							</motion.div>
 						)}
 
 						<div className="px-4 py-2 border-t border-border/30 bg-card/30 flex items-center gap-4 text-[10px] text-muted-foreground/50">

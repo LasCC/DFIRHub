@@ -39,9 +39,11 @@ const others = sortedCollections.filter(
     title="Triage Collections"
     description="Pre-built KAPE triage collections for rapid forensic acquisition"
 >
-    <Header client:load />
+    <div transition:name="header" transition:animate="none">
+        <Header client:load />
+    </div>
 
-    <main id="main-content" class="flex-1 relative" tabindex="-1">
+    <main id="main-content" class="flex-1 relative" tabindex="-1" transition:name="main" transition:animate="slide">
         <div class="mx-auto max-w-6xl px-4 py-8">
             <!-- Breadcrumb -->
             <nav
@@ -210,41 +212,6 @@ const others = sortedCollections.filter(
                 </div>
             </section>
 
-            <!-- Quick KAPE Command -->
-            <section
-                class="mt-10 animate-in"
-                style="animation-delay: 250ms;"
-                aria-labelledby="quick-command-heading"
-            >
-                <h2
-                    id="quick-command-heading"
-                    class="text-xs uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2"
-                >
-                    <span class="text-primary/50" aria-hidden="true">//</span>
-                    quick kape command
-                </h2>
-                <div class="border border-border bg-card/20 rounded-lg p-4">
-                    <p class="text-xs text-muted-foreground mb-3">
-                        Run KapeTriage collection (most comprehensive) with a
-                        single command:
-                    </p>
-                    <div class="relative">
-                        <pre
-                            class="p-4 bg-black/50 text-xs overflow-x-auto">
-              <code class="text-green-400">
-                <span class="text-primary select-none">$ </span>kape.exe --tsource C: --tdest D:\Evidence --target KapeTriage --vss
-              </code>
-            </pre>
-                        <button
-                            id="copy-quick-command"
-                            class="absolute top-2 right-2 px-2 py-1 text-[10px] text-muted-foreground hover:text-foreground bg-secondary/50 border border-border transition-colors focus-ring"
-                            data-command="kape.exe --tsource C: --tdest D:\Evidence --target KapeTriage --vss"
-                        >
-                            copy
-                        </button>
-                    </div>
-                </div>
-            </section>
         </div>
     </main>
 
@@ -283,22 +250,3 @@ const others = sortedCollections.filter(
     }
 </style>
 
-<script>
-    const copyBtn = document.getElementById("copy-quick-command");
-    if (copyBtn) {
-        copyBtn.addEventListener("click", async () => {
-            const command = copyBtn.getAttribute("data-command");
-            if (command) {
-                try {
-                    await navigator.clipboard.writeText(command);
-                    copyBtn.textContent = "copied!";
-                    setTimeout(() => {
-                        copyBtn.textContent = "copy";
-                    }, 2000);
-                } catch (err) {
-                    console.error("Failed to copy:", err);
-                }
-            }
-        });
-    }
-</script>

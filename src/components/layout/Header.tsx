@@ -152,7 +152,7 @@ export function Header({ showSearch = true }: HeaderProps) {
 
 	return (
 		<header
-			className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80"
+			className="sticky top-0 z-50 w-full bg-[var(--surface-1)]/95 backdrop-blur-md border-b border-white/[0.04] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.2),0_1px_3px_0_rgba(0,0,0,0.3)]"
 			role="banner"
 		>
 			<div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
@@ -184,7 +184,7 @@ export function Header({ showSearch = true }: HeaderProps) {
 							onKeyDown={(e) => handleNavKeyDown(e, index)}
 							onFocus={() => setActiveIndex(index)}
 							onBlur={() => setActiveIndex(-1)}
-							className="group flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-200 focus-ring rounded-sm"
+							className="group flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-[var(--surface-3)] rounded-md transition-all duration-200 focus-ring hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04),0_1px_2px_0_rgba(0,0,0,0.3)]"
 							aria-current={
 								typeof window !== "undefined" &&
 								window.location.pathname === item.href
