@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
 	HiOutlineArrowsRightLeft,
 	HiOutlineBolt,
@@ -35,40 +34,24 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 const colorMap: Record<string, string> = {
-	all: "text-muted-foreground",
+	all: "text-muted-foreground group-data-[active]:text-primary",
 	lolbin: "text-primary",
-	windows: "text-blue-400",
-	browsers: "text-amber-400",
-	apps: "text-green-400",
-	antivirus: "text-red-400",
-	logs: "text-orange-400",
-	p2p: "text-purple-400",
-	compound: "text-cyan-400",
+	windows: "text-blue-400 group-data-[active]:text-primary",
+	browsers: "text-amber-400 group-data-[active]:text-primary",
+	apps: "text-green-400 group-data-[active]:text-primary",
+	antivirus: "text-red-400 group-data-[active]:text-primary",
+	logs: "text-orange-400 group-data-[active]:text-primary",
+	p2p: "text-purple-400 group-data-[active]:text-primary",
+	compound: "text-cyan-400 group-data-[active]:text-primary",
 };
 
 export function CategoryFilters({ categories }: CategoryFiltersProps) {
-	const [activeFilter, setActiveFilter] = useState<string>("all");
-
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		const category = params.get("category");
-		const filter = params.get("filter");
-		if (category) {
-			setActiveFilter(category);
-		} else if (filter) {
-			setActiveFilter(filter);
-		} else {
-			setActiveFilter("all");
-		}
-	}, []);
-
 	return (
-		<div className="flex flex-wrap gap-2">
+		<div id="category-filters" className="flex flex-wrap gap-2">
 			{categories.map((cat) => {
 				const Icon = iconMap[cat.id.toLowerCase()] || HiOutlineSquares2X2;
 				const iconColor =
 					colorMap[cat.id.toLowerCase()] || "text-muted-foreground";
-				const isActive = activeFilter === cat.id;
 
 				return (
 					<a
@@ -80,20 +63,16 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
 									? `/artifacts?filter=${cat.id}`
 									: `/artifacts?category=${cat.id}`
 						}
+						data-filter-id={cat.id}
+						data-special={cat.special ? "true" : undefined}
 						className={`
-							inline-flex items-center gap-2 px-3 py-1.5 text-xs border transition-all rounded-sm
-							${
-								isActive
-									? "border-primary bg-primary/10 text-primary"
-									: cat.special
-										? "border-primary/30 text-primary hover:border-primary hover:bg-primary/10"
-										: "border-border/50 text-muted-foreground hover:border-foreground hover:text-foreground"
-							}
+							group category-filter-btn inline-flex items-center gap-2 px-3 py-1.5 text-xs border transition-all rounded-sm
+							border-border/50 text-muted-foreground hover:border-foreground hover:text-foreground
+							data-[active]:border-primary data-[active]:bg-primary/10 data-[active]:text-primary
+							${cat.special ? "border-primary/30 text-primary hover:border-primary hover:bg-primary/10" : ""}
 						`}
 					>
-						<Icon
-							className={`h-3.5 w-3.5 ${isActive ? "text-primary" : iconColor}`}
-						/>
+						<Icon className={`h-3.5 w-3.5 ${iconColor}`} />
 						<span>{cat.label}</span>
 						<span className="opacity-60">({cat.count})</span>
 					</a>

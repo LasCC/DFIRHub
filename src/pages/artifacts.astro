@@ -488,21 +488,8 @@ const filterCategories = [
 </style>
 
 <script define:vars={{ allTargetsJson, scenarioArtifactsJson }}>
-    // Parse URL parameters for filtering
-    const params = new URLSearchParams(window.location.search);
-    const categoryParam = params.get("category");
-    const filterParam = params.get("filter");
-    const scenarioParam = params.get("scenario");
-
     const allTargets = JSON.parse(allTargetsJson);
     const scenarioArtifacts = JSON.parse(scenarioArtifactsJson);
-
-    const filterBanner = document.getElementById("filter-banner");
-    const filterLabel = document.getElementById("filter-label");
-    const filterCount = document.getElementById("filter-count");
-    const defaultView = document.getElementById("default-view");
-    const filteredView = document.getElementById("filtered-view");
-    const filteredCards = document.querySelectorAll(".filtered-card");
 
     // Scenario labels for display
     const scenarioLabels = {
@@ -514,7 +501,37 @@ const filterCategories = [
         "anti-forensics": "Data Recovery",
     };
 
+    function updateFilterButtons(activeId) {
+        const buttons = document.querySelectorAll(".category-filter-btn");
+        buttons.forEach((btn) => {
+            const filterId = btn.getAttribute("data-filter-id");
+            if (filterId === activeId) {
+                btn.setAttribute("data-active", "true");
+            } else {
+                btn.removeAttribute("data-active");
+            }
+        });
+    }
+
     function applyFilter() {
+        // Parse URL parameters fresh each time
+        const params = new URLSearchParams(window.location.search);
+        const categoryParam = params.get("category");
+        const filterParam = params.get("filter");
+        const scenarioParam = params.get("scenario");
+
+        // Query DOM elements fresh each time (for view transitions)
+        const filterBanner = document.getElementById("filter-banner");
+        const filterLabel = document.getElementById("filter-label");
+        const filterCount = document.getElementById("filter-count");
+        const defaultView = document.getElementById("default-view");
+        const filteredView = document.getElementById("filtered-view");
+        const filteredCards = document.querySelectorAll(".filtered-card");
+
+        // Determine which filter is active and update buttons
+        const activeFilterId = categoryParam || filterParam || "all";
+        updateFilterButtons(activeFilterId);
+
         let matchingSlugs = new Set();
         let label = "";
         let isFiltered = false;
@@ -559,35 +576,36 @@ const filterCategories = [
             });
         }
 
-        if (
-            isFiltered &&
-            filterBanner &&
-            filterLabel &&
-            filterCount &&
-            defaultView &&
-            filteredView
-        ) {
-            // Show filter banner
-            filterBanner.classList.remove("hidden");
-            filterLabel.textContent = label;
-            filterCount.textContent = "(" + matchingSlugs.size + " artifacts)";
+        if (filterBanner && filterLabel && filterCount && defaultView && filteredView) {
+            if (isFiltered) {
+                // Show filter banner
+                filterBanner.classList.remove("hidden");
+                filterLabel.textContent = label;
+                filterCount.textContent = "(" + matchingSlugs.size + " artifacts)";
 
-            // Switch views
-            defaultView.classList.add("hidden");
-            filteredView.classList.remove("hidden");
+                // Switch views
+                defaultView.classList.add("hidden");
+                filteredView.classList.remove("hidden");
 
-            // Filter the cards in filtered view
-            filteredCards.forEach((card) => {
-                const slug = card.getAttribute("data-slug");
-                if (matchingSlugs.has(slug)) {
-                    card.classList.remove("hidden");
-                } else {
-                    card.classList.add("hidden");
-                }
-            });
+                // Filter the cards in filtered view
+                filteredCards.forEach((card) => {
+                    const slug = card.getAttribute("data-slug");
+                    if (matchingSlugs.has(slug)) {
+                        card.classList.remove("hidden");
+                    } else {
+                        card.classList.add("hidden");
+                    }
+                });
+            } else {
+                // No filter - show default view
+                filterBanner.classList.add("hidden");
+                defaultView.classList.remove("hidden");
+                filteredView.classList.add("hidden");
+            }
         }
     }
 
-    // Apply filter on page load
+    // Apply filter on initial load and view transitions
     applyFilter();
+    document.addEventListener("astro:page-load", applyFilter);
 </script>
