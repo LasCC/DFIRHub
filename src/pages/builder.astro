@@ -15,11 +15,9 @@ const categories = getCategories();
 ---
 
 <Layout title="Script Builder - DFIRHub">
-    <div transition:name="header" transition:animate="none">
-        <Header client:load />
-    </div>
+    <Header client:load />
 
-    <main class="flex-1 relative" transition:name="main" transition:animate="slide">
+    <main class="flex-1 relative">
         <div class="mx-auto max-w-6xl px-4 py-8">
             <!-- Breadcrumb -->
             <nav class="mb-6 text-xs text-muted-foreground">

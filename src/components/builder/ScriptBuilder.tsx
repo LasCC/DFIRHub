@@ -9,8 +9,9 @@ import {
 	HiOutlineShieldCheck,
 } from "react-icons/hi2";
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
+import { CodeBlock } from "../ui/CodeBlock";
 
-type ExportFormat = "kape" | "powershell" | "batch";
+type ExportFormat = "kape" | "powershell" | "batch" | "wsl";
 
 const categoryIconMap: Record<
 	string,
@@ -31,37 +32,37 @@ const categoryColorMap: Record<
 > = {
 	windows: {
 		text: "text-blue-400",
-		border: "border-blue-500/30",
+		border: "border-blue-500/40",
 		bg: "bg-blue-500/10",
 	},
 	browsers: {
-		text: "text-amber-400",
-		border: "border-amber-500/30",
-		bg: "bg-amber-500/10",
+		text: "text-orange-400",
+		border: "border-orange-500/40",
+		bg: "bg-orange-500/10",
 	},
 	apps: {
-		text: "text-green-400",
-		border: "border-green-500/30",
-		bg: "bg-green-500/10",
+		text: "text-emerald-400",
+		border: "border-emerald-500/40",
+		bg: "bg-emerald-500/10",
 	},
 	antivirus: {
 		text: "text-red-400",
-		border: "border-red-500/30",
+		border: "border-red-500/40",
 		bg: "bg-red-500/10",
 	},
 	logs: {
-		text: "text-orange-400",
-		border: "border-orange-500/30",
-		bg: "bg-orange-500/10",
+		text: "text-yellow-400",
+		border: "border-yellow-500/40",
+		bg: "bg-yellow-500/10",
 	},
 	p2p: {
 		text: "text-purple-400",
-		border: "border-purple-500/30",
+		border: "border-purple-500/40",
 		bg: "bg-purple-500/10",
 	},
 	compound: {
 		text: "text-cyan-400",
-		border: "border-cyan-500/30",
+		border: "border-cyan-500/40",
 		bg: "bg-cyan-500/10",
 	},
 };
@@ -134,54 +135,91 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 			if (options.useVhdx) cmd += " --vhdx evidence";
 			return cmd;
 		} else if (options.format === "powershell") {
+			// PowerShell with function-based approach
 			lines.push("# DFIRHub Collection Script");
 			lines.push(`# Generated: ${new Date().toISOString()}`);
 			lines.push(`# Targets: ${selectedTargets.size}`);
+			lines.push("# Run as Administrator");
+			lines.push("");
+			lines.push("#Requires -RunAsAdministrator");
 			lines.push("");
 			lines.push('$ErrorActionPreference = "SilentlyContinue"');
-			lines.push(`$destBase = "${options.destination}"`);
+			lines.push(`$DestBase = "${options.destination}"`);
 			lines.push("");
-			lines.push("# Create destination directory");
-			lines.push(
-				"New-Item -ItemType Directory -Path $destBase -Force | Out-Null",
-			);
+			lines.push("# Function to handle directory creation and copying");
+			lines.push("function Collect-Artifact {");
+			lines.push("    param (");
+			lines.push("        [string]$SourcePath,");
+			lines.push("        [string]$FolderName");
+			lines.push("    )");
+			lines.push('    $FullDest = Join-Path -Path $DestBase -ChildPath $FolderName');
+			lines.push('    if (-not (Test-Path -Path $FullDest)) {');
+			lines.push('        New-Item -ItemType Directory -Path $FullDest -Force | Out-Null');
+			lines.push("    }");
+			lines.push('    Copy-Item -Path $SourcePath -Destination $FullDest -Recurse -Force');
+			lines.push("}");
 			lines.push("");
 
+			let entryNum = 1;
 			for (const target of selectedTargetObjects) {
 				const paths = getTargetPaths(target);
 				if (paths.length === 0) continue;
 
 				lines.push(`# === ${target.name} ===`);
 				for (const entry of paths) {
-					const safeName = entry.name.replace(/[^a-zA-Z0-9]/g, "_");
-					const destPath = `$destBase\\${target.name}\\${safeName}`;
-					const sourcePath = entry.path.replace("C:", options.source);
+					const safeName = `${target.name}_${entry.name.replace(/[^a-zA-Z0-9]/g, "_")}`;
+					let sourcePath = entry.path.replace("C:", options.source);
+					const hasUserVar = sourcePath.includes("%user%");
 
-					lines.push(`$dest = "${destPath}"`);
-					lines.push(
-						"New-Item -ItemType Directory -Path $dest -Force | Out-Null",
-					);
-					if (entry.fileMask) {
-						lines.push(
-							`Copy-Item -Path "${sourcePath}${entry.fileMask}" -Destination $dest -Recurse -Force 2>$null`,
-						);
-					} else {
-						lines.push(
-							`Copy-Item -Path "${sourcePath}*" -Destination $dest -Recurse -Force 2>$null`,
-						);
+					// Convert %user% to PowerShell variable
+					if (hasUserVar) {
+						sourcePath = sourcePath.replace(/%user%/gi, "$env:USERNAME");
 					}
+
+					lines.push(`# ${entryNum}. ${entry.name}`);
+
+					// Check for legacy XP paths
+					if (sourcePath.includes("Documents And Settings")) {
+						lines.push('if (Test-Path "C:\\Documents And Settings") {');
+						if (entry.fileMask) {
+							lines.push(`    Collect-Artifact -SourcePath "${sourcePath}\\${entry.fileMask}" -FolderName "${safeName}"`);
+						} else {
+							lines.push(`    Collect-Artifact -SourcePath "${sourcePath}\\*" -FolderName "${safeName}"`);
+						}
+						lines.push("}");
+					} else if (hasUserVar) {
+						// Use Join-Path for user variable paths
+						const pathParts = sourcePath.split("$env:USERNAME");
+						lines.push(`$UserPath = Join-Path $env:USERPROFILE "${pathParts[1]?.replace(/^[\\/]+/, "") || ""}"`);
+						if (entry.fileMask) {
+							lines.push(`Collect-Artifact -SourcePath "$UserPath\\${entry.fileMask}" -FolderName "${safeName}"`);
+						} else {
+							lines.push(`Collect-Artifact -SourcePath "$UserPath\\*" -FolderName "${safeName}"`);
+						}
+					} else {
+						if (entry.fileMask) {
+							lines.push(`Collect-Artifact -SourcePath "${sourcePath}\\${entry.fileMask}" -FolderName "${safeName}"`);
+						} else {
+							lines.push(`Collect-Artifact -SourcePath "${sourcePath}\\*" -FolderName "${safeName}"`);
+						}
+					}
+					entryNum++;
 				}
 				lines.push("");
 			}
 
 			lines.push('Write-Host "Collection complete!" -ForegroundColor Green');
 		} else if (options.format === "batch") {
+			// Batch with proper variable handling
 			lines.push("@echo off");
+			lines.push("setlocal EnableDelayedExpansion");
+			lines.push("");
 			lines.push("REM DFIRHub Collection Script");
 			lines.push(`REM Generated: ${new Date().toISOString()}`);
 			lines.push(`REM Targets: ${selectedTargets.size}`);
+			lines.push("REM Run as Administrator");
 			lines.push("");
-			lines.push(`set DEST=${options.destination}`);
+			lines.push(`set "DEST=${options.destination}"`);
 			lines.push("");
 			lines.push("REM Create destination directory");
 			lines.push('if not exist "%DEST%" mkdir "%DEST%"');
@@ -193,26 +231,135 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 
 				lines.push(`REM === ${target.name} ===`);
 				for (const entry of paths) {
-					const safeName = entry.name.replace(/[^a-zA-Z0-9]/g, "_");
-					const destPath = `%DEST%\\${target.name}\\${safeName}`;
-					const sourcePath = entry.path.replace("C:", options.source);
+					const safeName = `${target.name}_${entry.name.replace(/[^a-zA-Z0-9]/g, "_")}`;
+					let sourcePath = entry.path.replace("C:", options.source);
+					const hasUserVar = sourcePath.includes("%user%");
 
-					lines.push(`if not exist "${destPath}" mkdir "${destPath}"`);
-					if (entry.fileMask) {
-						lines.push(
-							`xcopy "${sourcePath}${entry.fileMask}" "${destPath}\\" /E /H /Y /Q 2>nul`,
-						);
+					// Convert %user% to %USERNAME%
+					if (hasUserVar) {
+						sourcePath = sourcePath.replace(/%user%/gi, "%USERNAME%");
+					}
+
+					lines.push(`REM ${entry.name}`);
+					lines.push(`set "DESTFOLDER=%DEST%\\${safeName}"`);
+					lines.push('if not exist "%DESTFOLDER%" mkdir "%DESTFOLDER%"');
+
+					// Handle legacy XP paths with existence check
+					if (sourcePath.includes("Documents And Settings")) {
+						lines.push('if exist "C:\\Documents And Settings" (');
+						if (entry.fileMask) {
+							lines.push(`    xcopy "${sourcePath}\\${entry.fileMask}" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`);
+						} else {
+							lines.push(`    xcopy "${sourcePath}\\*" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`);
+						}
+						lines.push(")");
 					} else {
-						lines.push(
-							`xcopy "${sourcePath}*" "${destPath}\\" /E /H /Y /Q 2>nul`,
-						);
+						if (entry.fileMask) {
+							lines.push(`xcopy "${sourcePath}\\${entry.fileMask}" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`);
+						} else {
+							lines.push(`xcopy "${sourcePath}\\*" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`);
+						}
 					}
 				}
 				lines.push("");
 			}
 
 			lines.push("echo Collection complete!");
+			lines.push("endlocal");
 			lines.push("pause");
+		} else if (options.format === "wsl") {
+			// WSL (Bash) script with proper variable handling
+			const toWslPath = (windowsPath: string): string => {
+				const match = windowsPath.match(/^([A-Za-z]):(.*)/);
+				if (match) {
+					const drive = match[1].toLowerCase();
+					const rest = match[2].replace(/\\/g, "/");
+					return `/mnt/${drive}${rest}`;
+				}
+				return windowsPath.replace(/\\/g, "/");
+			};
+
+			const wslDest = toWslPath(options.destination);
+			const wslSource = toWslPath(options.source);
+
+			// Check if any path contains %user% variable
+			const allPaths = selectedTargetObjects.flatMap((t) => getTargetPaths(t));
+			const hasUserPaths = allPaths.some((entry) =>
+				entry.path.toLowerCase().includes("%user%"),
+			);
+
+			lines.push("#!/bin/bash");
+			lines.push("# DFIRHub Collection Script");
+			lines.push(`# Generated: ${new Date().toISOString()}`);
+			lines.push(`# Targets: ${selectedTargets.size}`);
+			lines.push("# Run from WSL with sudo for best results");
+			lines.push("");
+			lines.push(`DEST="${wslDest}"`);
+			lines.push("");
+			lines.push("# Create destination directory");
+			lines.push('mkdir -p "$DEST"');
+			lines.push("");
+
+			// Add Windows username detection if needed
+			if (hasUserPaths) {
+				lines.push("# Detect Windows username");
+				lines.push('WIN_USER=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d \'\\r\')');
+				lines.push("");
+				lines.push('if [ -z "$WIN_USER" ]; then');
+				lines.push('    echo "Could not detect Windows username. Please set WIN_USER manually."');
+				lines.push("    exit 1");
+				lines.push("fi");
+				lines.push("");
+			}
+
+			for (const target of selectedTargetObjects) {
+				const paths = getTargetPaths(target);
+				if (paths.length === 0) continue;
+
+				lines.push(`# === ${target.name} ===`);
+				for (const entry of paths) {
+					const safeName = `${target.name}_${entry.name.replace(/[^a-zA-Z0-9]/g, "_")}`;
+					const destPath = `$DEST/${safeName}`;
+
+					// Convert the source path
+					let sourcePath = entry.path;
+					if (sourcePath.match(/^[A-Za-z]:/)) {
+						sourcePath = sourcePath.replace(/^[A-Za-z]:/, wslSource);
+					}
+					sourcePath = sourcePath.replace(/\\/g, "/");
+
+					// Replace %user% with $WIN_USER for Bash
+					if (sourcePath.toLowerCase().includes("%user%")) {
+						sourcePath = sourcePath.replace(/%user%/gi, "$WIN_USER");
+					}
+
+					// Clean up any double slashes
+					sourcePath = sourcePath.replace(/([^:])\/\//g, "$1/");
+
+					lines.push(`# ${entry.name}`);
+					lines.push(`mkdir -p "${destPath}"`);
+					lines.push(`if [ -d "${sourcePath}" ]; then`);
+
+					if (entry.fileMask && entry.fileMask.includes("*")) {
+						lines.push(
+							`    find "${sourcePath}" -maxdepth 1 -name "${entry.fileMask}" -exec cp {} "${destPath}/" \\; 2>/dev/null`,
+						);
+					} else if (entry.fileMask) {
+						lines.push(
+							`    cp -r "${sourcePath}/${entry.fileMask}" "${destPath}/" 2>/dev/null`,
+						);
+					} else {
+						lines.push(`    cp -r "${sourcePath}/"* "${destPath}/" 2>/dev/null`);
+					}
+
+					lines.push("else");
+					lines.push(`    echo "Source not found: ${sourcePath}"`);
+					lines.push("fi");
+				}
+				lines.push("");
+			}
+
+			lines.push('echo -e "\\033[32mCollection complete!\\033[0m"');
 		}
 
 		return lines.join("\n");
@@ -253,12 +400,14 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 			kape: ".txt",
 			powershell: ".ps1",
 			batch: ".bat",
+			wsl: ".sh",
 		};
 
 		const mimeTypes: Record<ExportFormat, string> = {
 			kape: "text/plain",
 			powershell: "application/x-powershell",
 			batch: "application/x-bat",
+			wsl: "application/x-sh",
 		};
 
 		const blob = new Blob([generatedScript], {
@@ -292,8 +441,8 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 						const Icon = categoryIconMap[cat.toLowerCase()];
 						const colors = categoryColorMap[cat.toLowerCase()] || {
 							text: "text-muted-foreground",
-							border: "border-border",
-							bg: "bg-secondary/30",
+							border: "border-white/[0.08]",
+							bg: "bg-white/[0.04]",
 						};
 						const isActive = activeCategory === cat;
 
@@ -301,10 +450,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 							<button
 								key={cat}
 								onClick={() => setActiveCategory(cat)}
-								className={`inline-flex items-center gap-2 px-3 py-1.5 text-xs border rounded-md transition-all ${
+								className={`inline-flex items-center gap-2 px-4 py-2 text-xs rounded-full transition-all backdrop-blur-sm ${
 									isActive
-										? `${colors.border} ${colors.bg} ${colors.text}`
-										: "border-border/50 bg-secondary/30 text-muted-foreground hover:text-foreground hover:border-foreground/30"
+										? `border ${colors.border} ${colors.bg} ${colors.text}`
+										: "border border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:text-zinc-200 hover:border-white/10 hover:bg-white/[0.04]"
 								}`}
 							>
 								{Icon && (
@@ -325,7 +474,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						placeholder="Search targets..."
-						className="flex-1 h-8 px-3 text-xs bg-background border border-border rounded-md focus:border-primary/50 outline-none"
+						className="flex-1 h-9 px-3 text-xs bg-white/[0.02] border border-white/[0.06] rounded-lg focus:border-primary/50 outline-none backdrop-blur-sm"
 					/>
 					<button
 						onClick={selectAll}
@@ -342,17 +491,17 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 				</div>
 
 				{/* Target Grid */}
-				<div className="border border-border bg-card/20 rounded-lg max-h-64 overflow-y-auto">
+				<div className="glass-subtle rounded-xl max-h-64 overflow-y-auto">
 					{filteredTargets.length === 0 ? (
 						<div className="p-4 text-center text-sm text-muted-foreground">
 							No targets found
 						</div>
 					) : (
-						<div className="divide-y divide-border/50">
+						<div className="divide-y divide-white/[0.04]">
 							{filteredTargets.map((target) => (
 								<label
 									key={target.slug}
-									className="flex items-center gap-3 px-4 py-2 hover:bg-primary/5 cursor-pointer transition-colors"
+									className="flex items-center gap-3 px-4 py-2 hover:bg-white/[0.04] cursor-pointer transition-colors"
 								>
 									<input
 										type="checkbox"
@@ -386,7 +535,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 					<span className="text-primary/50">//</span>
 					export options
 				</h2>
-				<div className="border border-border bg-card/20 rounded-lg p-4">
+				<div className="glass-subtle rounded-xl p-4">
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 						{/* Format */}
 						<div>
@@ -401,11 +550,12 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 										format: e.target.value as ExportFormat,
 									})
 								}
-								className="w-full h-8 px-2 text-xs bg-background border border-border rounded-md focus:border-primary/50 outline-none"
+								className="w-full h-9 px-3 text-xs bg-white/[0.02] border border-white/[0.06] rounded-lg focus:border-primary/50 outline-none backdrop-blur-sm"
 							>
 								<option value="kape">KAPE Command</option>
 								<option value="powershell">PowerShell (.ps1)</option>
 								<option value="batch">Batch (.bat)</option>
+								<option value="wsl">WSL/Bash (.sh)</option>
 							</select>
 						</div>
 
@@ -420,7 +570,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 								onChange={(e) =>
 									setOptions({ ...options, source: e.target.value })
 								}
-								className="w-full h-8 px-2 text-xs bg-background border border-border rounded-md focus:border-primary/50 outline-none"
+								className="w-full h-9 px-3 text-xs bg-white/[0.02] border border-white/[0.06] rounded-lg focus:border-primary/50 outline-none backdrop-blur-sm"
 							/>
 						</div>
 
@@ -435,7 +585,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 								onChange={(e) =>
 									setOptions({ ...options, destination: e.target.value })
 								}
-								className="w-full h-8 px-2 text-xs bg-background border border-border rounded-md focus:border-primary/50 outline-none"
+								className="w-full h-9 px-3 text-xs bg-white/[0.02] border border-white/[0.06] rounded-lg focus:border-primary/50 outline-none backdrop-blur-sm"
 							/>
 						</div>
 
@@ -501,13 +651,25 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 						</div>
 					)}
 				</div>
-				<div className="border border-border bg-black/50 rounded-lg">
-					<pre className="p-4 text-xs text-green-400 overflow-x-auto max-h-[400px]">
-						<code>
-							{generatedScript ||
-								"// Select targets to generate collection command"}
-						</code>
-					</pre>
+				<div className="glass-subtle rounded-xl overflow-hidden">
+					{generatedScript ? (
+						<CodeBlock
+							code={generatedScript}
+							language={
+								options.format === "kape"
+									? "shell"
+									: options.format === "wsl"
+										? "bash"
+										: options.format === "powershell"
+											? "powershell"
+											: "batch"
+							}
+						/>
+					) : (
+						<pre className="p-4 text-xs text-muted-foreground overflow-x-auto bg-black/30">
+							<code>// Select targets to generate collection command</code>
+						</pre>
+					)}
 				</div>
 			</section>
 

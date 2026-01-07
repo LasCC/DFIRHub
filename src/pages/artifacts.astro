@@ -100,18 +100,59 @@ const targetsByCategory = categories.reduce(
     {} as Record<string, KapeTarget[]>,
 );
 
-// Get category color
-function getCategoryColor(category: string): string {
-    const colors: Record<string, string> = {
-        Windows: "text-blue-400 border-blue-500/30",
-        Browsers: "text-amber-400 border-amber-500/30",
-        Apps: "text-green-400 border-green-500/30",
-        Antivirus: "text-red-400 border-red-500/30",
-        Logs: "text-orange-400 border-orange-500/30",
-        P2P: "text-purple-400 border-purple-500/30",
-        Compound: "text-cyan-400 border-cyan-500/30",
+// Category color and accent configuration
+const categoryStyles: Record<string, { accent: string; text: string; bg: string; glow: string }> = {
+    Windows: {
+        accent: "bg-blue-500",
+        text: "text-blue-400",
+        bg: "bg-blue-500/5",
+        glow: "hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]",
+    },
+    Browsers: {
+        accent: "bg-orange-500",
+        text: "text-orange-400",
+        bg: "bg-orange-500/5",
+        glow: "hover:shadow-[0_0_30px_-10px_rgba(249,115,22,0.3)]",
+    },
+    Apps: {
+        accent: "bg-emerald-500",
+        text: "text-emerald-400",
+        bg: "bg-emerald-500/5",
+        glow: "hover:shadow-[0_0_30px_-10px_rgba(52,211,153,0.3)]",
+    },
+    Antivirus: {
+        accent: "bg-red-500",
+        text: "text-red-400",
+        bg: "bg-red-500/5",
+        glow: "hover:shadow-[0_0_30px_-10px_rgba(239,68,68,0.3)]",
+    },
+    Logs: {
+        accent: "bg-yellow-500",
+        text: "text-yellow-400",
+        bg: "bg-yellow-500/5",
+        glow: "hover:shadow-[0_0_30px_-10px_rgba(234,179,8,0.3)]",
+    },
+    P2P: {
+        accent: "bg-purple-500",
+        text: "text-purple-400",
+        bg: "bg-purple-500/5",
+        glow: "hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.3)]",
+    },
+    Compound: {
+        accent: "bg-cyan-500",
+        text: "text-cyan-400",
+        bg: "bg-cyan-500/5",
+        glow: "hover:shadow-[0_0_30px_-10px_rgba(6,182,212,0.3)]",
+    },
+};
+
+function getStyle(category: string) {
+    return categoryStyles[category] || {
+        accent: "bg-zinc-500",
+        text: "text-zinc-400",
+        bg: "bg-zinc-500/5",
+        glow: "hover:shadow-[0_0_30px_-10px_rgba(113,113,122,0.3)]",
     };
-    return colors[category] || "text-zinc-400 border-zinc-500/30";
 }
 
 // Serialize data for client-side filtering
@@ -142,15 +183,13 @@ const filterCategories = [
     title="All Artifacts"
     description="Browse all KAPE forensic artifact targets"
 >
-    <div transition:name="header" transition:animate="none">
-        <Header client:load />
-    </div>
+    <Header client:load />
 
-    <main id="main-content" class="flex-1 relative" tabindex="-1" transition:name="main" transition:animate="slide">
+    <main id="main-content" class="flex-1 relative" tabindex="-1">
         <div class="mx-auto max-w-6xl px-4 py-8">
             <!-- Breadcrumb -->
             <nav
-                class="mb-6 text-xs text-muted-foreground animate-in"
+                class="mb-6 text-xs text-muted-foreground"
                 aria-label="Breadcrumb"
             >
                 <ol class="flex items-center gap-1">
@@ -172,10 +211,10 @@ const filterCategories = [
             </nav>
 
             <!-- Header -->
-            <header class="mb-8 animate-in" style="animation-delay: 50ms;">
-                <h1 class="text-2xl font-semibold mb-2">All Artifacts</h1>
+            <header class="mb-8">
+                <h1 class="text-3xl font-semibold mb-2 tracking-tight">All Artifacts</h1>
                 <p class="text-sm text-muted-foreground">
-                    Browse <span class="text-primary">{stats.total}</span> KAPE forensic
+                    Browse <span class="text-primary font-mono">{stats.total}</span> KAPE forensic
                     artifact targets
                 </p>
             </header>
@@ -183,269 +222,223 @@ const filterCategories = [
             <!-- Active Filter Banner (hidden by default, shown via JS) -->
             <div
                 id="filter-banner"
-                class="hidden mb-6 p-4 border border-primary/30 bg-primary/5 animate-in"
-                style="animation-delay: 75ms;"
+                class="hidden mb-6 p-4 rounded-xl glass-subtle"
             >
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm text-muted-foreground"
-                            >Filtered by:</span
-                        >
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-muted-foreground">Filtered by:</span>
                         <span
                             id="filter-label"
-                            class="text-sm font-medium text-primary"></span>
+                            class="text-sm font-semibold text-primary"></span>
                         <span
                             id="filter-count"
-                            class="text-xs text-muted-foreground"></span>
+                            class="text-xs text-muted-foreground font-mono"></span>
                     </div>
                     <a
                         href="/artifacts"
-                        class="text-xs text-primary hover:text-primary/80 transition-colors"
+                        class="text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
                     >
-                        clear filter ×
+                        clear filter
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </a>
                 </div>
             </div>
 
-            <!-- Stats Cards -->
-            <div
-                class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-in"
-                style="animation-delay: 100ms;"
-            >
-                <div class="border border-border bg-card/30 rounded-lg p-4">
-                    <div class="text-2xl font-semibold text-primary">
-                        {stats.total}
-                    </div>
-                    <div class="text-xs text-muted-foreground">
-                        total targets
-                    </div>
-                </div>
-                <div class="border border-border bg-card/30 rounded-lg p-4">
-                    <div class="text-2xl font-semibold text-cyan-400">
-                        {stats.compounds}
-                    </div>
-                    <div class="text-xs text-muted-foreground">collections</div>
-                </div>
-                <div class="border border-border bg-card/30 rounded-lg p-4">
-                    <div class="text-2xl font-semibold text-green-400">
-                        {stats.individuals}
-                    </div>
-                    <div class="text-xs text-muted-foreground">
-                        individual targets
+            <!-- Stats Cards - Redesigned -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors"></div>
+                    <div class="relative">
+                        <div class="text-3xl font-bold text-primary font-mono tracking-tight">
+                            {stats.total}
+                        </div>
+                        <div class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
+                            Total Targets
+                        </div>
                     </div>
                 </div>
-                <div class="border border-border bg-card/30 rounded-lg p-4">
-                    <div class="text-2xl font-semibold text-amber-400">
-                        {categories.length}
+                <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-cyan-500/20 transition-colors"></div>
+                    <div class="relative">
+                        <div class="text-3xl font-bold text-cyan-400 font-mono tracking-tight">
+                            {stats.compounds}
+                        </div>
+                        <div class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
+                            Collections
+                        </div>
                     </div>
-                    <div class="text-xs text-muted-foreground">categories</div>
+                </div>
+                <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/20 transition-colors"></div>
+                    <div class="relative">
+                        <div class="text-3xl font-bold text-emerald-400 font-mono tracking-tight">
+                            {stats.individuals}
+                        </div>
+                        <div class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
+                            Individual
+                        </div>
+                    </div>
+                </div>
+                <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/20 transition-colors"></div>
+                    <div class="relative">
+                        <div class="text-3xl font-bold text-amber-400 font-mono tracking-tight">
+                            {categories.length}
+                        </div>
+                        <div class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
+                            Categories
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Category Filter -->
-            <div class="mb-8 animate-in" style="animation-delay: 150ms;">
+            <div class="mb-8">
                 <CategoryFilters client:load categories={filterCategories} />
             </div>
 
             <!-- Default View: Targets by Category (hidden when filtered) -->
             <div id="default-view">
                 {
-                    categories.map((category, catIndex) => (
-                        <section
-                            class="category-section mb-10 animate-in"
-                            data-category={category.toLowerCase()}
-                            style={
-                                "animation-delay: " +
-                                (200 + catIndex * 50) +
-                                "ms;"
-                            }
-                            aria-labelledby={
-                                "category-" + category.toLowerCase()
-                            }
-                        >
-                            <div class="flex items-center justify-between mb-4">
-                                <h2
-                                    id={"category-" + category.toLowerCase()}
-                                    class="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2"
-                                >
-                                    <span
-                                        class="text-primary/50"
-                                        aria-hidden="true"
+                    categories.map((category) => {
+                        const style = getStyle(category);
+                        return (
+                            <section
+                                class="category-section mb-12"
+                                data-category={category.toLowerCase()}
+                                aria-labelledby={"category-" + category.toLowerCase()}
+                            >
+                                <div class="flex items-center justify-between mb-5">
+                                    <h2
+                                        id={"category-" + category.toLowerCase()}
+                                        class="text-sm font-medium flex items-center gap-3"
                                     >
-                                        //
-                                    </span>
-                                    {category}
-                                    <span
-                                        class={
-                                            getCategoryColor(category).split(
-                                                " ",
-                                            )[0]
-                                        }
-                                    >
-                                        ({targetsByCategory[category].length})
-                                    </span>
-                                </h2>
-                                <a
-                                    href={"/artifacts?category=" + category.toLowerCase()}
-                                    class="text-xs text-primary hover:text-primary/80 transition-colors focus-ring rounded-sm px-2 py-1"
-                                >
-                                    view all →
-                                </a>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {targetsByCategory[category]
-                                    .slice(0, 6)
-                                    .map((target) => (
-                                        <a
-                                            href={"/artifact/" + target.slug}
-                                            class={"group block border rounded-lg bg-card/20 hover:bg-card/40 hover:border-primary/30 transition-colors focus-ring p-4 " + getCategoryColor(category).split(" ")[1]}
-                                        >
-                                            <div class="flex items-start justify-between gap-2 mb-2">
-                                                <h3 class="text-sm font-medium group-hover:text-primary transition-colors truncate">
-                                                    {target.name}
-                                                </h3>
-                                                {target.isCompound && (
-                                                    <span class="px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 shrink-0">
-                                                        collection
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p class="text-xs text-muted-foreground line-clamp-2">
-                                                {target.description ||
-                                                    "No description available"}
-                                            </p>
-                                            <div class="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
-                                                {!target.isCompound && (
-                                                    <span>
-                                                        {
-                                                            target.targets.filter(
-                                                                (e) =>
-                                                                    !e.path.endsWith(
-                                                                        ".tkape",
-                                                                    ),
-                                                            ).length
-                                                        }{" "}
-                                                        paths
-                                                    </span>
-                                                )}
-                                                {target.isCompound && (
-                                                    <span>
-                                                        {
-                                                            target
-                                                                .referencedTargets
-                                                                .length
-                                                        }{" "}
-                                                        targets
-                                                    </span>
-                                                )}
-                                                <span class="text-muted-foreground/30">
-                                                    •
-                                                </span>
-                                                <span>{target.author}</span>
-                                            </div>
-                                        </a>
-                                    ))}
-                            </div>
-                            {targetsByCategory[category].length > 6 && (
-                                <div class="mt-3 text-center">
+                                        <span class={`w-2 h-2 rounded-full ${style.accent}`}></span>
+                                        <span class="text-foreground">{category}</span>
+                                        <span class={`text-xs font-mono ${style.text}`}>
+                                            {targetsByCategory[category].length}
+                                        </span>
+                                    </h2>
                                     <a
                                         href={"/artifacts?category=" + category.toLowerCase()}
-                                        class="text-xs text-muted-foreground hover:text-foreground transition-colors focus-ring rounded-sm px-3 py-1.5"
+                                        class="text-xs text-muted-foreground hover:text-primary transition-colors focus-ring rounded-sm px-2 py-1 flex items-center gap-1"
                                     >
-                                        +
-                                        {targetsByCategory[category].length - 6}{" "}
-                                        more in {category.toLowerCase()}
+                                        view all
+                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
                                     </a>
                                 </div>
-                            )}
-                        </section>
-                    ))
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {targetsByCategory[category]
+                                        .slice(0, 6)
+                                        .map((target) => (
+                                            <a
+                                                href={"/artifact/" + target.slug}
+                                                class={`artifact-card group rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.05] ${style.glow}`}
+                                            >
+                                                <div class="p-4">
+                                                    <div class="flex items-start justify-between gap-2 mb-2">
+                                                        <h3 class="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors truncate">
+                                                            {target.name}
+                                                        </h3>
+                                                        {target.isCompound && (
+                                                            <span class="shrink-0 px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
+                                                                collection
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p class="text-xs text-zinc-500 line-clamp-2 mb-3 leading-relaxed">
+                                                        {target.description || "No description available"}
+                                                    </p>
+                                                    <div class="flex items-center justify-between text-[10px]">
+                                                        <span class={`uppercase tracking-wider font-medium ${style.text}`}>
+                                                            {target.category}
+                                                        </span>
+                                                        <span class="text-zinc-600 font-mono">
+                                                            {!target.isCompound
+                                                                ? target.targets.filter((e) => !e.path.endsWith(".tkape")).length + " paths"
+                                                                : target.referencedTargets.length + " targets"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        ))}
+                                </div>
+                                {targetsByCategory[category].length > 6 && (
+                                    <div class="mt-4 text-center">
+                                        <a
+                                            href={"/artifacts?category=" + category.toLowerCase()}
+                                            class="inline-flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-4 py-2 rounded-full border border-white/[0.04] hover:border-white/[0.08] hover:bg-white/[0.02]"
+                                        >
+                                            <span>+{targetsByCategory[category].length - 6} more in {category}</span>
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                )}
+                            </section>
+                        );
+                    })
                 }
             </div>
 
             <!-- Filtered View: All matching artifacts (hidden by default) -->
             <div id="filtered-view" class="hidden">
-                <div
-                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-                >
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {
-                        targets.map((target) => (
-                            <a
-                                href={"/artifact/" + target.slug}
-                                data-slug={target.slug.toLowerCase()}
-                                data-category={target.category.toLowerCase()}
-                                data-lolbin={
-                                    lolbinSlugs.has(target.slug.toLowerCase())
-                                        ? "true"
-                                        : undefined
-                                }
-                                class={
-                                    "filtered-card group block border rounded-lg " +
-                                    getCategoryColor(target.category).split(
-                                        " ",
-                                    )[1] +
-                                    " bg-card/20 hover:bg-card/40 transition-colors focus-ring p-4"
-                                }
-                            >
-                                <div class="flex items-start justify-between gap-2 mb-2">
-                                    <h3 class="text-sm font-medium group-hover:text-primary transition-colors truncate">
-                                        {target.name}
-                                    </h3>
-                                    <div class="flex items-center gap-1 shrink-0">
-                                        {lolbinSlugs.has(
-                                            target.slug.toLowerCase(),
-                                        ) && (
-                                            <span class="px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-amber-400 border border-amber-500/30 bg-amber-500/10">
-                                                lolbin
+                        targets.map((target) => {
+                            const style = getStyle(target.category);
+                            return (
+                                <a
+                                    href={"/artifact/" + target.slug}
+                                    data-slug={target.slug.toLowerCase()}
+                                    data-category={target.category.toLowerCase()}
+                                    data-lolbin={
+                                        lolbinSlugs.has(target.slug.toLowerCase())
+                                            ? "true"
+                                            : undefined
+                                    }
+                                    class={`filtered-card artifact-card group rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.05] ${style.glow}`}
+                                >
+                                    <div class="p-4">
+                                        <div class="flex items-start justify-between gap-2 mb-2">
+                                            <h3 class="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors truncate">
+                                                {target.name}
+                                            </h3>
+                                            <div class="flex items-center gap-1 shrink-0">
+                                                {lolbinSlugs.has(target.slug.toLowerCase()) && (
+                                                    <span class="px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-full">
+                                                        lolbin
+                                                    </span>
+                                                )}
+                                                {target.isCompound && (
+                                                    <span class="px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
+                                                        collection
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-zinc-500 line-clamp-2 mb-3 leading-relaxed">
+                                            {target.description || "No description available"}
+                                        </p>
+                                        <div class="flex items-center justify-between text-[10px]">
+                                            <span class={`uppercase tracking-wider font-medium ${style.text}`}>
+                                                {target.category}
                                             </span>
-                                        )}
-                                        {target.isCompound && (
-                                            <span class="px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10">
-                                                collection
+                                            <span class="text-zinc-600 font-mono">
+                                                {!target.isCompound
+                                                    ? target.targets.filter((e) => !e.path.endsWith(".tkape")).length + " paths"
+                                                    : target.referencedTargets.length + " targets"}
                                             </span>
-                                        )}
+                                        </div>
                                     </div>
-                                </div>
-                                <p class="text-xs text-muted-foreground line-clamp-2">
-                                    {target.description ||
-                                        "No description available"}
-                                </p>
-                                <div class="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
-                                    <span
-                                        class={
-                                            "uppercase " +
-                                            getCategoryColor(
-                                                target.category,
-                                            ).split(" ")[0]
-                                        }
-                                    >
-                                        {target.category}
-                                    </span>
-                                    <span class="text-muted-foreground/30">
-                                        •
-                                    </span>
-                                    {!target.isCompound && (
-                                        <span>
-                                            {
-                                                target.targets.filter(
-                                                    (e) =>
-                                                        !e.path.endsWith(
-                                                            ".tkape",
-                                                        ),
-                                                ).length
-                                            }{" "}
-                                            paths
-                                        </span>
-                                    )}
-                                    {target.isCompound && (
-                                        <span>
-                                            {target.referencedTargets.length}{" "}
-                                            targets
-                                        </span>
-                                    )}
-                                </div>
-                            </a>
-                        ))
+                                </a>
+                            );
+                        })
                     }
                 </div>
             </div>
@@ -456,22 +449,6 @@ const filterCategories = [
 </Layout>
 
 <style>
-    .animate-in {
-        opacity: 0;
-        animation: animate-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes animate-in {
-        from {
-            opacity: 0;
-            transform: translateY(8px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
     .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -479,11 +456,12 @@ const filterCategories = [
         overflow: hidden;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .animate-in {
-            animation: none;
-            opacity: 1;
-        }
+    .artifact-card {
+        will-change: transform, box-shadow;
+    }
+
+    .artifact-card:hover {
+        transform: translateY(-2px);
     }
 </style>
 

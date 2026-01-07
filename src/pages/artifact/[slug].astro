@@ -5,6 +5,7 @@ import { Footer } from "../../components/layout/Footer";
 import { CommandGenerator } from "../../components/artifact/CommandGenerator";
 import { PathBrowser } from "../../components/artifact/PathBrowser";
 import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
+import { CategoryChip } from "../../components/artifact/CategoryChip";
 import {
     ArtifactPageContainer,
     ArtifactBreadcrumb,
@@ -44,33 +45,6 @@ const resolvedTargets = target.isCompound
 // Find collections that include this target
 const includedInCollections = findCollectionsContaining(target.slug);
 
-// Get category color
-function getCategoryColor(category: string): string {
-    const colors: Record<string, string> = {
-        Windows: "text-blue-400",
-        Browsers: "text-amber-400",
-        Apps: "text-green-400",
-        Antivirus: "text-red-400",
-        Logs: "text-orange-400",
-        P2P: "text-purple-400",
-        Compound: "text-cyan-400",
-    };
-    return colors[category] || "text-zinc-400";
-}
-
-// Get category border color
-function getCategoryBorderColor(category: string): string {
-    const colors: Record<string, string> = {
-        Windows: "border-blue-500/30",
-        Browsers: "border-amber-500/30",
-        Apps: "border-green-500/30",
-        Antivirus: "border-red-500/30",
-        Logs: "border-orange-500/30",
-        P2P: "border-purple-500/30",
-        Compound: "border-cyan-500/30",
-    };
-    return colors[category] || "border-zinc-500/30";
-}
 
 // SEO description with context
 const pathCount = target.isCompound
@@ -129,11 +103,9 @@ const jsonLd = {
         slot="head"
     />
 
-    <div transition:name="header" transition:animate="none">
-        <Header client:load />
-    </div>
+    <Header client:load />
 
-    <main id="main-content" class="flex-1 relative" tabindex="-1" transition:name="main" transition:animate="slide">
+    <main id="main-content" class="flex-1 relative" tabindex="-1">
         <div class="mx-auto max-w-6xl px-4 py-8">
             <ArtifactPageContainer client:load>
                 <!-- Breadcrumb Navigation -->
@@ -187,37 +159,12 @@ const jsonLd = {
                             >
                                 {target.name}
                             </h1>
-                            <div
-                                class="flex flex-wrap gap-2"
-                                role="list"
-                                aria-label="Target metadata"
-                            >
-                                <a
-                                    href={"/artifacts?category=" +
-                                        target.category.toLowerCase()}
-                                    class={"px-2 py-1 text-[10px] uppercase tracking-wider border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors focus-ring rounded-sm " +
-                                        getCategoryColor(target.category)}
-                                    role="listitem"
-                                >
-                                    {target.category}
-                                </a>
-                                {
-                                    target.isCompound && (
-                                        <span
-                                            class="px-2 py-1 text-[10px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 rounded-sm"
-                                            role="listitem"
-                                        >
-                                            compound
-                                        </span>
-                                    )
-                                }
-                                <span
-                                    class="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground border border-border bg-secondary/30 rounded-sm"
-                                    role="listitem"
-                                >
-                                    v{target.version}
-                                </span>
-                            </div>
+                            <CategoryChip
+                                client:load
+                                category={target.category}
+                                version={target.version}
+                                isCompound={target.isCompound}
+                            />
                         </div>
                         <div class="text-right text-xs text-muted-foreground">
                             <p>
@@ -233,10 +180,7 @@ const jsonLd = {
                 {
                     target.description && (
                         <ArtifactCard
-                            className={
-                                "mb-8 p-5 border bg-card/30 rounded-lg " +
-                                getCategoryBorderColor(target.category)
-                            }
+                            className="mb-8 p-5 glass-subtle rounded-xl"
                         >
                             <h2
                                 id="description-heading"
@@ -279,7 +223,7 @@ const jsonLd = {
                                     ({resolvedTargets.length})
                                 </span>
                             </h2>
-                            <ArtifactList className="border border-border bg-card/20 rounded-lg divide-y divide-border">
+                            <ArtifactList className="glass-subtle rounded-xl divide-y divide-white/[0.04]">
                                 {target.referencedTargets
                                     .slice(0, 20)
                                     .map((ref) => {

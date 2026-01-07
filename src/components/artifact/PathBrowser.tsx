@@ -97,7 +97,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 
 	if (pathEntries.length === 0) {
 		return (
-			<div className="border border-border bg-card/20 rounded-lg p-6 text-center">
+			<div className="glass-subtle rounded-xl p-6 text-center">
 				<p className="text-sm text-muted-foreground">
 					<span className="text-primary">$</span> no file paths defined for this
 					target
@@ -107,9 +107,9 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 	}
 
 	return (
-		<div className="border border-border bg-card/20 rounded-lg">
+		<div className="glass-subtle rounded-xl overflow-hidden">
 			{/* Header */}
-			<div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/20">
+			<div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.04] bg-white/[0.02]">
 				<div className="text-xs text-muted-foreground">
 					<span className="text-primary">{pathEntries.length}</span> path
 					{pathEntries.length !== 1 ? "s" : ""}
@@ -133,12 +133,12 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 			{/* Paths List */}
 			{target.isCompound && resolvedTargets ? (
 				// Grouped view for compound targets
-				<div className="divide-y divide-border">
+				<div className="divide-y divide-white/[0.04]">
 					{groupedPaths.map((group) => (
 						<div key={group.name}>
 							<button
 								onClick={() => toggleExpanded(group.name)}
-								className="w-full flex items-center justify-between px-4 py-2 bg-secondary/10 hover:bg-secondary/20 transition-colors text-left focus-ring"
+								className="w-full flex items-center justify-between px-4 py-2 bg-white/[0.02] hover:bg-white/[0.04] transition-colors text-left focus-ring"
 								aria-expanded={expandedTargets.has(group.name)}
 							>
 								<span className="text-xs font-medium">
@@ -174,7 +174,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 				</div>
 			) : (
 				// Flat list for individual targets
-				<div className="divide-y divide-border/50">
+				<div className="divide-y divide-white/[0.04]">
 					{pathEntries.map((entry, i) => (
 						<PathEntry
 							key={i}
@@ -187,7 +187,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 			)}
 
 			{/* Legend */}
-			<div className="px-4 py-2 border-t border-border bg-secondary/10 text-[10px] text-muted-foreground">
+			<div className="px-4 py-2 border-t border-white/[0.04] bg-white/[0.02] text-[10px] text-muted-foreground">
 				<span className="text-primary">//</span> paths use Windows environment
 				syntax
 			</div>

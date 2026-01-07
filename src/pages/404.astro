@@ -5,11 +5,9 @@ import { Footer } from "../components/layout/Footer";
 ---
 
 <Layout title="404 - Page Not Found" noindex={true}>
-    <div transition:name="header" transition:animate="none">
-        <Header client:load />
-    </div>
+    <Header client:load />
 
-    <main id="main-content" class="flex-1 flex items-center justify-center px-4" tabindex="-1" transition:name="main" transition:animate="slide">
+    <main id="main-content" class="flex-1 flex items-center justify-center px-4" tabindex="-1">
         <div class="text-center py-20">
             <div class="mb-6">
                 <span class="text-6xl font-bold text-primary">404</span>

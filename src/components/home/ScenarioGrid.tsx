@@ -32,33 +32,33 @@ const iconMap = {
 const colorMap = {
 	cyan: {
 		icon: "text-cyan-400",
-		border: "hover:border-cyan-500/50",
-		bg: "hover:bg-cyan-500/5",
+		border: "hover:border-cyan-500/40",
+		glow: "hover:shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]",
 	},
 	blue: {
 		icon: "text-blue-400",
-		border: "hover:border-blue-500/50",
-		bg: "hover:bg-blue-500/5",
+		border: "hover:border-blue-500/40",
+		glow: "hover:shadow-[0_0_20px_-5px_rgba(59,130,246,0.3)]",
 	},
 	red: {
 		icon: "text-red-400",
-		border: "hover:border-red-500/50",
-		bg: "hover:bg-red-500/5",
+		border: "hover:border-red-500/40",
+		glow: "hover:shadow-[0_0_20px_-5px_rgba(239,68,68,0.3)]",
 	},
 	green: {
 		icon: "text-green-400",
-		border: "hover:border-green-500/50",
-		bg: "hover:bg-green-500/5",
+		border: "hover:border-green-500/40",
+		glow: "hover:shadow-[0_0_20px_-5px_rgba(34,197,94,0.3)]",
 	},
 	purple: {
 		icon: "text-purple-400",
-		border: "hover:border-purple-500/50",
-		bg: "hover:bg-purple-500/5",
+		border: "hover:border-purple-500/40",
+		glow: "hover:shadow-[0_0_20px_-5px_rgba(168,85,247,0.3)]",
 	},
 	amber: {
 		icon: "text-amber-400",
-		border: "hover:border-amber-500/50",
-		bg: "hover:bg-amber-500/5",
+		border: "hover:border-amber-500/40",
+		glow: "hover:shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]",
 	},
 };
 
@@ -69,7 +69,7 @@ export function ScenarioGrid({ scenarios }: ScenarioGridProps) {
 				const Icon =
 					iconMap[scenario.id as keyof typeof iconMap] || HiOutlineCpuChip;
 				const colors = colorMap[scenario.color] || colorMap.cyan;
-				const cardClass = `group block p-4 sm:p-5 border border-border/50 rounded-xl ${colors.border} ${colors.bg} transition-all`;
+				const cardClass = `group block p-4 sm:p-5 glass-card rounded-xl ${colors.border} ${colors.glow}`;
 
 				return (
 					<a

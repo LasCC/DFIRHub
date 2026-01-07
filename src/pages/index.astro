@@ -5,6 +5,7 @@ import { Footer } from "../components/layout/Footer";
 import { AnimatedSearch } from "../components/search/AnimatedSearch";
 import { ScenarioGrid } from "../components/home/ScenarioGrid";
 import { ScrollReveal } from "../components/artifact/ArtifactContent";
+import { CategoryFilters } from "../components/artifacts/CategoryFilters";
 import { loadAllTargets, getStats } from "../lib/kapefiles";
 
 const stats = getStats();
@@ -203,7 +204,7 @@ const categories = [
 
 <Layout title="DFIRHub">
     <div class="min-h-screen w-full overflow-x-hidden">
-        <Header client:load showSearch={false} />
+        <Header client:load />
 
         <main class="mx-auto max-w-6xl px-4">
             <!-- Hero -->
@@ -222,31 +223,8 @@ const categories = [
                 </div>
 
                 <!-- Category Pills -->
-                <div class="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                    {
-                        categories.map((cat) => {
-                            const href =
-                                cat.id === "all"
-                                    ? "/artifacts"
-                                    : "/artifacts?filter=" + cat.id;
-                            const baseClass =
-                                "px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm rounded-full border transition-all";
-                            const colorClass = cat.special
-                                ? "text-primary border-primary/30 hover:border-primary hover:bg-primary/10"
-                                : "text-muted-foreground border-border hover:border-foreground hover:text-foreground";
-                            return (
-                                <a
-                                    href={href}
-                                    class={baseClass + " " + colorClass}
-                                >
-                                    {cat.label}
-                                    <span class="ml-1 opacity-60">
-                                        {cat.count}
-                                    </span>
-                                </a>
-                            );
-                        })
-                    }
+                <div class="flex justify-center">
+                    <CategoryFilters client:load categories={categories} />
                 </div>
             </div>
 
@@ -309,7 +287,7 @@ const categories = [
                                     return (
                                         <a
                                             href={href}
-                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 border border-border/50 rounded-xl hover:border-primary/50 hover:bg-card/50 transition-all"
+                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
                                         >
                                             <h3 class="font-medium text-xs sm:text-sm mb-1 group-hover:text-primary transition-colors truncate">
                                                 {artifact.name}
@@ -355,7 +333,7 @@ const categories = [
                                     return (
                                         <a
                                             href={href}
-                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 border border-border/50 rounded-xl hover:border-primary/50 hover:bg-card/50 transition-all"
+                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
                                         >
                                             <h3 class="font-medium text-xs sm:text-sm mb-1 group-hover:text-primary transition-colors truncate">
                                                 {artifact.name}
