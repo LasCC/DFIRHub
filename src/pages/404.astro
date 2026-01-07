@@ -1,37 +1,41 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { Header } from "../components/layout/Header";
 import { Footer } from "../components/layout/Footer";
+import { Header } from "../components/layout/Header";
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout title="404 - Page Not Found" noindex={true}>
-    <Header client:load />
+  <Header client:load />
 
-    <main id="main-content" class="flex-1 flex items-center justify-center px-4" tabindex="-1">
-        <div class="text-center py-20">
-            <div class="mb-6">
-                <span class="text-6xl font-bold text-primary">404</span>
-            </div>
-            <h1 class="text-xl font-medium mb-2">Page not found</h1>
-            <p class="text-muted-foreground mb-8">
-                <span class="text-primary">$</span> The requested path does not exist
-            </p>
-            <div class="flex items-center justify-center gap-4">
-                <a
-                    href="/"
-                    class="px-4 py-2 text-sm border border-primary text-primary hover:bg-primary/10 transition-colors rounded-sm"
-                >
-                    go home
-                </a>
-                <a
-                    href="/artifacts"
-                    class="px-4 py-2 text-sm border border-border text-muted-foreground hover:border-foreground hover:text-foreground transition-colors rounded-sm"
-                >
-                    browse artifacts
-                </a>
-            </div>
-        </div>
-    </main>
+  <main
+    id="main-content"
+    class="flex-1 flex items-center justify-center px-4"
+    tabindex="-1"
+  >
+    <div class="text-center py-20">
+      <div class="mb-6">
+        <span class="text-6xl font-bold text-primary">404</span>
+      </div>
+      <h1 class="text-xl font-medium mb-2">Page not found</h1>
+      <p class="text-muted-foreground mb-8">
+        <span class="text-primary">$</span> The requested path does not exist
+      </p>
+      <div class="flex items-center justify-center gap-4">
+        <a
+          href="/"
+          class="px-4 py-2 text-sm border border-primary text-primary hover:bg-primary/10 transition-colors rounded-sm"
+        >
+          go home
+        </a>
+        <a
+          href="/artifacts"
+          class="px-4 py-2 text-sm border border-border text-muted-foreground hover:border-foreground hover:text-foreground transition-colors rounded-sm"
+        >
+          browse artifacts
+        </a>
+      </div>
+    </div>
+  </main>
 
-    <Footer client:load />
+  <Footer client:load />
 </Layout>

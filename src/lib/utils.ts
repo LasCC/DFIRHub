@@ -6,5 +6,5 @@ import { twMerge } from "tailwind-merge";
  * This is the standard ShadCN/ui helper function
  */
 export function cn(...inputs: ClassValue[]) {
-	return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }

@@ -1,12 +1,12 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { Header } from "../components/layout/Header";
-import { Footer } from "../components/layout/Footer";
 import { ScriptBuilder } from "../components/builder/ScriptBuilder";
+import { Footer } from "../components/layout/Footer";
+import { Header } from "../components/layout/Header";
+import Layout from "../layouts/Layout.astro";
 import {
-    loadAllTargets,
-    getCategories,
-    type KapeTarget,
+  getCategories,
+  type KapeTarget,
+  loadAllTargets,
 } from "../lib/kapefiles";
 
 // Load data at build time
@@ -15,36 +15,34 @@ const categories = getCategories();
 ---
 
 <Layout title="Script Builder - DFIRHub">
-    <Header client:load />
+  <Header client:load />
 
-    <main class="flex-1 relative">
-        <div class="mx-auto max-w-6xl px-4 py-8">
-            <!-- Breadcrumb -->
-            <nav class="mb-6 text-xs text-muted-foreground">
-                <a href="/" class="hover:text-foreground transition-colors"
-                    >~/</a
-                >
-                <span class="mx-1">/</span>
-                <span class="text-foreground">builder</span>
-            </nav>
+  <main class="flex-1 relative">
+    <div class="mx-auto max-w-6xl px-4 py-8">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 text-xs text-muted-foreground">
+        <a href="/" class="hover:text-foreground transition-colors">~/</a>
+        <span class="mx-1">/</span>
+        <span class="text-foreground">builder</span>
+      </nav>
 
-            <!-- Header -->
-            <header class="mb-8">
-                <h1 class="text-2xl font-semibold mb-2">Script Builder</h1>
-                <p class="text-sm text-muted-foreground">
-                    Build custom collection scripts by selecting targets. Export
-                    as KAPE command, PowerShell, or batch file.
-                </p>
-            </header>
+      <!-- Header -->
+      <header class="mb-8">
+        <h1 class="text-2xl font-semibold mb-2">Script Builder</h1>
+        <p class="text-sm text-muted-foreground">
+          Build custom collection scripts by selecting targets. Export as KAPE
+          command, PowerShell, or batch file.
+        </p>
+      </header>
 
-            <!-- Script Builder Component -->
-            <ScriptBuilder
-                client:load
-                allTargets={allTargets}
-                categories={categories}
-            />
-        </div>
-    </main>
+      <!-- Script Builder Component -->
+      <ScriptBuilder
+        client:load
+        allTargets={allTargets}
+        categories={categories}
+      />
+    </div>
+  </main>
 
-    <Footer client:load />
+  <Footer client:load />
 </Layout>

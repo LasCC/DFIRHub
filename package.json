@@ -39,6 +39,8 @@
     "tailwindcss-corner-shape": "^1.4.6"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9"
+    "@biomejs/biome": "2.3.11",
+    "@types/js-yaml": "^4.0.9",
+    "ultracite": "7.0.9"
   }
 }

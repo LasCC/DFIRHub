@@ -2,72 +2,69 @@ import { useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 
 interface CodeBlockProps {
-	code: string;
-	language: "powershell" | "batch" | "bash" | "shell" | "text";
+  code: string;
+  language: "powershell" | "batch" | "bash" | "shell" | "text";
 }
 
 // Map our formats to Shiki language identifiers
 const languageMap: Record<string, string> = {
-	powershell: "powershell",
-	batch: "bat",
-	bash: "bash",
-	shell: "bash",
-	text: "text",
+  powershell: "powershell",
+  batch: "bat",
+  bash: "bash",
+  shell: "bash",
+  text: "text",
 };
 
-export function CodeBlock({
-	code,
-	language,
-}: CodeBlockProps) {
-	const [highlightedHtml, setHighlightedHtml] = useState<string>("");
-	const [isLoading, setIsLoading] = useState(true);
+export function CodeBlock({ code, language }: CodeBlockProps) {
+  const [highlightedHtml, setHighlightedHtml] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
-	useEffect(() => {
-		let mounted = true;
+  useEffect(() => {
+    let mounted = true;
 
-		async function highlight() {
-			try {
-				const html = await codeToHtml(code, {
-					lang: languageMap[language] || "text",
-					theme: "github-dark-default",
-				});
-				if (mounted) {
-					setHighlightedHtml(html);
-					setIsLoading(false);
-				}
-			} catch (error) {
-				console.error("Shiki highlighting error:", error);
-				if (mounted) {
-					setIsLoading(false);
-				}
-			}
-		}
+    async function highlight() {
+      try {
+        const html = await codeToHtml(code, {
+          lang: languageMap[language] || "text",
+          theme: "github-dark-default",
+        });
+        if (mounted) {
+          setHighlightedHtml(html);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Shiki highlighting error:", error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }
 
-		highlight();
+    highlight();
 
-		return () => {
-			mounted = false;
-		};
-	}, [code, language]);
+    return () => {
+      mounted = false;
+    };
+  }, [code, language]);
 
-	// Loading state - show plain code
-	if (isLoading) {
-		return (
-			<pre className="code-block-pre">
-				<code className="text-[#7ee787] whitespace-pre-wrap font-mono">
-					{code}
-				</code>
-			</pre>
-		);
-	}
+  // Loading state - show plain code
+  if (isLoading) {
+    return (
+      <pre className="code-block-pre">
+        <code className="whitespace-pre-wrap font-mono text-[#7ee787]">
+          {code}
+        </code>
+      </pre>
+    );
+  }
 
-	return (
-		<div className="shiki-wrapper">
-			<div
-				className="shiki-content"
-				dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-			/>
-			<style>{`
+  return (
+    <div className="shiki-wrapper">
+      <div
+        className="shiki-content"
+        dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+      />
+      <style>{`
 				.code-block-pre {
 					padding: 1rem;
 					background: rgba(0, 0, 0, 0.4);
@@ -97,6 +94,6 @@ export function CodeBlock({
 					background: transparent !important;
 				}
 			`}</style>
-		</div>
-	);
+    </div>
+  );
 }

@@ -1,0 +1,63 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/astro",
+    "ultracite/biome/react"
+  ],
+  "css": {
+    "parser": {
+      "cssModules": true
+    }
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "useFilenamingConvention": "off",
+        "noNestedTernary": "off",
+        "useBlockStatements": "off",
+        "useDefaultSwitchClause": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off",
+        "noForEach": "off",
+        "useOptionalChain": "off"
+      },
+      "nursery": {
+        "useSortedClasses": "off"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off",
+        "noCommentText": "off",
+        "noExplicitAny": "off",
+        "useAwait": "off"
+      },
+      "a11y": {
+        "useSemanticElements": "off",
+        "noLabelWithoutControl": "off",
+        "useAriaPropsSupportedByRole": "off",
+        "noNoninteractiveElementInteractions": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "performance": {
+        "noNamespaceImport": "off",
+        "useTopLevelRegex": "off",
+        "noBarrelFile": "off"
+      },
+      "correctness": {
+        "useParseIntRadix": "off",
+        "noUndeclaredVariables": "off"
+      }
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "useSortedAttributes": "off"
+      }
+    }
+  }
+}
+

@@ -1,8 +1,8 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { Header } from "../components/layout/Header";
 import { Footer } from "../components/layout/Footer";
-import { tools, toolCategories } from "../data/tools";
+import { Header } from "../components/layout/Header";
+import { toolCategories, tools } from "../data/tools";
+import Layout from "../layouts/Layout.astro";
 
 // Group tools by category
 const toolsByCategory = new Map<string, typeof tools>();
@@ -10,12 +10,14 @@ for (const tool of tools) {
   if (!toolsByCategory.has(tool.category)) {
     toolsByCategory.set(tool.category, []);
   }
-  toolsByCategory.get(tool.category)!.push(tool);
+  toolsByCategory.get(tool.category)?.push(tool);
 }
 
 // Get category info
 function getCategoryInfo(id: string) {
-  return toolCategories.find(c => c.id === id) || { id, name: id, description: "" };
+  return (
+    toolCategories.find((c) => c.id === id) || { id, name: id, description: "" }
+  );
 }
 
 // Platform colors
@@ -32,10 +34,16 @@ const platformColors: Record<string, string> = {
   <main id="main-content" class="flex-1 relative" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4 py-8">
       <!-- Breadcrumb -->
-      <nav class="mb-6 text-xs text-muted-foreground animate-in" aria-label="Breadcrumb">
+      <nav
+        class="mb-6 text-xs text-muted-foreground animate-in"
+        aria-label="Breadcrumb"
+      >
         <ol class="flex items-center gap-1">
           <li>
-            <a href="/" class="hover:text-foreground transition-colors focus-ring rounded-sm px-1">
+            <a
+              href="/"
+              class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+            >
               <span class="text-primary">~</span>/
             </a>
           </li>
@@ -50,12 +58,17 @@ const platformColors: Record<string, string> = {
       <header class="mb-8 animate-in" style="animation-delay: 50ms;">
         <h1 class="text-2xl font-semibold mb-2">Forensic Tools</h1>
         <p class="text-sm text-muted-foreground">
-          Collection of <span class="text-primary">{tools.length}</span> forensic tools integrated with DFIRHub for artifact extraction and analysis
+          Collection of <span class="text-primary">{tools.length}</span>
+          forensic tools integrated with DFIRHub for artifact extraction and
+          analysis
         </p>
       </header>
 
       <!-- Stats -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-in" style="animation-delay: 100ms;">
+      <div
+        class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-in"
+        style="animation-delay: 100ms;"
+      >
         <div class="border border-border bg-card/30 rounded-lg p-4">
           <div class="text-2xl font-semibold text-primary">{tools.length}</div>
           <div class="text-xs text-muted-foreground">total tools</div>
@@ -82,7 +95,9 @@ const platformColors: Record<string, string> = {
 
       <!-- Quick Links -->
       <section class="mb-8 animate-in" style="animation-delay: 150ms;">
-        <h2 class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+        <h2
+          class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+        >
           <span class="text-primary/50" aria-hidden="true">//</span>
           quick navigation
         </h2>
@@ -185,5 +200,4 @@ const platformColors: Record<string, string> = {
       transform: translateY(0);
     }
   }
-
 </style>

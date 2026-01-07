@@ -1,95 +1,94 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { Header } from "../components/layout/Header";
 import { Footer } from "../components/layout/Footer";
+import { Header } from "../components/layout/Header";
+import Layout from "../layouts/Layout.astro";
 import {
-    getCompoundTargets,
-    resolveCompoundReferences,
-    type KapeTarget,
+  getCompoundTargets,
+  type KapeTarget,
+  resolveCompoundReferences,
 } from "../lib/kapefiles";
 
 const collections = getCompoundTargets();
 
 // Sort collections by number of referenced targets (most comprehensive first)
 const sortedCollections = [...collections].sort(
-    (a, b) => b.referencedTargets.length - a.referencedTargets.length,
+  (a, b) => b.referencedTargets.length - a.referencedTargets.length
 );
 
 // Highlight featured collections
 const featuredNames = [
-    "KapeTriage",
-    "BasicCollection",
-    "SANS_Triage",
-    "EvidenceOfExecution",
+  "KapeTriage",
+  "BasicCollection",
+  "SANS_Triage",
+  "EvidenceOfExecution",
 ];
 const featured = sortedCollections.filter((c) =>
-    featuredNames.some((name) =>
-        c.name.toLowerCase().includes(name.toLowerCase()),
-    ),
+  featuredNames.some((name) =>
+    c.name.toLowerCase().includes(name.toLowerCase())
+  )
 );
 const others = sortedCollections.filter(
-    (c) =>
-        !featuredNames.some((name) =>
-            c.name.toLowerCase().includes(name.toLowerCase()),
-        ),
+  (c) =>
+    !featuredNames.some((name) =>
+      c.name.toLowerCase().includes(name.toLowerCase())
+    )
 );
 ---
 
 <Layout
-    title="Triage Collections"
-    description="Pre-built KAPE triage collections for rapid forensic acquisition"
+  title="Triage Collections"
+  description="Pre-built KAPE triage collections for rapid forensic acquisition"
 >
-    <Header client:load />
+  <Header client:load />
 
-    <main id="main-content" class="flex-1 relative" tabindex="-1">
-        <div class="mx-auto max-w-6xl px-4 py-8">
-            <!-- Breadcrumb -->
-            <nav
-                class="mb-6 text-xs text-muted-foreground animate-in"
-                aria-label="Breadcrumb"
+  <main id="main-content" class="flex-1 relative" tabindex="-1">
+    <div class="mx-auto max-w-6xl px-4 py-8">
+      <!-- Breadcrumb -->
+      <nav
+        class="mb-6 text-xs text-muted-foreground animate-in"
+        aria-label="Breadcrumb"
+      >
+        <ol class="flex items-center gap-1">
+          <li>
+            <a
+              href="/"
+              class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
             >
-                <ol class="flex items-center gap-1">
-                    <li>
-                        <a
-                            href="/"
-                            class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
-                        >
-                            <span class="text-primary">~</span>/
-                        </a>
-                    </li>
-                    <li class="flex items-center gap-1">
-                        <span aria-hidden="true">/</span>
-                        <span class="text-foreground px-1" aria-current="page"
-                            >collections</span
-                        >
-                    </li>
-                </ol>
-            </nav>
-
-            <!-- Header -->
-            <header class="mb-8 animate-in" style="animation-delay: 50ms;">
-                <h1 class="text-2xl font-semibold mb-2">Triage Collections</h1>
-                <p class="text-sm text-muted-foreground">
-                    <span class="text-cyan-400">{collections.length}</span> pre-built
-                    KAPE compound targets for rapid forensic acquisition
-                </p>
-            </header>
-
-            <!-- Info Box -->
-            <div
-                class="mb-8 p-4 border border-cyan-500/30 bg-cyan-500/5 rounded-lg animate-in"
-                style="animation-delay: 100ms;"
+              <span class="text-primary">~</span>/
+            </a>
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <span class="text-foreground px-1" aria-current="page"
+              >collections</span
             >
-                <p class="text-sm text-muted-foreground">
-                    <span class="text-cyan-400">Compound targets</span> combine multiple
-                    individual targets into a single collection. Use these for comprehensive
-                    triage acquisition with a single KAPE command.
-                </p>
-            </div>
+          </li>
+        </ol>
+      </nav>
 
-            <!-- Featured Collections -->
-            {
-                featured.length > 0 && (
+      <!-- Header -->
+      <header class="mb-8 animate-in" style="animation-delay: 50ms;">
+        <h1 class="text-2xl font-semibold mb-2">Triage Collections</h1>
+        <p class="text-sm text-muted-foreground">
+          <span class="text-cyan-400">{collections.length}</span> pre-built KAPE
+          compound targets for rapid forensic acquisition
+        </p>
+      </header>
+
+      <!-- Info Box -->
+      <div
+        class="mb-8 p-4 border border-cyan-500/30 bg-cyan-500/5 rounded-lg animate-in"
+        style="animation-delay: 100ms;"
+      >
+        <p class="text-sm text-muted-foreground">
+          <span class="text-cyan-400">Compound targets</span> combine multiple
+          individual targets into a single collection. Use these for
+          comprehensive triage acquisition with a single KAPE command.
+        </p>
+      </div>
+
+      <!-- Featured Collections -->
+      {featured.length > 0 && (
                     <section
                         class="mb-10 animate-in"
                         style="animation-delay: 150ms;"
@@ -161,30 +160,24 @@ const others = sortedCollections.filter(
                             })}
                         </div>
                     </section>
-                )
-            }
+                )}
 
-            <!-- All Collections -->
-            <section
-                class="animate-in"
-                style="animation-delay: 200ms;"
-                aria-labelledby="all-heading"
-            >
-                <h2
-                    id="all-heading"
-                    class="text-xs uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2"
-                >
-                    <span class="text-primary/50" aria-hidden="true">//</span>
-                    all collections
-                    <span class="text-cyan-400"
-                        >({others.length + featured.length})</span
-                    >
-                </h2>
-                <div
-                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-                >
-                    {
-                        sortedCollections.map((collection) => (
+      <!-- All Collections -->
+      <section
+        class="animate-in"
+        style="animation-delay: 200ms;"
+        aria-labelledby="all-heading"
+      >
+        <h2
+          id="all-heading"
+          class="text-xs uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2"
+        >
+          <span class="text-primary/50" aria-hidden="true">//</span>
+          all collections
+          <span class="text-cyan-400">({others.length + featured.length})</span>
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {sortedCollections.map((collection) => (
                             <a
                                 href={`/artifact/${collection.slug}`}
                                 class="group block border border-border bg-card/20 rounded-lg hover:bg-card/40 hover:border-cyan-500/30 transition-colors focus-ring p-4"
@@ -205,40 +198,36 @@ const others = sortedCollections.filter(
                                     by {collection.author}
                                 </div>
                             </a>
-                        ))
-                    }
-                </div>
-            </section>
-
+                        ))}
         </div>
-    </main>
+      </section>
+    </div>
+  </main>
 
-    <Footer client:load />
+  <Footer client:load />
 </Layout>
 
 <style>
-    .animate-in {
-        opacity: 0;
-        animation: animate-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+  .animate-in {
+    opacity: 0;
+    animation: animate-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 
-    @keyframes animate-in {
-        from {
-            opacity: 0;
-            transform: translateY(8px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
     }
-
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
+  }
 
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 </style>
-

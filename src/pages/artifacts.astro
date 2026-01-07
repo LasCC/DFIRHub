@@ -1,13 +1,13 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { Header } from "../components/layout/Header";
-import { Footer } from "../components/layout/Footer";
 import { CategoryFilters } from "../components/artifacts/CategoryFilters";
+import { Footer } from "../components/layout/Footer";
+import { Header } from "../components/layout/Header";
+import Layout from "../layouts/Layout.astro";
 import {
-    loadAllTargets,
-    getCategories,
-    getStats,
-    type KapeTarget,
+  getCategories,
+  getStats,
+  type KapeTarget,
+  loadAllTargets,
 } from "../lib/kapefiles";
 
 const targets = loadAllTargets();
@@ -16,293 +16,329 @@ const stats = getStats();
 
 // LOLBin slugs
 const lolbinSlugs = new Set([
-    "bits",
-    "certutil",
-    "powershellconsole",
-    "powershelltranscripts",
-    "powershell7config",
-    "wbem",
-    "scheduledtasks",
-    "mof",
+  "bits",
+  "certutil",
+  "powershellconsole",
+  "powershelltranscripts",
+  "powershell7config",
+  "wbem",
+  "scheduledtasks",
+  "mof",
 ]);
 const lolbinCount = targets.filter((t) =>
-    lolbinSlugs.has(t.slug.toLowerCase()),
+  lolbinSlugs.has(t.slug.toLowerCase())
 ).length;
 
 // Scenario artifact mappings
 const scenarioArtifacts: Record<string, string[]> = {
-    "lateral-movement": [
-        "rdpcache",
-        "eventlogs-rdp",
-        "eventlogs",
-        "psexec",
-        "bits",
-        "smbclient",
-        "networkprofiles",
-        "rdp",
-    ],
-    "browser-forensics": [
-        "chrome",
-        "firefox",
-        "edge",
-        "ienetcache",
-        "browsercache",
-        "chromiumextensions",
-        "browser",
-    ],
-    persistence: [
-        "scheduledtasks",
-        "registryhivesuser",
-        "registryhivessystem",
-        "startupfolders",
-        "services",
-        "wbem",
-        "mof",
-        "registry",
-    ],
-    execution: [
-        "prefetch",
-        "amcache",
-        "shimcache",
-        "srum",
-        "appcompatpca",
-        "userassist",
-        "bam",
-    ],
-    "user-activity": [
-        "shellbags",
-        "recentfilecache",
-        "jumplists",
-        "lnkfiles",
-        "thumbcache",
-        "wordwheelquery",
-        "recent",
-        "mru",
-    ],
-    "anti-forensics": [
-        "$mft",
-        "$j",
-        "$logfile",
-        "recyclebin",
-        "$usnjrnl",
-        "vss",
-        "thumbcache",
-        "usn",
-    ],
+  "lateral-movement": [
+    "rdpcache",
+    "eventlogs-rdp",
+    "eventlogs",
+    "psexec",
+    "bits",
+    "smbclient",
+    "networkprofiles",
+    "rdp",
+  ],
+  "browser-forensics": [
+    "chrome",
+    "firefox",
+    "edge",
+    "ienetcache",
+    "browsercache",
+    "chromiumextensions",
+    "browser",
+  ],
+  persistence: [
+    "scheduledtasks",
+    "registryhivesuser",
+    "registryhivessystem",
+    "startupfolders",
+    "services",
+    "wbem",
+    "mof",
+    "registry",
+  ],
+  execution: [
+    "prefetch",
+    "amcache",
+    "shimcache",
+    "srum",
+    "appcompatpca",
+    "userassist",
+    "bam",
+  ],
+  "user-activity": [
+    "shellbags",
+    "recentfilecache",
+    "jumplists",
+    "lnkfiles",
+    "thumbcache",
+    "wordwheelquery",
+    "recent",
+    "mru",
+  ],
+  "anti-forensics": [
+    "$mft",
+    "$j",
+    "$logfile",
+    "recyclebin",
+    "$usnjrnl",
+    "vss",
+    "thumbcache",
+    "usn",
+  ],
 };
 
 // Group targets by category
 const targetsByCategory = categories.reduce(
-    (acc, cat) => {
-        acc[cat] = targets.filter((t) => t.category === cat);
-        return acc;
-    },
-    {} as Record<string, KapeTarget[]>,
+  (acc, cat) => {
+    acc[cat] = targets.filter((t) => t.category === cat);
+    return acc;
+  },
+  {} as Record<string, KapeTarget[]>
 );
 
 // Category color and accent configuration
-const categoryStyles: Record<string, { accent: string; text: string; bg: string; glow: string }> = {
-    Windows: {
-        accent: "bg-blue-500",
-        text: "text-blue-400",
-        bg: "bg-blue-500/5",
-        glow: "hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]",
-    },
-    Browsers: {
-        accent: "bg-orange-500",
-        text: "text-orange-400",
-        bg: "bg-orange-500/5",
-        glow: "hover:shadow-[0_0_30px_-10px_rgba(249,115,22,0.3)]",
-    },
-    Apps: {
-        accent: "bg-emerald-500",
-        text: "text-emerald-400",
-        bg: "bg-emerald-500/5",
-        glow: "hover:shadow-[0_0_30px_-10px_rgba(52,211,153,0.3)]",
-    },
-    Antivirus: {
-        accent: "bg-red-500",
-        text: "text-red-400",
-        bg: "bg-red-500/5",
-        glow: "hover:shadow-[0_0_30px_-10px_rgba(239,68,68,0.3)]",
-    },
-    Logs: {
-        accent: "bg-yellow-500",
-        text: "text-yellow-400",
-        bg: "bg-yellow-500/5",
-        glow: "hover:shadow-[0_0_30px_-10px_rgba(234,179,8,0.3)]",
-    },
-    P2P: {
-        accent: "bg-purple-500",
-        text: "text-purple-400",
-        bg: "bg-purple-500/5",
-        glow: "hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.3)]",
-    },
-    Compound: {
-        accent: "bg-cyan-500",
-        text: "text-cyan-400",
-        bg: "bg-cyan-500/5",
-        glow: "hover:shadow-[0_0_30px_-10px_rgba(6,182,212,0.3)]",
-    },
+const categoryStyles: Record<
+  string,
+  { accent: string; text: string; bg: string; glow: string }
+> = {
+  Windows: {
+    accent: "bg-blue-500",
+    text: "text-blue-400",
+    bg: "bg-blue-500/5",
+    glow: "hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]",
+  },
+  Browsers: {
+    accent: "bg-orange-500",
+    text: "text-orange-400",
+    bg: "bg-orange-500/5",
+    glow: "hover:shadow-[0_0_30px_-10px_rgba(249,115,22,0.3)]",
+  },
+  Apps: {
+    accent: "bg-emerald-500",
+    text: "text-emerald-400",
+    bg: "bg-emerald-500/5",
+    glow: "hover:shadow-[0_0_30px_-10px_rgba(52,211,153,0.3)]",
+  },
+  Antivirus: {
+    accent: "bg-red-500",
+    text: "text-red-400",
+    bg: "bg-red-500/5",
+    glow: "hover:shadow-[0_0_30px_-10px_rgba(239,68,68,0.3)]",
+  },
+  Logs: {
+    accent: "bg-yellow-500",
+    text: "text-yellow-400",
+    bg: "bg-yellow-500/5",
+    glow: "hover:shadow-[0_0_30px_-10px_rgba(234,179,8,0.3)]",
+  },
+  P2P: {
+    accent: "bg-purple-500",
+    text: "text-purple-400",
+    bg: "bg-purple-500/5",
+    glow: "hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.3)]",
+  },
+  Compound: {
+    accent: "bg-cyan-500",
+    text: "text-cyan-400",
+    bg: "bg-cyan-500/5",
+    glow: "hover:shadow-[0_0_30px_-10px_rgba(6,182,212,0.3)]",
+  },
 };
 
 function getStyle(category: string) {
-    return categoryStyles[category] || {
-        accent: "bg-zinc-500",
-        text: "text-zinc-400",
-        bg: "bg-zinc-500/5",
-        glow: "hover:shadow-[0_0_30px_-10px_rgba(113,113,122,0.3)]",
-    };
+  return (
+    categoryStyles[category] || {
+      accent: "bg-zinc-500",
+      text: "text-zinc-400",
+      bg: "bg-zinc-500/5",
+      glow: "hover:shadow-[0_0_30px_-10px_rgba(113,113,122,0.3)]",
+    }
+  );
 }
 
 // Serialize data for client-side filtering
 const allTargetsJson = JSON.stringify(
-    targets.map((t) => ({
-        slug: t.slug,
-        name: t.name,
-        category: t.category,
-        isCompound: t.isCompound,
-        isLolbin: lolbinSlugs.has(t.slug.toLowerCase()),
-    })),
+  targets.map((t) => ({
+    slug: t.slug,
+    name: t.name,
+    category: t.category,
+    isCompound: t.isCompound,
+    isLolbin: lolbinSlugs.has(t.slug.toLowerCase()),
+  }))
 );
 const scenarioArtifactsJson = JSON.stringify(scenarioArtifacts);
 
 // Build filter categories for CategoryFilters component
 const filterCategories = [
-    { id: "all", label: "All", count: stats.total },
-    { id: "lolbin", label: "LOLBins", count: lolbinCount, special: true },
-    ...categories.map((cat) => ({
-        id: cat.toLowerCase(),
-        label: cat,
-        count: stats.byCategory[cat] || 0,
-    })),
+  { id: "all", label: "All", count: stats.total },
+  { id: "lolbin", label: "LOLBins", count: lolbinCount, special: true },
+  ...categories.map((cat) => ({
+    id: cat.toLowerCase(),
+    label: cat,
+    count: stats.byCategory[cat] || 0,
+  })),
 ];
 ---
 
 <Layout
-    title="All Artifacts"
-    description="Browse all KAPE forensic artifact targets"
+  title="All Artifacts"
+  description="Browse all KAPE forensic artifact targets"
 >
-    <Header client:load />
+  <Header client:load />
 
-    <main id="main-content" class="flex-1 relative" tabindex="-1">
-        <div class="mx-auto max-w-6xl px-4 py-8">
-            <!-- Breadcrumb -->
-            <nav
-                class="mb-6 text-xs text-muted-foreground"
-                aria-label="Breadcrumb"
+  <main id="main-content" class="flex-1 relative" tabindex="-1">
+    <div class="mx-auto max-w-6xl px-4 py-8">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 text-xs text-muted-foreground" aria-label="Breadcrumb">
+        <ol class="flex items-center gap-1">
+          <li>
+            <a
+              href="/"
+              class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
             >
-                <ol class="flex items-center gap-1">
-                    <li>
-                        <a
-                            href="/"
-                            class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
-                        >
-                            <span class="text-primary">~</span>/
-                        </a>
-                    </li>
-                    <li class="flex items-center gap-1">
-                        <span aria-hidden="true">/</span>
-                        <span class="text-foreground px-1" aria-current="page"
-                            >artifacts</span
-                        >
-                    </li>
-                </ol>
-            </nav>
+              <span class="text-primary">~</span>/
+            </a>
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <span class="text-foreground px-1" aria-current="page"
+              >artifacts</span
+            >
+          </li>
+        </ol>
+      </nav>
 
-            <!-- Header -->
-            <header class="mb-8">
-                <h1 class="text-3xl font-semibold mb-2 tracking-tight">All Artifacts</h1>
-                <p class="text-sm text-muted-foreground">
-                    Browse <span class="text-primary font-mono">{stats.total}</span> KAPE forensic
-                    artifact targets
-                </p>
-            </header>
+      <!-- Header -->
+      <header class="mb-8">
+        <h1 class="text-3xl font-semibold mb-2 tracking-tight">
+          All Artifacts
+        </h1>
+        <p class="text-sm text-muted-foreground">
+          Browse <span class="text-primary font-mono">{stats.total}</span> KAPE
+          forensic artifact targets
+        </p>
+      </header>
 
-            <!-- Active Filter Banner (hidden by default, shown via JS) -->
+      <!-- Active Filter Banner (hidden by default, shown via JS) -->
+      <div id="filter-banner" class="hidden mb-6 p-4 rounded-xl glass-subtle">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-muted-foreground">Filtered by:</span>
+            <span
+              id="filter-label"
+              class="text-sm font-semibold text-primary"
+            ></span>
+            <span
+              id="filter-count"
+              class="text-xs text-muted-foreground font-mono"
+            ></span>
+          </div>
+          <a
+            href="/artifacts"
+            class="text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+          >
+            clear filter
+            <svg
+              class="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Stats Cards - Redesigned -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+          <div
+            class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors"
+          ></div>
+          <div class="relative">
             <div
-                id="filter-banner"
-                class="hidden mb-6 p-4 rounded-xl glass-subtle"
+              class="text-3xl font-bold text-primary font-mono tracking-tight"
             >
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-muted-foreground">Filtered by:</span>
-                        <span
-                            id="filter-label"
-                            class="text-sm font-semibold text-primary"></span>
-                        <span
-                            id="filter-count"
-                            class="text-xs text-muted-foreground font-mono"></span>
-                    </div>
-                    <a
-                        href="/artifacts"
-                        class="text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
-                    >
-                        clear filter
-                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </a>
-                </div>
+              {stats.total}
             </div>
-
-            <!-- Stats Cards - Redesigned -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-                <div class="group relative overflow-hidden rounded-xl glass-card p-5">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors"></div>
-                    <div class="relative">
-                        <div class="text-3xl font-bold text-primary font-mono tracking-tight">
-                            {stats.total}
-                        </div>
-                        <div class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-                            Total Targets
-                        </div>
-                    </div>
-                </div>
-                <div class="group relative overflow-hidden rounded-xl glass-card p-5">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-cyan-500/20 transition-colors"></div>
-                    <div class="relative">
-                        <div class="text-3xl font-bold text-cyan-400 font-mono tracking-tight">
-                            {stats.compounds}
-                        </div>
-                        <div class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-                            Collections
-                        </div>
-                    </div>
-                </div>
-                <div class="group relative overflow-hidden rounded-xl glass-card p-5">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/20 transition-colors"></div>
-                    <div class="relative">
-                        <div class="text-3xl font-bold text-emerald-400 font-mono tracking-tight">
-                            {stats.individuals}
-                        </div>
-                        <div class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-                            Individual
-                        </div>
-                    </div>
-                </div>
-                <div class="group relative overflow-hidden rounded-xl glass-card p-5">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/20 transition-colors"></div>
-                    <div class="relative">
-                        <div class="text-3xl font-bold text-amber-400 font-mono tracking-tight">
-                            {categories.length}
-                        </div>
-                        <div class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-                            Categories
-                        </div>
-                    </div>
-                </div>
+            <div
+              class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
+            >
+              Total Targets
             </div>
-
-            <!-- Category Filter -->
-            <div class="mb-8">
-                <CategoryFilters client:load categories={filterCategories} />
+          </div>
+        </div>
+        <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+          <div
+            class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-cyan-500/20 transition-colors"
+          ></div>
+          <div class="relative">
+            <div
+              class="text-3xl font-bold text-cyan-400 font-mono tracking-tight"
+            >
+              {stats.compounds}
             </div>
+            <div
+              class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
+            >
+              Collections
+            </div>
+          </div>
+        </div>
+        <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+          <div
+            class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/20 transition-colors"
+          ></div>
+          <div class="relative">
+            <div
+              class="text-3xl font-bold text-emerald-400 font-mono tracking-tight"
+            >
+              {stats.individuals}
+            </div>
+            <div
+              class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
+            >
+              Individual
+            </div>
+          </div>
+        </div>
+        <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+          <div
+            class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/20 transition-colors"
+          ></div>
+          <div class="relative">
+            <div
+              class="text-3xl font-bold text-amber-400 font-mono tracking-tight"
+            >
+              {categories.length}
+            </div>
+            <div
+              class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
+            >
+              Categories
+            </div>
+          </div>
+        </div>
+      </div>
 
-            <!-- Default View: Targets by Category (hidden when filtered) -->
-            <div id="default-view">
-                {
-                    categories.map((category) => {
+      <!-- Category Filter -->
+      <div class="mb-8">
+        <CategoryFilters client:load categories={filterCategories} />
+      </div>
+
+      <!-- Default View: Targets by Category (hidden when filtered) -->
+      <div id="default-view">
+        {categories.map((category) => {
                         const style = getStyle(category);
                         return (
                             <section
@@ -382,15 +418,13 @@ const filterCategories = [
                                 )}
                             </section>
                         );
-                    })
-                }
-            </div>
+                    })}
+      </div>
 
-            <!-- Filtered View: All matching artifacts (hidden by default) -->
-            <div id="filtered-view" class="hidden">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {
-                        targets.map((target) => {
+      <!-- Filtered View: All matching artifacts (hidden by default) -->
+      <div id="filtered-view" class="hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {targets.map((target) => {
                             const style = getStyle(target.category);
                             return (
                                 <a
@@ -438,152 +472,156 @@ const filterCategories = [
                                     </div>
                                 </a>
                             );
-                        })
-                    }
-                </div>
-            </div>
+                        })}
         </div>
-    </main>
+      </div>
+    </div>
+  </main>
 
-    <Footer client:load />
+  <Footer client:load />
 </Layout>
 
 <style>
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 
-    .artifact-card {
-        will-change: transform, box-shadow;
-    }
+  .artifact-card {
+    will-change: transform, box-shadow;
+  }
 
-    .artifact-card:hover {
-        transform: translateY(-2px);
-    }
+  .artifact-card:hover {
+    transform: translateY(-2px);
+  }
 </style>
 
 <script define:vars={{ allTargetsJson, scenarioArtifactsJson }}>
-    const allTargets = JSON.parse(allTargetsJson);
-    const scenarioArtifacts = JSON.parse(scenarioArtifactsJson);
+  const allTargets = JSON.parse(allTargetsJson);
+  const scenarioArtifacts = JSON.parse(scenarioArtifactsJson);
 
-    // Scenario labels for display
-    const scenarioLabels = {
-        "lateral-movement": "Lateral Movement",
-        "browser-forensics": "Browser Forensics",
-        persistence: "Persistence",
-        execution: "Program Execution",
-        "user-activity": "User Activity",
-        "anti-forensics": "Data Recovery",
-    };
+  // Scenario labels for display
+  const scenarioLabels = {
+    "lateral-movement": "Lateral Movement",
+    "browser-forensics": "Browser Forensics",
+    persistence: "Persistence",
+    execution: "Program Execution",
+    "user-activity": "User Activity",
+    "anti-forensics": "Data Recovery",
+  };
 
-    function updateFilterButtons(activeId) {
-        const buttons = document.querySelectorAll(".category-filter-btn");
-        buttons.forEach((btn) => {
-            const filterId = btn.getAttribute("data-filter-id");
-            if (filterId === activeId) {
-                btn.setAttribute("data-active", "true");
-            } else {
-                btn.removeAttribute("data-active");
-            }
+  function updateFilterButtons(activeId) {
+    const buttons = document.querySelectorAll(".category-filter-btn");
+    buttons.forEach((btn) => {
+      const filterId = btn.getAttribute("data-filter-id");
+      if (filterId === activeId) {
+        btn.setAttribute("data-active", "true");
+      } else {
+        btn.removeAttribute("data-active");
+      }
+    });
+  }
+
+  function applyFilter() {
+    // Parse URL parameters fresh each time
+    const params = new URLSearchParams(window.location.search);
+    const categoryParam = params.get("category");
+    const filterParam = params.get("filter");
+    const scenarioParam = params.get("scenario");
+
+    // Query DOM elements fresh each time (for view transitions)
+    const filterBanner = document.getElementById("filter-banner");
+    const filterLabel = document.getElementById("filter-label");
+    const filterCount = document.getElementById("filter-count");
+    const defaultView = document.getElementById("default-view");
+    const filteredView = document.getElementById("filtered-view");
+    const filteredCards = document.querySelectorAll(".filtered-card");
+
+    // Determine which filter is active and update buttons
+    const activeFilterId = categoryParam || filterParam || "all";
+    updateFilterButtons(activeFilterId);
+
+    let matchingSlugs = new Set();
+    let label = "";
+    let isFiltered = false;
+
+    if (categoryParam) {
+      // Category filter via ?category= param
+      isFiltered = true;
+      label = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1);
+      allTargets.forEach((t) => {
+        if (t.category.toLowerCase() === categoryParam.toLowerCase()) {
+          matchingSlugs.add(t.slug.toLowerCase());
+        }
+      });
+    } else if (filterParam) {
+      isFiltered = true;
+      if (filterParam === "lolbin") {
+        label = "LOLBins";
+        allTargets.forEach((t) => {
+          if (t.isLolbin) {
+            matchingSlugs.add(t.slug.toLowerCase());
+          }
         });
+      } else {
+        // Legacy filter param for categories
+        label = filterParam.charAt(0).toUpperCase() + filterParam.slice(1);
+        allTargets.forEach((t) => {
+          if (t.category.toLowerCase() === filterParam.toLowerCase()) {
+            matchingSlugs.add(t.slug.toLowerCase());
+          }
+        });
+      }
+    } else if (scenarioParam && scenarioArtifacts[scenarioParam]) {
+      isFiltered = true;
+      label = scenarioLabels[scenarioParam] || scenarioParam;
+      const patterns = scenarioArtifacts[scenarioParam];
+      allTargets.forEach((t) => {
+        const slugLower = t.slug.toLowerCase();
+        if (patterns.some((p) => slugLower.includes(p.toLowerCase()))) {
+          matchingSlugs.add(slugLower);
+        }
+      });
     }
 
-    function applyFilter() {
-        // Parse URL parameters fresh each time
-        const params = new URLSearchParams(window.location.search);
-        const categoryParam = params.get("category");
-        const filterParam = params.get("filter");
-        const scenarioParam = params.get("scenario");
+    if (
+      filterBanner &&
+      filterLabel &&
+      filterCount &&
+      defaultView &&
+      filteredView
+    ) {
+      if (isFiltered) {
+        // Show filter banner
+        filterBanner.classList.remove("hidden");
+        filterLabel.textContent = label;
+        filterCount.textContent = `(${matchingSlugs.size} artifacts)`;
 
-        // Query DOM elements fresh each time (for view transitions)
-        const filterBanner = document.getElementById("filter-banner");
-        const filterLabel = document.getElementById("filter-label");
-        const filterCount = document.getElementById("filter-count");
-        const defaultView = document.getElementById("default-view");
-        const filteredView = document.getElementById("filtered-view");
-        const filteredCards = document.querySelectorAll(".filtered-card");
+        // Switch views
+        defaultView.classList.add("hidden");
+        filteredView.classList.remove("hidden");
 
-        // Determine which filter is active and update buttons
-        const activeFilterId = categoryParam || filterParam || "all";
-        updateFilterButtons(activeFilterId);
-
-        let matchingSlugs = new Set();
-        let label = "";
-        let isFiltered = false;
-
-        if (categoryParam) {
-            // Category filter via ?category= param
-            isFiltered = true;
-            label = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1);
-            allTargets.forEach((t) => {
-                if (t.category.toLowerCase() === categoryParam.toLowerCase()) {
-                    matchingSlugs.add(t.slug.toLowerCase());
-                }
-            });
-        } else if (filterParam) {
-            isFiltered = true;
-            if (filterParam === "lolbin") {
-                label = "LOLBins";
-                allTargets.forEach((t) => {
-                    if (t.isLolbin) matchingSlugs.add(t.slug.toLowerCase());
-                });
-            } else {
-                // Legacy filter param for categories
-                label =
-                    filterParam.charAt(0).toUpperCase() + filterParam.slice(1);
-                allTargets.forEach((t) => {
-                    if (
-                        t.category.toLowerCase() === filterParam.toLowerCase()
-                    ) {
-                        matchingSlugs.add(t.slug.toLowerCase());
-                    }
-                });
-            }
-        } else if (scenarioParam && scenarioArtifacts[scenarioParam]) {
-            isFiltered = true;
-            label = scenarioLabels[scenarioParam] || scenarioParam;
-            const patterns = scenarioArtifacts[scenarioParam];
-            allTargets.forEach((t) => {
-                const slugLower = t.slug.toLowerCase();
-                if (patterns.some((p) => slugLower.includes(p.toLowerCase()))) {
-                    matchingSlugs.add(slugLower);
-                }
-            });
-        }
-
-        if (filterBanner && filterLabel && filterCount && defaultView && filteredView) {
-            if (isFiltered) {
-                // Show filter banner
-                filterBanner.classList.remove("hidden");
-                filterLabel.textContent = label;
-                filterCount.textContent = "(" + matchingSlugs.size + " artifacts)";
-
-                // Switch views
-                defaultView.classList.add("hidden");
-                filteredView.classList.remove("hidden");
-
-                // Filter the cards in filtered view
-                filteredCards.forEach((card) => {
-                    const slug = card.getAttribute("data-slug");
-                    if (matchingSlugs.has(slug)) {
-                        card.classList.remove("hidden");
-                    } else {
-                        card.classList.add("hidden");
-                    }
-                });
-            } else {
-                // No filter - show default view
-                filterBanner.classList.add("hidden");
-                defaultView.classList.remove("hidden");
-                filteredView.classList.add("hidden");
-            }
-        }
+        // Filter the cards in filtered view
+        filteredCards.forEach((card) => {
+          const slug = card.getAttribute("data-slug");
+          if (matchingSlugs.has(slug)) {
+            card.classList.remove("hidden");
+          } else {
+            card.classList.add("hidden");
+          }
+        });
+      } else {
+        // No filter - show default view
+        filterBanner.classList.add("hidden");
+        defaultView.classList.remove("hidden");
+        filteredView.classList.add("hidden");
+      }
     }
+  }
 
-    // Apply filter on initial load and view transitions
-    applyFilter();
-    document.addEventListener("astro:page-load", applyFilter);
+  // Apply filter on initial load and view transitions
+  applyFilter();
+  document.addEventListener("astro:page-load", applyFilter);
 </script>

@@ -1,324 +1,319 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { Header } from "../components/layout/Header";
-import { Footer } from "../components/layout/Footer";
-import { AnimatedSearch } from "../components/search/AnimatedSearch";
-import { ScenarioGrid } from "../components/home/ScenarioGrid";
 import { ScrollReveal } from "../components/artifact/ArtifactContent";
 import { CategoryFilters } from "../components/artifacts/CategoryFilters";
-import { loadAllTargets, getStats } from "../lib/kapefiles";
+import { ScenarioGrid } from "../components/home/ScenarioGrid";
+import { Footer } from "../components/layout/Footer";
+import { Header } from "../components/layout/Header";
+import { AnimatedSearch } from "../components/search/AnimatedSearch";
+import Layout from "../layouts/Layout.astro";
+import { getStats, loadAllTargets } from "../lib/kapefiles";
 
 const stats = getStats();
 const allTargets = loadAllTargets();
 
 // LOLBin count
 const lolbinSlugs = new Set([
-    "bits",
-    "certutil",
-    "powershellconsole",
-    "powershelltranscripts",
-    "powershell7config",
-    "wbem",
-    "scheduledtasks",
-    "mof",
+  "bits",
+  "certutil",
+  "powershellconsole",
+  "powershelltranscripts",
+  "powershell7config",
+  "wbem",
+  "scheduledtasks",
+  "mof",
 ]);
 const lolbinCount = allTargets.filter((t) =>
-    lolbinSlugs.has(t.slug.toLowerCase()),
+  lolbinSlugs.has(t.slug.toLowerCase())
 ).length;
 
 // Investigation scenarios with artifact mappings
 const scenarios = [
-    {
-        id: "lateral-movement",
-        title: "Lateral Movement",
-        description: "Track attacker movement across network",
-        artifacts: [
-            "rdpcache",
-            "eventlogs-rdp",
-            "eventlogs",
-            "psexec",
-            "bits",
-            "smbclient",
-            "networkprofiles",
-        ],
-        keywords: ["RDP", "PSExec", "WinRM", "Event Logs", "Network"],
-        color: "cyan" as const,
-    },
-    {
-        id: "browser-forensics",
-        title: "Browser Forensics",
-        description: "Analyze web activity and downloads",
-        artifacts: [
-            "chrome",
-            "firefox",
-            "edge",
-            "ienetcache",
-            "browsercache",
-            "chromiumextensions",
-        ],
-        keywords: ["Chrome", "Firefox", "Edge", "History", "Downloads"],
-        color: "blue" as const,
-    },
-    {
-        id: "persistence",
-        title: "Persistence",
-        description: "Find malware survival mechanisms",
-        artifacts: [
-            "scheduledtasks",
-            "registryhivesuser",
-            "registryhivessystem",
-            "startupfolders",
-            "services",
-            "wbem",
-            "mof",
-        ],
-        keywords: ["Run Keys", "Services", "Tasks", "Startup", "WMI"],
-        color: "red" as const,
-    },
-    {
-        id: "execution",
-        title: "Program Execution",
-        description: "Evidence of program execution",
-        artifacts: [
-            "prefetch",
-            "amcache",
-            "shimcache",
-            "srum",
-            "appcompatpca",
-            "userassist",
-            "bam",
-        ],
-        keywords: ["Prefetch", "Amcache", "ShimCache", "SRUM", "BAM"],
-        color: "green" as const,
-    },
-    {
-        id: "user-activity",
-        title: "User Activity",
-        description: "Reconstruct user behavior timeline",
-        artifacts: [
-            "shellbags",
-            "recentfilecache",
-            "jumplists",
-            "lnkfiles",
-            "thumbcache",
-            "wordwheelquery",
-        ],
-        keywords: ["Shellbags", "Recent", "Jump Lists", "LNK", "MRU"],
-        color: "purple" as const,
-    },
-    {
-        id: "anti-forensics",
-        title: "Data Recovery",
-        description: "Recover deleted and hidden data",
-        artifacts: [
-            "$mft",
-            "$j",
-            "$logfile",
-            "recyclebin",
-            "$usnjrnl",
-            "vss",
-            "thumbcache",
-        ],
-        keywords: ["$MFT", "$J", "USN Journal", "Recycle Bin", "VSS"],
-        color: "amber" as const,
-    },
+  {
+    id: "lateral-movement",
+    title: "Lateral Movement",
+    description: "Track attacker movement across network",
+    artifacts: [
+      "rdpcache",
+      "eventlogs-rdp",
+      "eventlogs",
+      "psexec",
+      "bits",
+      "smbclient",
+      "networkprofiles",
+    ],
+    keywords: ["RDP", "PSExec", "WinRM", "Event Logs", "Network"],
+    color: "cyan" as const,
+  },
+  {
+    id: "browser-forensics",
+    title: "Browser Forensics",
+    description: "Analyze web activity and downloads",
+    artifacts: [
+      "chrome",
+      "firefox",
+      "edge",
+      "ienetcache",
+      "browsercache",
+      "chromiumextensions",
+    ],
+    keywords: ["Chrome", "Firefox", "Edge", "History", "Downloads"],
+    color: "blue" as const,
+  },
+  {
+    id: "persistence",
+    title: "Persistence",
+    description: "Find malware survival mechanisms",
+    artifacts: [
+      "scheduledtasks",
+      "registryhivesuser",
+      "registryhivessystem",
+      "startupfolders",
+      "services",
+      "wbem",
+      "mof",
+    ],
+    keywords: ["Run Keys", "Services", "Tasks", "Startup", "WMI"],
+    color: "red" as const,
+  },
+  {
+    id: "execution",
+    title: "Program Execution",
+    description: "Evidence of program execution",
+    artifacts: [
+      "prefetch",
+      "amcache",
+      "shimcache",
+      "srum",
+      "appcompatpca",
+      "userassist",
+      "bam",
+    ],
+    keywords: ["Prefetch", "Amcache", "ShimCache", "SRUM", "BAM"],
+    color: "green" as const,
+  },
+  {
+    id: "user-activity",
+    title: "User Activity",
+    description: "Reconstruct user behavior timeline",
+    artifacts: [
+      "shellbags",
+      "recentfilecache",
+      "jumplists",
+      "lnkfiles",
+      "thumbcache",
+      "wordwheelquery",
+    ],
+    keywords: ["Shellbags", "Recent", "Jump Lists", "LNK", "MRU"],
+    color: "purple" as const,
+  },
+  {
+    id: "anti-forensics",
+    title: "Data Recovery",
+    description: "Recover deleted and hidden data",
+    artifacts: [
+      "$mft",
+      "$j",
+      "$logfile",
+      "recyclebin",
+      "$usnjrnl",
+      "vss",
+      "thumbcache",
+    ],
+    keywords: ["$MFT", "$J", "USN Journal", "Recycle Bin", "VSS"],
+    color: "amber" as const,
+  },
 ];
 
 // Count matching artifacts for each scenario
 const scenariosWithCounts = scenarios.map((scenario) => {
-    const count = allTargets.filter((t) =>
-        scenario.artifacts.some((a) =>
-            t.slug.toLowerCase().includes(a.toLowerCase()),
-        ),
-    ).length;
-    return {
-        id: scenario.id,
-        title: scenario.title,
-        description: scenario.description,
-        keywords: scenario.keywords,
-        color: scenario.color,
-        count: Math.max(count, scenario.artifacts.length),
-    };
+  const count = allTargets.filter((t) =>
+    scenario.artifacts.some((a) =>
+      t.slug.toLowerCase().includes(a.toLowerCase())
+    )
+  ).length;
+  return {
+    id: scenario.id,
+    title: scenario.title,
+    description: scenario.description,
+    keywords: scenario.keywords,
+    color: scenario.color,
+    count: Math.max(count, scenario.artifacts.length),
+  };
 });
 
 // Expanded popular artifacts for marquee - get more artifacts
 const popularSlugsRow1 = [
-    "prefetch",
-    "amcache",
-    "eventlogs",
-    "registryhivesuser",
-    "chrome",
-    "srum",
-    "shimcache",
-    "firefox",
-    "edge",
-    "scheduledtasks",
-    "mft",
-    "usnjrnl",
+  "prefetch",
+  "amcache",
+  "eventlogs",
+  "registryhivesuser",
+  "chrome",
+  "srum",
+  "shimcache",
+  "firefox",
+  "edge",
+  "scheduledtasks",
+  "mft",
+  "usnjrnl",
 ];
 const popularSlugsRow2 = [
-    "jumplists",
-    "lnkfiles",
-    "shellbags",
-    "recyclebin",
-    "bits",
-    "rdpcache",
-    "windowstimeline",
-    "thumbcache",
-    "userassist",
-    "bam",
-    "anydesk",
-    "teamviewer",
+  "jumplists",
+  "lnkfiles",
+  "shellbags",
+  "recyclebin",
+  "bits",
+  "rdpcache",
+  "windowstimeline",
+  "thumbcache",
+  "userassist",
+  "bam",
+  "anydesk",
+  "teamviewer",
 ];
 
 const popularArtifactsRow1 = popularSlugsRow1
-    .map((slug) =>
-        allTargets.find((t) => t.slug.toLowerCase() === slug.toLowerCase()),
-    )
-    .filter(Boolean);
+  .map((slug) =>
+    allTargets.find((t) => t.slug.toLowerCase() === slug.toLowerCase())
+  )
+  .filter(Boolean);
 
 const popularArtifactsRow2 = popularSlugsRow2
-    .map((slug) =>
-        allTargets.find((t) => t.slug.toLowerCase() === slug.toLowerCase()),
-    )
-    .filter(Boolean);
+  .map((slug) =>
+    allTargets.find((t) => t.slug.toLowerCase() === slug.toLowerCase())
+  )
+  .filter(Boolean);
 
 // Category pills for quick filtering (links to /artifacts with filter)
 const categories = [
-    { id: "all", label: "All", count: stats.total },
-    { id: "lolbin", label: "LOLBins", count: lolbinCount, special: true },
-    { id: "windows", label: "Windows", count: stats.byCategory.Windows || 0 },
-    {
-        id: "browsers",
-        label: "Browsers",
-        count: stats.byCategory.Browsers || 0,
-    },
-    { id: "apps", label: "Apps", count: stats.byCategory.Apps || 0 },
-    {
-        id: "antivirus",
-        label: "Antivirus",
-        count: stats.byCategory.Antivirus || 0,
-    },
+  { id: "all", label: "All", count: stats.total },
+  { id: "lolbin", label: "LOLBins", count: lolbinCount, special: true },
+  { id: "windows", label: "Windows", count: stats.byCategory.Windows || 0 },
+  {
+    id: "browsers",
+    label: "Browsers",
+    count: stats.byCategory.Browsers || 0,
+  },
+  { id: "apps", label: "Apps", count: stats.byCategory.Apps || 0 },
+  {
+    id: "antivirus",
+    label: "Antivirus",
+    count: stats.byCategory.Antivirus || 0,
+  },
 ];
 ---
 
 <Layout title="DFIRHub">
-    <div class="min-h-screen w-full overflow-x-hidden">
-        <Header client:load />
+  <div class="min-h-screen w-full overflow-x-hidden">
+    <Header client:load />
 
-        <main class="mx-auto max-w-6xl px-4">
-            <!-- Hero -->
-            <div class="text-center py-10 sm:py-16 border-b border-border/30">
-                <h1 class="text-2xl sm:text-3xl font-semibold mb-3">
-                    Find DFIR artifacts <span class="text-primary">fast</span>
-                </h1>
-                <p class="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
-                    Search {stats.total} Windows forensic artifacts, paths, and collection
-                    targets
-                </p>
+    <main class="mx-auto max-w-6xl px-4">
+      <!-- Hero -->
+      <div class="text-center py-10 sm:py-16 border-b border-border/30">
+        <h1 class="text-2xl sm:text-3xl font-semibold mb-3">
+          Find DFIR artifacts <span class="text-primary">fast</span>
+        </h1>
+        <p class="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
+          Search {stats.total} Windows forensic artifacts, paths, and collection
+          targets
+        </p>
 
-                <!-- Search -->
-                <div class="max-w-lg mx-auto mb-6 sm:mb-8">
-                    <AnimatedSearch client:load />
-                </div>
+        <!-- Search -->
+        <div class="max-w-lg mx-auto mb-6 sm:mb-8">
+          <AnimatedSearch client:load />
+        </div>
 
-                <!-- Category Pills -->
-                <div class="flex justify-center">
-                    <CategoryFilters client:load categories={categories} />
-                </div>
+        <!-- Category Pills -->
+        <div class="flex justify-center">
+          <CategoryFilters client:load categories={categories} />
+        </div>
+      </div>
+
+      <!-- Investigate by Scenario -->
+      <ScrollReveal client:load>
+        <section class="py-8 sm:py-12 border-b border-border/30">
+          <div class="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 class="text-xs sm:text-sm text-muted-foreground">
+              <span class="text-primary">//</span> INVESTIGATE BY SCENARIO
+            </h2>
+          </div>
+
+          <ScenarioGrid client:load scenarios={scenariosWithCounts} />
+        </section>
+      </ScrollReveal>
+
+      <!-- Popular Artifacts - Marquee -->
+      <ScrollReveal client:load delay={0.1}>
+        <section class="py-8 sm:py-12">
+          <div class="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 class="text-xs sm:text-sm text-muted-foreground">
+              <span class="text-primary">//</span> POPULAR ARTIFACTS
+            </h2>
+            <a
+              href="/artifacts"
+              class="text-xs text-primary hover:text-primary/80 transition-colors"
+            >
+              view all →
+            </a>
+          </div>
+
+          <!-- Marquee Container -->
+          <div class="relative overflow-hidden">
+            <!-- Fade edges -->
+            <div
+              class="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-background to-transparent z-10"
+            ></div>
+            <div
+              class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-background to-transparent z-10"
+            ></div>
+
+            <!-- Row 1 - scrolls left -->
+            <div class="marquee-row mb-3">
+              <div class="marquee-content animate-marquee">
+                {[
+                                    ...popularArtifactsRow1,
+                                    ...popularArtifactsRow1,
+                                ].map((artifact) => {
+                                    if (!artifact) return null;
+                                    const href = "/artifact/" + artifact.slug;
+                                    const pathCount = artifact.isCompound
+                                        ? artifact.referencedTargets.length +
+                                          " targets"
+                                        : artifact.targets.filter(
+                                              (e) => !e.path.endsWith(".tkape"),
+                                          ).length + " paths";
+                                    return (
+                                        <a
+                                            href={href}
+                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
+                                        >
+                                            <h3 class="font-medium text-xs sm:text-sm mb-1 group-hover:text-primary transition-colors truncate">
+                                                {artifact.name}
+                                            </h3>
+                                            <p class="text-[10px] sm:text-xs text-muted-foreground mb-2 truncate">
+                                                {artifact.description ||
+                                                    "Forensic artifact"}
+                                            </p>
+                                            <div class="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-[10px]">
+                                                <span class="text-muted-foreground/50 uppercase">
+                                                    {artifact.category}
+                                                </span>
+                                                <span class="text-muted-foreground/30">
+                                                    ·
+                                                </span>
+                                                <span class="text-muted-foreground/50">
+                                                    {pathCount}
+                                                </span>
+                                            </div>
+                                        </a>
+                                    );
+                                })}
+              </div>
             </div>
 
-            <!-- Investigate by Scenario -->
-            <ScrollReveal client:load>
-                <section class="py-8 sm:py-12 border-b border-border/30">
-                    <div class="flex items-center justify-between mb-4 sm:mb-6">
-                        <h2 class="text-xs sm:text-sm text-muted-foreground">
-                            <span class="text-primary">//</span> INVESTIGATE BY SCENARIO
-                        </h2>
-                    </div>
-
-                    <ScenarioGrid client:load scenarios={scenariosWithCounts} />
-                </section>
-            </ScrollReveal>
-
-            <!-- Popular Artifacts - Marquee -->
-            <ScrollReveal client:load delay={0.1}>
-                <section class="py-8 sm:py-12">
-                    <div class="flex items-center justify-between mb-4 sm:mb-6">
-                        <h2 class="text-xs sm:text-sm text-muted-foreground">
-                            <span class="text-primary">//</span> POPULAR ARTIFACTS
-                        </h2>
-                        <a
-                            href="/artifacts"
-                            class="text-xs text-primary hover:text-primary/80 transition-colors"
-                        >
-                            view all →
-                        </a>
-                    </div>
-
-                <!-- Marquee Container -->
-                <div class="relative overflow-hidden">
-                    <!-- Fade edges -->
-                    <div
-                        class="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-background to-transparent z-10"
-                    >
-                    </div>
-                    <div
-                        class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-background to-transparent z-10"
-                    >
-                    </div>
-
-                    <!-- Row 1 - scrolls left -->
-                    <div class="marquee-row mb-3">
-                        <div class="marquee-content animate-marquee">
-                            {
-                                [
-                                    ...popularArtifactsRow1,
-                                    ...popularArtifactsRow1,
-                                ].map((artifact) => {
-                                    if (!artifact) return null;
-                                    const href = "/artifact/" + artifact.slug;
-                                    const pathCount = artifact.isCompound
-                                        ? artifact.referencedTargets.length +
-                                          " targets"
-                                        : artifact.targets.filter(
-                                              (e) => !e.path.endsWith(".tkape"),
-                                          ).length + " paths";
-                                    return (
-                                        <a
-                                            href={href}
-                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
-                                        >
-                                            <h3 class="font-medium text-xs sm:text-sm mb-1 group-hover:text-primary transition-colors truncate">
-                                                {artifact.name}
-                                            </h3>
-                                            <p class="text-[10px] sm:text-xs text-muted-foreground mb-2 truncate">
-                                                {artifact.description ||
-                                                    "Forensic artifact"}
-                                            </p>
-                                            <div class="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-[10px]">
-                                                <span class="text-muted-foreground/50 uppercase">
-                                                    {artifact.category}
-                                                </span>
-                                                <span class="text-muted-foreground/30">
-                                                    ·
-                                                </span>
-                                                <span class="text-muted-foreground/50">
-                                                    {pathCount}
-                                                </span>
-                                            </div>
-                                        </a>
-                                    );
-                                })
-                            }
-                        </div>
-                    </div>
-
-                    <!-- Row 2 - scrolls right -->
-                    <div class="marquee-row">
-                        <div class="marquee-content animate-marquee-reverse">
-                            {
-                                [
+            <!-- Row 2 - scrolls right -->
+            <div class="marquee-row">
+              <div class="marquee-content animate-marquee-reverse">
+                {[
                                     ...popularArtifactsRow2,
                                     ...popularArtifactsRow2,
                                 ].map((artifact) => {
@@ -355,78 +350,76 @@ const categories = [
                                             </div>
                                         </a>
                                     );
-                                })
-                            }
-                        </div>
-                    </div>
-                </div>
-                </section>
-            </ScrollReveal>
-        </main>
+                                })}
+              </div>
+            </div>
+          </div>
+        </section>
+      </ScrollReveal>
+    </main>
 
-        <Footer client:load />
-    </div>
+    <Footer client:load />
+  </div>
 </Layout>
 
 <style>
-    @keyframes blink {
-        0%,
-        50% {
-            opacity: 1;
-        }
-        51%,
-        100% {
-            opacity: 0;
-        }
+  @keyframes blink {
+    0%,
+    50% {
+      opacity: 1;
     }
-    :global(.animate-blink) {
-        animation: blink 1s infinite;
+    51%,
+    100% {
+      opacity: 0;
     }
+  }
+  :global(.animate-blink) {
+    animation: blink 1s infinite;
+  }
 
-    /* Marquee styles */
-    .marquee-row {
-        display: flex;
-        overflow: hidden;
-    }
+  /* Marquee styles */
+  .marquee-row {
+    display: flex;
+    overflow: hidden;
+  }
 
-    .marquee-content {
-        display: flex;
-        gap: 0.75rem;
-    }
+  .marquee-content {
+    display: flex;
+    gap: 0.75rem;
+  }
 
-    .marquee-item {
-        flex-shrink: 0;
-    }
+  .marquee-item {
+    flex-shrink: 0;
+  }
 
-    @keyframes marquee {
-        0% {
-            transform: translateX(0);
-        }
-        100% {
-            transform: translateX(-50%);
-        }
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
     }
-
-    @keyframes marquee-reverse {
-        0% {
-            transform: translateX(-50%);
-        }
-        100% {
-            transform: translateX(0);
-        }
+    100% {
+      transform: translateX(-50%);
     }
+  }
 
-    .animate-marquee {
-        animation: marquee 40s linear infinite;
+  @keyframes marquee-reverse {
+    0% {
+      transform: translateX(-50%);
     }
-
-    .animate-marquee-reverse {
-        animation: marquee-reverse 40s linear infinite;
+    100% {
+      transform: translateX(0);
     }
+  }
 
-    /* Pause on hover */
-    .marquee-row:hover .marquee-content {
-        animation-play-state: paused;
-    }
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
+  }
 
+  .animate-marquee-reverse {
+    animation: marquee-reverse 40s linear infinite;
+  }
+
+  /* Pause on hover */
+  .marquee-row:hover .marquee-content {
+    animation-play-state: paused;
+  }
 </style>

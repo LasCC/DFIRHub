@@ -1,184 +1,173 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import { Header } from "../../components/layout/Header";
-import { Footer } from "../../components/layout/Footer";
-import { CommandGenerator } from "../../components/artifact/CommandGenerator";
-import { PathBrowser } from "../../components/artifact/PathBrowser";
-import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
-import { CategoryChip } from "../../components/artifact/CategoryChip";
 import {
-    ArtifactPageContainer,
-    ArtifactBreadcrumb,
-    ArtifactHeader,
-    ArtifactSection,
-    ArtifactCard,
-    ArtifactFooter,
-    ArtifactList,
-    ArtifactListItem,
+  ArtifactBreadcrumb,
+  ArtifactCard,
+  ArtifactFooter,
+  ArtifactHeader,
+  ArtifactList,
+  ArtifactListItem,
+  ArtifactPageContainer,
+  ArtifactSection,
 } from "../../components/artifact/ArtifactContent";
+import { CategoryChip } from "../../components/artifact/CategoryChip";
+import { CommandGenerator } from "../../components/artifact/CommandGenerator";
+import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
+import { PathBrowser } from "../../components/artifact/PathBrowser";
+import { Footer } from "../../components/layout/Footer";
+import { Header } from "../../components/layout/Header";
+import Layout from "../../layouts/Layout.astro";
 import {
-    loadAllTargets,
-    resolveCompoundReferences,
-    findCollectionsContaining,
-    type KapeTarget,
+  findCollectionsContaining,
+  type KapeTarget,
+  loadAllTargets,
+  resolveCompoundReferences,
 } from "../../lib/kapefiles";
 
 export async function getStaticPaths() {
-    const targets = loadAllTargets();
-    return targets.map((target) => ({
-        params: { slug: target.slug },
-        props: { target },
-    }));
+  const targets = loadAllTargets();
+  return targets.map((target) => ({
+    params: { slug: target.slug },
+    props: { target },
+  }));
 }
 
 interface Props {
-    target: KapeTarget;
+  target: KapeTarget;
 }
 
 const { target } = Astro.props;
 
 // Resolve compound targets to their individual targets
 const resolvedTargets = target.isCompound
-    ? resolveCompoundReferences(target)
-    : undefined;
+  ? resolveCompoundReferences(target)
+  : undefined;
 
 // Find collections that include this target
 const includedInCollections = findCollectionsContaining(target.slug);
 
-
 // SEO description with context
 const pathCount = target.isCompound
-    ? target.referencedTargets.length + " targets"
-    : target.targets.filter((e) => !e.path.endsWith(".tkape")).length +
-      " paths";
+  ? `${target.referencedTargets.length} targets`
+  : `${target.targets.filter((e) => !e.path.endsWith(".tkape")).length} paths`;
 const seoDescription = target.description
-    ? target.description +
-      " KAPE target with " +
-      pathCount +
-      " for Windows forensic collection."
-    : target.name +
-      " - Windows forensic artifact with " +
-      pathCount +
-      ". KAPE collection target for DFIR investigations.";
+  ? target.description +
+    " KAPE target with " +
+    pathCount +
+    " for Windows forensic collection."
+  : target.name +
+    " - Windows forensic artifact with " +
+    pathCount +
+    ". KAPE collection target for DFIR investigations.";
 
 // JSON-LD for artifact page
 const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "TechArticle",
-    headline: target.name + " - Windows Forensic Artifact",
-    description: seoDescription,
-    author: {
-        "@type": "Person",
-        name: target.author,
-    },
-    publisher: {
-        "@type": "Organization",
-        name: "DFIRHub",
-    },
-    mainEntityOfPage: {
-        "@type": "WebPage",
-        "@id": "https://dfirhub.com/artifact/" + target.slug,
-    },
-    about: {
-        "@type": "Thing",
-        name: "Digital Forensics",
-        description: "Windows forensic artifact for incident response",
-    },
-    keywords: [
-        "DFIR",
-        "forensics",
-        target.name,
-        target.category,
-        "KAPE",
-        "Windows forensics",
-    ].join(", "),
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  headline: `${target.name} - Windows Forensic Artifact`,
+  description: seoDescription,
+  author: {
+    "@type": "Person",
+    name: target.author,
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "DFIRHub",
+  },
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": `https://dfirhub.com/artifact/${target.slug}`,
+  },
+  about: {
+    "@type": "Thing",
+    name: "Digital Forensics",
+    description: "Windows forensic artifact for incident response",
+  },
+  keywords: [
+    "DFIR",
+    "forensics",
+    target.name,
+    target.category,
+    "KAPE",
+    "Windows forensics",
+  ].join(", "),
 };
 ---
 
 <Layout title={target.name} description={seoDescription}>
-    <!-- Artifact-specific JSON-LD -->
-    <script
-        type="application/ld+json"
-        set:html={JSON.stringify(jsonLd)}
-        slot="head"
-    />
+  <!-- Artifact-specific JSON-LD -->
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify(jsonLd)}
+    slot="head"
+  />
 
-    <Header client:load />
+  <Header client:load />
 
-    <main id="main-content" class="flex-1 relative" tabindex="-1">
-        <div class="mx-auto max-w-6xl px-4 py-8">
-            <ArtifactPageContainer client:load>
-                <!-- Breadcrumb Navigation -->
-                <ArtifactBreadcrumb
-                    className="mb-6 text-xs text-muted-foreground"
-                >
-                    <ol class="flex items-center flex-wrap gap-1" role="list">
-                        <li>
-                            <a
-                                href="/"
-                                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
-                            >
-                                <span class="text-primary">~</span>/
-                            </a>
-                        </li>
-                        <li class="flex items-center gap-1">
-                            <span aria-hidden="true">/</span>
-                            <a
-                                href="/artifacts"
-                                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
-                                >artifacts</a
-                            >
-                        </li>
-                        <li class="flex items-center gap-1">
-                            <span aria-hidden="true">/</span>
-                            <a
-                                href={"/artifacts?category=" +
+  <main id="main-content" class="flex-1 relative" tabindex="-1">
+    <div class="mx-auto max-w-6xl px-4 py-8">
+      <ArtifactPageContainer client:load>
+        <!-- Breadcrumb Navigation -->
+        <ArtifactBreadcrumb className="mb-6 text-xs text-muted-foreground">
+          <ol class="flex items-center flex-wrap gap-1" role="list">
+            <li>
+              <a
+                href="/"
+                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+              >
+                <span class="text-primary">~</span>/
+              </a>
+            </li>
+            <li class="flex items-center gap-1">
+              <span aria-hidden="true">/</span>
+              <a
+                href="/artifacts"
+                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                >artifacts</a
+              >
+            </li>
+            <li class="flex items-center gap-1">
+              <span aria-hidden="true">/</span>
+              <a
+                href={"/artifacts?category=" +
                                     target.category.toLowerCase()}
-                                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
-                            >
-                                {target.category.toLowerCase()}
-                            </a>
-                        </li>
-                        <li class="flex items-center gap-1">
-                            <span aria-hidden="true">/</span>
-                            <span
-                                class="text-foreground px-1"
-                                aria-current="page">{target.slug}</span
-                            >
-                        </li>
-                    </ol>
-                </ArtifactBreadcrumb>
+                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+              >
+                {target.category.toLowerCase()}
+              </a>
+            </li>
+            <li class="flex items-center gap-1">
+              <span aria-hidden="true">/</span>
+              <span class="text-foreground px-1" aria-current="page"
+                >{target.slug}</span
+              >
+            </li>
+          </ol>
+        </ArtifactBreadcrumb>
 
-                <!-- Header -->
-                <ArtifactHeader className="mb-8">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h1
-                                class="text-2xl font-semibold mb-3"
-                                id="artifact-title"
-                            >
-                                {target.name}
-                            </h1>
-                            <CategoryChip
-                                client:load
-                                category={target.category}
-                                version={target.version}
-                                isCompound={target.isCompound}
-                            />
-                        </div>
-                        <div class="text-right text-xs text-muted-foreground">
-                            <p>
-                                Author: <span class="text-foreground"
-                                    >{target.author}</span
-                                >
-                            </p>
-                        </div>
-                    </div>
-                </ArtifactHeader>
+        <!-- Header -->
+        <ArtifactHeader className="mb-8">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-semibold mb-3" id="artifact-title">
+                {target.name}
+              </h1>
+              <CategoryChip
+                client:load
+                category={target.category}
+                version={target.version}
+                isCompound={target.isCompound}
+              />
+            </div>
+            <div class="text-right text-xs text-muted-foreground">
+              <p>
+                Author: <span class="text-foreground">{target.author}</span>
+              </p>
+            </div>
+          </div>
+        </ArtifactHeader>
 
-                <!-- Description -->
-                {
-                    target.description && (
+        <!-- Description -->
+        {target.description && (
                         <ArtifactCard
                             className="mb-8 p-5 glass-subtle rounded-xl"
                         >
@@ -198,12 +187,10 @@ const jsonLd = {
                                 {target.description}
                             </p>
                         </ArtifactCard>
-                    )
-                }
+                    )}
 
-                <!-- Compound Target Info -->
-                {
-                    target.isCompound && resolvedTargets && (
+        <!-- Compound Target Info -->
+        {target.isCompound && resolvedTargets && (
                         <ArtifactSection
                             className="mb-8"
                             ariaLabel="includes-heading"
@@ -282,49 +269,43 @@ const jsonLd = {
                                 )}
                             </ArtifactList>
                         </ArtifactSection>
-                    )
-                }
+                    )}
 
-                <!-- Paths -->
-                <ArtifactSection className="mb-8" ariaLabel="paths-heading">
-                    <h2
-                        id="paths-heading"
-                        class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
-                    >
-                        <span class="text-primary/50" aria-hidden="true"
-                            >//</span
-                        >
-                        paths
-                    </h2>
-                    <PathBrowser
-                        client:load
-                        target={target}
-                        resolvedTargets={resolvedTargets}
-                    />
-                </ArtifactSection>
+        <!-- Paths -->
+        <ArtifactSection className="mb-8" ariaLabel="paths-heading">
+          <h2
+            id="paths-heading"
+            class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+          >
+            <span class="text-primary/50" aria-hidden="true">//</span>
+            paths
+          </h2>
+          <PathBrowser
+            client:load
+            target={target}
+            resolvedTargets={resolvedTargets}
+          />
+        </ArtifactSection>
 
-                <!-- Tool Commands -->
-                <ArtifactSection className="mb-8" ariaLabel="commands-heading">
-                    <h2
-                        id="commands-heading"
-                        class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
-                    >
-                        <span class="text-primary/50" aria-hidden="true"
-                            >//</span
-                        >
-                        collection commands
-                    </h2>
-                    <CommandGenerator client:load target={target} />
-                </ArtifactSection>
+        <!-- Tool Commands -->
+        <ArtifactSection className="mb-8" ariaLabel="commands-heading">
+          <h2
+            id="commands-heading"
+            class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+          >
+            <span class="text-primary/50" aria-hidden="true">//</span>
+            collection commands
+          </h2>
+          <CommandGenerator client:load target={target} />
+        </ArtifactSection>
 
-                <!-- CyberChef Links -->
-                <ArtifactSection className="mb-8">
-                    <CyberChefLinks client:load target={target} />
-                </ArtifactSection>
+        <!-- CyberChef Links -->
+        <ArtifactSection className="mb-8">
+          <CyberChefLinks client:load target={target} />
+        </ArtifactSection>
 
-                <!-- Documentation / References -->
-                {
-                    target.documentation.length > 0 && (
+        <!-- Documentation / References -->
+        {target.documentation.length > 0 && (
                         <ArtifactSection
                             className="mb-8"
                             ariaLabel="references-heading"
@@ -365,12 +346,10 @@ const jsonLd = {
                                 ))}
                             </ArtifactList>
                         </ArtifactSection>
-                    )
-                }
+                    )}
 
-                <!-- Included In Collections -->
-                {
-                    includedInCollections.length > 0 && (
+        <!-- Included In Collections -->
+        {includedInCollections.length > 0 && (
                         <ArtifactSection
                             className="mb-8"
                             ariaLabel="collections-heading"
@@ -399,31 +378,29 @@ const jsonLd = {
                                 ))}
                             </div>
                         </ArtifactSection>
-                    )
-                }
+                    )}
 
-                <!-- Source File -->
-                <ArtifactFooter
-                    className="text-xs text-muted-foreground/50 pt-4 border-t border-border/30"
-                >
-                    <span>source: </span>
-                    <a
-                        href={"https://github.com/EricZimmerman/KapeFiles/blob/master/Targets/" +
+        <!-- Source File -->
+        <ArtifactFooter
+          className="text-xs text-muted-foreground/50 pt-4 border-t border-border/30"
+        >
+          <span>source: </span>
+          <a
+            href={"https://github.com/EricZimmerman/KapeFiles/blob/master/Targets/" +
                             target.category +
                             "/" +
                             target.sourceFile}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-primary/50 hover:text-primary transition-colors focus-ring rounded-sm"
-                    >
-                        KapeFiles/{target.category}/{target.sourceFile}
-                        <span class="sr-only">(opens in new tab)</span>
-                    </a>
-                </ArtifactFooter>
-            </ArtifactPageContainer>
-        </div>
-    </main>
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-primary/50 hover:text-primary transition-colors focus-ring rounded-sm"
+          >
+            KapeFiles/{target.category}/{target.sourceFile}
+            <span class="sr-only">(opens in new tab)</span>
+          </a>
+        </ArtifactFooter>
+      </ArtifactPageContainer>
+    </div>
+  </main>
 
-    <Footer client:load />
+  <Footer client:load />
 </Layout>
-
