@@ -429,18 +429,4 @@ const categories = [
         animation-play-state: paused;
     }
 
-    /* Respect reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-        .animate-marquee,
-        .animate-marquee-reverse {
-            animation: none;
-        }
-        .marquee-content {
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .marquee-row {
-            overflow: visible;
-        }
-    }
 </style>

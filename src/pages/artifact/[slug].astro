@@ -427,12 +427,3 @@ const jsonLd = {
     <Footer client:load />
 </Layout>
 
-<style>
-    /* Framer Motion handles animations, but provide fallback for no-JS */
-    @media (prefers-reduced-motion: reduce) {
-        :global([data-framer-motion]) {
-            animation: none !important;
-            transition: none !important;
-        }
-    }
-</style>

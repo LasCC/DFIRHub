@@ -1,5 +1,5 @@
 [build]
-  command = "git submodule update --init --recursive && bun install && bun run build"
+  command = "git submodule update --init --recursive --remote && bun install && bun run build"
   publish = "dist"
 
 [build.environment]
