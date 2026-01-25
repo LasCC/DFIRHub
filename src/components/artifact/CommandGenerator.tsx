@@ -525,8 +525,8 @@ echo "For compound targets, use KAPE directly for best results."
           )}
           {format === "powershell" && (
             <p>
-              <span className="text-primary">{"›"}</span> Save as .ps1 and run as
-              Administrator. Use:{" "}
+              <span className="text-primary">{"›"}</span> Save as .ps1 and run
+              as Administrator. Use:{" "}
               <code className="text-primary">
                 powershell -ExecutionPolicy Bypass -File script.ps1
               </code>
@@ -534,15 +534,15 @@ echo "For compound targets, use KAPE directly for best results."
           )}
           {format === "batch" && (
             <p>
-              <span className="text-primary">{"›"}</span> Save as .bat and run as
-              Administrator (right-click → Run as administrator).
+              <span className="text-primary">{"›"}</span> Save as .bat and run
+              as Administrator (right-click → Run as administrator).
             </p>
           )}
           {format === "wsl" && (
             <p>
-              <span className="text-primary">{"›"}</span> Save as .sh and run with{" "}
-              <code className="text-primary">sudo bash script.sh</code> from
-              WSL.
+              <span className="text-primary">{"›"}</span> Save as .sh and run
+              with <code className="text-primary">sudo bash script.sh</code>{" "}
+              from WSL.
             </p>
           )}
         </div>

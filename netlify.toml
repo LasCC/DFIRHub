@@ -1,5 +1,5 @@
 [build]
-  command = "git submodule update --init --recursive --remote && bun install && bun run build"
+  command = "rm -rf .astro/content-cache && git submodule update --init --recursive --remote && bun install && bun run build"
   publish = "dist"
 
 [build.environment]
