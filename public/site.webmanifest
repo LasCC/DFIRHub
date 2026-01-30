@@ -1,29 +1,35 @@
 {
-  "name": "DFIRHub - DFIR Artifact Search",
+  "name": "DFIRHub - DFIR Artifact Reference",
   "short_name": "DFIRHub",
-  "description": "Digital Forensics and Incident Response artifact search and reference tool",
+  "description": "Digital Forensics and Incident Response artifact search, reference, and Sigma rule converter",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "theme_color": "#10b981",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/favicon-192x192.png",
-      "sizes": "192x192",
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "/favicon-512x512.png",
-      "sizes": "512x512",
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png"
     }
   ],
-  "categories": ["utilities", "productivity"],
-  "lang": "en",
-  "dir": "ltr"
+  "shortcuts": [
+    {
+      "name": "Sigma Converter",
+      "short_name": "Converter",
+      "url": "/converter",
+      "description": "Convert Sigma detection rules to SIEM queries"
+    },
+    {
+      "name": "Script Builder",
+      "short_name": "Builder",
+      "url": "/builder",
+      "description": "Build custom KAPE collection scripts"
+    }
+  ]
 }

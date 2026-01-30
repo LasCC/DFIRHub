@@ -1,4 +1,11 @@
-import { BookOpen, FileSearch, Hammer, Layers, Wrench } from "lucide-react";
+import {
+  BookOpen,
+  FileSearch,
+  FlaskConical,
+  Hammer,
+  Layers,
+  Wrench,
+} from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 
 export function Footer() {
@@ -60,6 +67,13 @@ export function Footer() {
               >
                 <Hammer className="h-3.5 w-3.5 text-amber-400/60" />
                 <span>Script Builder</span>
+              </a>
+              <a
+                className="flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+                href="/converter"
+              >
+                <FlaskConical className="h-3.5 w-3.5 text-violet-400/60" />
+                <span>Sigma Converter</span>
               </a>
             </nav>
           </div>

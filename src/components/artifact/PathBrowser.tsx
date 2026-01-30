@@ -190,8 +190,8 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 
       {/* Legend */}
       <div className="border-white/[0.04] border-t bg-white/[0.02] px-4 py-2 text-[10px] text-muted-foreground">
-        <span className="text-primary">{"›"}</span> paths use Windows environment
-        syntax
+        <span className="text-primary">{"›"}</span> paths use Windows
+        environment syntax
       </div>
     </div>
   );

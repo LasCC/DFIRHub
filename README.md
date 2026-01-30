@@ -1,111 +1,88 @@
 # DFIRHub
 
-A modern web application for searching and exploring Windows forensic artifacts, KAPE targets, and collection paths.
+A web application for searching Windows forensic artifacts, converting Sigma rules, and generating collection scripts.
 
 ![DFIRHub Screenshot](public/og-image.png)
 
 ## Features
 
-- **Search Artifacts** - Comprehensive database of Windows forensic artifacts
-- **KAPE Integration** - Direct integration with KapeFiles targets and modules
-- **Collection Commands** - Generate PowerShell, Batch, and WSL scripts for artifact collection
-- **Investigation Scenarios** - Pre-built scenarios for common DFIR investigations
-- **Script Builder** - Build custom collection scripts with multiple artifacts
-- **Keyboard Navigation** - Full keyboard shortcut support for power users
+- **Artifact Search** — Browse and search Windows forensic artifacts with KAPE integration
+- **Sigma Converter** — Convert Sigma rules to 17+ backends (Splunk, Elastic, KQL, Loki, CrowdStrike, etc.) using pySigma in-browser via Pyodide
+- **SigmaHQ Search** — Search and import rules directly from the SigmaHQ repository
+- **Collection Commands** — Generate PowerShell, Batch, and WSL collection scripts
+- **Script Builder** — Build custom multi-artifact collection scripts
+- **Keyboard Navigation** — Full shortcut support (`/`, `Cmd+K`, `Cmd+Shift+K`, vim-style `g` sequences)
 
-## Tech Stack
-
-- **Framework**: [Astro](https://astro.build) with React
-- **Styling**: [Tailwind CSS](https://tailwindcss.com)
-- **Search**: [Pagefind](https://pagefind.app)
-- **Deployment**: [Netlify](https://netlify.com)
-- **Data Source**: [KapeFiles](https://github.com/EricZimmerman/KapeFiles)
-
-## Getting Started
-
-### Prerequisites
-
-- [Bun](https://bun.sh) (recommended) or Node.js 22+
-- Git
-
-### Installation
+## Quick Start
 
 ```bash
-# Clone the repository
 git clone https://github.com/LasCC/DFIRHub.git
 cd DFIRHub
-
-# Initialize submodules (KapeFiles data)
 git submodule update --init --recursive
-
-# Install dependencies
 bun install
-
-# Start development server
 bun dev
 ```
 
-The site will be available at `http://localhost:4321`
+Open `http://localhost:4321`.
 
-### Commands
+## Commands
 
 | Command | Description |
 |---------|-------------|
-| `bun dev` | Start development server |
-| `bun build` | Build for production |
+| `bun dev` | Development server |
+| `bun build` | Production build |
 | `bun preview` | Preview production build |
+| `bun run test` | Run tests |
+| `bun run sigma:index` | Rebuild Sigma rules index from SigmaHQ |
 
 ## Project Structure
 
 ```
-dfirhub/
-├── public/              # Static assets
-├── src/
-│   ├── components/      # React/Astro components
-│   ├── content/         # KapeFiles submodule
-│   ├── data/            # Static data files
-│   ├── layouts/         # Page layouts
-│   ├── lib/             # Utilities and helpers
-│   ├── pages/           # File-based routing
-│   └── styles/          # Global styles
-└── package.json
+src/
+├── components/
+│   ├── converter/    # Sigma rule converter UI
+│   ├── layout/       # Header, Footer
+│   ├── search/       # Pagefind search
+│   └── ui/           # Shared Radix UI primitives
+├── content/kapefiles # KapeFiles git submodule
+├── lib/sigma/        # Sigma converter engine (Pyodide worker, backends, pipelines)
+├── pages/            # Astro file-based routing
+└── styles/           # Global Tailwind styles
 ```
 
-## Data Source
+## CI/CD Pipelines
 
-DFIRHub uses data from [Eric Zimmerman's KapeFiles](https://github.com/EricZimmerman/KapeFiles) repository, which contains community-contributed KAPE targets and modules for forensic artifact collection.
+Both workflows require a `NETLIFY_BUILD_HOOK` secret (Netlify → Build hooks → copy URL → GitHub → Repo secrets).
+
+| Workflow | Schedule | What it does |
+|----------|----------|--------------|
+| `update-kapefiles.yml` | Weekly (Mon 00:00 UTC) | Triggers Netlify rebuild to pull latest KapeFiles submodule |
+| `update-sigma-rules.yml` | Monthly (1st, 02:00 UTC) | Rebuilds Sigma rules index from SigmaHQ API, commits changes, triggers Netlify rebuild |
+
+Both support `workflow_dispatch` for manual triggering.
 
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
 | `/` or `Cmd+K` | Open search |
+| `Cmd+Shift+K` | Open Sigma search (converter page) |
 | `g h` | Go to home |
 | `g a` | Go to artefacts |
 | `g c` | Go to collections |
 | `g b` | Go to builder |
 | `?` | Show all shortcuts |
 
-## Contributing
+## Tech Stack
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+[Astro](https://astro.build) + React, [Tailwind CSS](https://tailwindcss.com), [Pagefind](https://pagefind.app), [Pyodide](https://pyodide.org), [Netlify](https://netlify.com)
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+[MIT](LICENSE)
 
 ## Acknowledgments
 
-- [Eric Zimmerman](https://github.com/EricZimmerman) for KapeFiles and KAPE
-- The DFIR community for artifact documentation
-- All contributors to this project
-
----
-
-Built with passion for the DFIR community
+- [Eric Zimmerman](https://github.com/EricZimmerman) — KapeFiles and KAPE
+- [SigmaHQ](https://github.com/SigmaHQ/sigma) — Sigma detection rules
+- [pySigma](https://github.com/SigmaHQ/pySigma) — Sigma conversion engine

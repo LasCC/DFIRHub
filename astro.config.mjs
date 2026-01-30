@@ -19,6 +19,7 @@ export default defineConfig({
   },
 
   vite: {
+    worker: { format: "es" },
     plugins: [tailwindcss()],
     resolve: {
       alias: {

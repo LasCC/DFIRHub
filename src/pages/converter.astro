@@ -1,0 +1,35 @@
+---
+import { ConverterLayout } from "../components/converter/ConverterLayout";
+import { Footer } from "../components/layout/Footer";
+import { Header } from "../components/layout/Header";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Sigma Rule Converter - DFIRHub">
+  <Header client:load />
+
+  <main class="flex-1 relative">
+    <div class="mx-auto max-w-7xl px-4 py-8">
+      <!-- Breadcrumb -->
+      <nav class="mb-6 text-xs text-muted-foreground">
+        <a href="/" class="hover:text-foreground transition-colors">~/</a>
+        <span class="mx-1">/</span>
+        <span class="text-foreground">converter</span>
+      </nav>
+
+      <!-- Header -->
+      <header class="mb-8">
+        <h1 class="text-2xl font-semibold mb-2">Sigma Rule Converter</h1>
+        <p class="text-sm text-muted-foreground">
+          Convert Sigma detection rules to SIEM queries. All conversion happens
+          in your browser — your rules never leave your device.
+        </p>
+      </header>
+
+      <!-- Converter Component (client-only to avoid SSR issues with Monaco/Pyodide) -->
+      <ConverterLayout client:only="react" />
+    </div>
+  </main>
+
+  <Footer client:load />
+</Layout>

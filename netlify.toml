@@ -127,6 +127,12 @@
   to = "/artifact/sans-triage"
   status = 301
 
+# Sigma converter shortcut
+[[redirects]]
+  from = "/sigma"
+  to = "/converter"
+  status = 301
+
 # Short URL scheme: /a/slug -> /artifact/slug
 [[redirects]]
   from = "/a/*"
