@@ -159,22 +159,18 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
       lines.push('$ErrorActionPreference = "SilentlyContinue"');
       lines.push(`$DestBase = "${options.destination}"`);
       lines.push("");
-      lines.push("# Function to handle directory creation and copying");
+      lines.push("# Function to handle artifact collection with robocopy");
       lines.push("function Collect-Artifact {");
       lines.push("    param (");
-      lines.push("        [string]$SourcePath,");
-      lines.push("        [string]$FolderName");
+      lines.push("        [string]$SourceDir,");
+      lines.push("        [string]$FolderName,");
+      lines.push('        [string]$FileMask = "*"');
       lines.push("    )");
       lines.push(
         "    $FullDest = Join-Path -Path $DestBase -ChildPath $FolderName"
       );
-      lines.push("    if (-not (Test-Path -Path $FullDest)) {");
       lines.push(
-        "        New-Item -ItemType Directory -Path $FullDest -Force | Out-Null"
-      );
-      lines.push("    }");
-      lines.push(
-        "    Copy-Item -Path $SourcePath -Destination $FullDest -Recurse -Force"
+        '    robocopy "$SourceDir" "$FullDest" "$FileMask" /E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS | Out-Null'
       );
       lines.push("}");
       lines.push("");
@@ -204,11 +200,11 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
             lines.push('if (Test-Path "C:\\Documents And Settings") {');
             if (entry.fileMask) {
               lines.push(
-                `    Collect-Artifact -SourcePath "${sourcePath}\\${entry.fileMask}" -FolderName "${safeName}"`
+                `    Collect-Artifact -SourceDir "${sourcePath}" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
               );
             } else {
               lines.push(
-                `    Collect-Artifact -SourcePath "${sourcePath}\\*" -FolderName "${safeName}"`
+                `    Collect-Artifact -SourceDir "${sourcePath}" -FolderName "${safeName}"`
               );
             }
             lines.push("}");
@@ -220,20 +216,20 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
             );
             if (entry.fileMask) {
               lines.push(
-                `Collect-Artifact -SourcePath "$UserPath\\${entry.fileMask}" -FolderName "${safeName}"`
+                `Collect-Artifact -SourceDir "$UserPath" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
               );
             } else {
               lines.push(
-                `Collect-Artifact -SourcePath "$UserPath\\*" -FolderName "${safeName}"`
+                `Collect-Artifact -SourceDir "$UserPath" -FolderName "${safeName}"`
               );
             }
           } else if (entry.fileMask) {
             lines.push(
-              `Collect-Artifact -SourcePath "${sourcePath}\\${entry.fileMask}" -FolderName "${safeName}"`
+              `Collect-Artifact -SourceDir "${sourcePath}" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
             );
           } else {
             lines.push(
-              `Collect-Artifact -SourcePath "${sourcePath}\\*" -FolderName "${safeName}"`
+              `Collect-Artifact -SourceDir "${sourcePath}" -FolderName "${safeName}"`
             );
           }
           entryNum++;
@@ -277,28 +273,30 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 
           lines.push(`REM ${entry.name}`);
           lines.push(`set "DESTFOLDER=%DEST%\\${safeName}"`);
-          lines.push('if not exist "%DESTFOLDER%" mkdir "%DESTFOLDER%"');
+
+          const robocopyFlags =
+            "/E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS";
 
           // Handle legacy XP paths with existence check
           if (sourcePath.includes("Documents And Settings")) {
             lines.push('if exist "C:\\Documents And Settings" (');
             if (entry.fileMask) {
               lines.push(
-                `    xcopy "${sourcePath}\\${entry.fileMask}" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+                `    robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
               );
             } else {
               lines.push(
-                `    xcopy "${sourcePath}\\*" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+                `    robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
               );
             }
             lines.push(")");
           } else if (entry.fileMask) {
             lines.push(
-              `xcopy "${sourcePath}\\${entry.fileMask}" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+              `robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
             );
           } else {
             lines.push(
-              `xcopy "${sourcePath}\\*" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+              `robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
             );
           }
         }
@@ -382,6 +380,8 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 
           // Clean up any double slashes
           sourcePath = sourcePath.replace(/([^:])\/\//g, "$1/");
+          // Strip trailing slash for clean path joining
+          sourcePath = sourcePath.replace(/\/+$/, "");
 
           lines.push(`# ${entry.name}`);
           lines.push(`mkdir -p "${destPath}"`);

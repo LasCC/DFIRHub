@@ -71,17 +71,15 @@ Write-Host "For compound targets, use KAPE directly for best results." -Foregrou
       '$ErrorActionPreference = "SilentlyContinue"',
       `$DestBase = "${destination}"`,
       "",
-      "# Function to handle directory creation and copying",
+      "# Function to handle artifact collection with robocopy",
       "function Collect-Artifact {",
       "    param (",
-      "        [string]$SourcePath,",
-      "        [string]$FolderName",
+      "        [string]$SourceDir,",
+      "        [string]$FolderName,",
+      '        [string]$FileMask = "*"',
       "    )",
       "    $FullDest = Join-Path -Path $DestBase -ChildPath $FolderName",
-      "    if (-not (Test-Path -Path $FullDest)) {",
-      "        New-Item -ItemType Directory -Path $FullDest -Force | Out-Null",
-      "    }",
-      "    Copy-Item -Path $SourcePath -Destination $FullDest -Recurse -Force",
+      '    robocopy "$SourceDir" "$FullDest" "$FileMask" /E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS | Out-Null',
       "}",
       "",
     ];
@@ -104,11 +102,11 @@ Write-Host "For compound targets, use KAPE directly for best results." -Foregrou
         lines.push('if (Test-Path "C:\\Documents And Settings") {');
         if (entry.fileMask) {
           lines.push(
-            `    Collect-Artifact -SourcePath "${sourcePath}\\${entry.fileMask}" -FolderName "${safeName}"`
+            `    Collect-Artifact -SourceDir "${sourcePath}" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
           );
         } else {
           lines.push(
-            `    Collect-Artifact -SourcePath "${sourcePath}\\*" -FolderName "${safeName}"`
+            `    Collect-Artifact -SourceDir "${sourcePath}" -FolderName "${safeName}"`
           );
         }
         lines.push("}");
@@ -120,20 +118,20 @@ Write-Host "For compound targets, use KAPE directly for best results." -Foregrou
         );
         if (entry.fileMask) {
           lines.push(
-            `Collect-Artifact -SourcePath "$UserPath\\${entry.fileMask}" -FolderName "${safeName}"`
+            `Collect-Artifact -SourceDir "$UserPath" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
           );
         } else {
           lines.push(
-            `Collect-Artifact -SourcePath "$UserPath\\*" -FolderName "${safeName}"`
+            `Collect-Artifact -SourceDir "$UserPath" -FolderName "${safeName}"`
           );
         }
       } else if (entry.fileMask) {
         lines.push(
-          `Collect-Artifact -SourcePath "${sourcePath}\\${entry.fileMask}" -FolderName "${safeName}"`
+          `Collect-Artifact -SourceDir "${sourcePath}" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
         );
       } else {
         lines.push(
-          `Collect-Artifact -SourcePath "${sourcePath}\\*" -FolderName "${safeName}"`
+          `Collect-Artifact -SourceDir "${sourcePath}" -FolderName "${safeName}"`
         );
       }
       lines.push("");
@@ -187,18 +185,19 @@ pause
 
       lines.push(`REM ${entry.name}`);
       lines.push(`set "DESTFOLDER=%DEST%\\${safeName}"`);
-      lines.push(`if not exist "%DESTFOLDER%" mkdir "%DESTFOLDER%"`);
+
+      const robocopyFlags = "/E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS";
 
       // Handle legacy XP paths with existence check
       if (sourcePath.includes("Documents And Settings")) {
         lines.push(`if exist "C:\\Documents And Settings" (`);
         if (entry.fileMask) {
           lines.push(
-            `    xcopy "${sourcePath}\\${entry.fileMask}" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+            `    robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
           );
         } else {
           lines.push(
-            `    xcopy "${sourcePath}\\*" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+            `    robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
           );
         }
         lines.push(")");
@@ -206,20 +205,20 @@ pause
         // For paths with %USERNAME%, use the Users folder with current user
         if (entry.fileMask) {
           lines.push(
-            `xcopy "${sourcePath}\\${entry.fileMask}" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+            `robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
           );
         } else {
           lines.push(
-            `xcopy "${sourcePath}\\*" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+            `robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
           );
         }
       } else if (entry.fileMask) {
         lines.push(
-          `xcopy "${sourcePath}\\${entry.fileMask}" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+          `robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
         );
       } else {
         lines.push(
-          `xcopy "${sourcePath}\\*" "%DESTFOLDER%\\" /E /H /Y /C /Q >nul 2>&1`
+          `robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
         );
       }
       lines.push("");
@@ -319,6 +318,8 @@ echo "For compound targets, use KAPE directly for best results."
 
       // Clean up any double slashes (except after protocol)
       sourcePath = sourcePath.replace(/([^:])\/\//g, "$1/");
+      // Strip trailing slash for clean path joining
+      sourcePath = sourcePath.replace(/\/+$/, "");
 
       lines.push(`# ${entry.name}`);
       lines.push(`mkdir -p "${destPath}"`);
