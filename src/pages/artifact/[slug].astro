@@ -13,7 +13,7 @@ import { CategoryChip } from "../../components/artifact/CategoryChip";
 import { CommandGenerator } from "../../components/artifact/CommandGenerator";
 import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
 import { PathBrowser } from "../../components/artifact/PathBrowser";
-import { Footer } from "../../components/layout/Footer";
+import Footer from "../../components/layout/Footer.astro";
 import { Header } from "../../components/layout/Header";
 import Layout from "../../layouts/Layout.astro";
 import {
@@ -281,7 +281,7 @@ const jsonLd = {
             paths
           </h2>
           <PathBrowser
-            client:load
+            client:idle
             target={target}
             resolvedTargets={resolvedTargets}
           />
@@ -296,12 +296,12 @@ const jsonLd = {
             <span class="text-primary/50" aria-hidden="true">//</span>
             collection commands
           </h2>
-          <CommandGenerator client:load target={target} />
+          <CommandGenerator client:idle target={target} />
         </ArtifactSection>
 
         <!-- CyberChef Links -->
         <ArtifactSection className="mb-8">
-          <CyberChefLinks client:load target={target} />
+          <CyberChefLinks client:idle target={target} />
         </ArtifactSection>
 
         <!-- Documentation / References -->
@@ -402,5 +402,5 @@ const jsonLd = {
     </div>
   </main>
 
-  <Footer client:load />
+  <Footer />
 </Layout>

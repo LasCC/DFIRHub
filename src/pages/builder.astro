@@ -1,6 +1,6 @@
 ---
 import { ScriptBuilder } from "../components/builder/ScriptBuilder";
-import { Footer } from "../components/layout/Footer";
+import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
 import {
@@ -44,5 +44,5 @@ const categories = getCategories();
     </div>
   </main>
 
-  <Footer client:load />
+  <Footer />
 </Layout>

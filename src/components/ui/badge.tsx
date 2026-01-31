@@ -27,8 +27,6 @@ const badgeVariants = cva(
         account: "border-cyan-700 bg-cyan-900/50 text-cyan-200",
         network: "border-indigo-700 bg-indigo-900/50 text-indigo-200",
         usb: "border-yellow-700 bg-yellow-900/50 text-yellow-200",
-        // Special variants
-        lolbin: "border-red-500 bg-red-600/80 font-bold text-white",
       },
     },
     defaultVariants: {

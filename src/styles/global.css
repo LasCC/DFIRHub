@@ -272,11 +272,10 @@
 
   .glass-card:hover {
     background: rgba(22, 22, 25, 0.6);
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
     box-shadow:
       inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
-      0 8px 24px -8px rgba(0, 0, 0, 0.4);
-    transform: translateY(-2px);
+      0 4px 12px -4px rgba(0, 0, 0, 0.35);
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════
@@ -319,23 +318,9 @@
     }
   }
 
-  /* ─── Glowing Text Effects ─── */
-  .glow-text {
-    text-shadow:
-      0 0 4px currentColor,
-      0 0 8px currentColor,
-      0 0 16px currentColor;
-  }
-
+  /* ─── Subtle Text Emphasis ─── */
   .glow-text-subtle {
     text-shadow: 0 0 8px currentColor;
-  }
-
-  .glow-border {
-    box-shadow:
-      0 0 0 1px currentColor,
-      0 0 8px currentColor,
-      0 0 16px currentColor;
   }
 
   /* ─── Sharp Badge/Tag Styles ─── */
@@ -523,22 +508,19 @@
     position: absolute;
     inset: 0;
     border: 1px solid transparent;
-    transition: border-color 0.3s ease;
+    border-radius: inherit;
+    transition: border-color 0.2s ease;
     pointer-events: none;
   }
 
   .interactive-card:hover::before,
   .interactive-card:focus-within::before {
-    border-color: var(--color-primary);
+    border-color: rgba(255, 255, 255, 0.1);
   }
 
   .interactive-card:hover,
   .interactive-card:focus-within {
-    transform: translateY(-2px);
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.3),
-      0 2px 4px -1px rgba(0, 0, 0, 0.2),
-      0 0 0 1px var(--color-primary);
+    box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.35);
   }
 
   /* ─── Focus Ring Utility ─── */
@@ -807,18 +789,6 @@
   to {
     opacity: 1;
     transform: translateX(0);
-  }
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 4px currentColor;
-  }
-  50% {
-    box-shadow:
-      0 0 16px currentColor,
-      0 0 24px currentColor;
   }
 }
 

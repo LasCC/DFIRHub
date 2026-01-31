@@ -2,13 +2,13 @@ import {
   ChevronRight,
   FileSearch,
   FlaskConical,
+  Github,
   Hammer,
   Layers,
   Menu,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { FaGithub } from "react-icons/fa";
 import { Search } from "../search/Search";
 
 // Magnifying glass icon SVG component
@@ -119,7 +119,8 @@ export function Header({ showSearch = true }: HeaderProps) {
       );
 
     const firstElement = focusableElements[0];
-    const lastElement = focusableElements.at(-1);
+    // biome-ignore lint/style/useAtIndex: NodeList.at() not supported in all browsers
+    const lastElement = focusableElements[focusableElements.length - 1];
 
     const handleTabKey = (e: KeyboardEvent) => {
       if (e.key !== "Tab") {
@@ -241,7 +242,7 @@ export function Header({ showSearch = true }: HeaderProps) {
             target="_blank"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-500/20 bg-zinc-500/10">
-              <FaGithub aria-hidden="true" className="h-4 w-4 text-zinc-400" />
+              <Github aria-hidden="true" className="h-4 w-4 text-zinc-400" />
             </div>
             <span className="font-medium">GitHub</span>
             <span className="ml-auto text-muted-foreground/40 text-xs">↗</span>

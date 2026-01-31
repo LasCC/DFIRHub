@@ -2,7 +2,7 @@
 import { ScrollReveal } from "../components/artifact/ArtifactContent";
 import { CategoryFilters } from "../components/artifacts/CategoryFilters";
 import { ScenarioGrid } from "../components/home/ScenarioGrid";
-import { Footer } from "../components/layout/Footer";
+import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import { AnimatedSearch } from "../components/search/AnimatedSearch";
 import Layout from "../layouts/Layout.astro";
@@ -10,21 +10,6 @@ import { getStats, loadAllTargets } from "../lib/kapefiles";
 
 const stats = getStats();
 const allTargets = loadAllTargets();
-
-// LOLBin count
-const lolbinSlugs = new Set([
-  "bits",
-  "certutil",
-  "powershellconsole",
-  "powershelltranscripts",
-  "powershell7config",
-  "wbem",
-  "scheduledtasks",
-  "mof",
-]);
-const lolbinCount = allTargets.filter((t) =>
-  lolbinSlugs.has(t.slug.toLowerCase())
-).length;
 
 // Investigation scenarios with artifact mappings
 const scenarios = [
@@ -186,7 +171,6 @@ const popularArtifactsRow2 = popularSlugsRow2
 // Category pills for quick filtering (links to /artifacts with filter)
 const categories = [
   { id: "all", label: "All", count: stats.total },
-  { id: "lolbin", label: "LOLBins", count: lolbinCount, special: true },
   { id: "windows", label: "Windows", count: stats.byCategory.Windows || 0 },
   {
     id: "browsers",
@@ -224,12 +208,12 @@ const categories = [
 
         <!-- Category Pills -->
         <div class="flex justify-center">
-          <CategoryFilters client:load categories={categories} />
+          <CategoryFilters client:idle categories={categories} />
         </div>
       </div>
 
       <!-- Investigate by Scenario -->
-      <ScrollReveal client:load>
+      <ScrollReveal client:visible>
         <section class="py-8 sm:py-12 border-b border-border/30">
           <div class="flex items-center justify-between mb-4 sm:mb-6">
             <h2 class="text-xs sm:text-sm text-muted-foreground">
@@ -237,12 +221,12 @@ const categories = [
             </h2>
           </div>
 
-          <ScenarioGrid client:load scenarios={scenariosWithCounts} />
+          <ScenarioGrid client:visible scenarios={scenariosWithCounts} />
         </section>
       </ScrollReveal>
 
       <!-- Popular Artifacts - Marquee -->
-      <ScrollReveal client:load delay={0.1}>
+      <ScrollReveal client:visible delay={0.1}>
         <section class="py-8 sm:py-12">
           <div class="flex items-center justify-between mb-4 sm:mb-6">
             <h2 class="text-xs sm:text-sm text-muted-foreground">
@@ -358,7 +342,7 @@ const categories = [
       </ScrollReveal>
     </main>
 
-    <Footer client:load />
+    <Footer />
   </div>
 </Layout>
 

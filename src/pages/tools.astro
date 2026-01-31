@@ -1,5 +1,5 @@
 ---
-import { Footer } from "../components/layout/Footer";
+import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import { toolCategories, tools } from "../data/tools";
 import Layout from "../layouts/Layout.astro";
@@ -181,7 +181,7 @@ const platformColors: Record<string, string> = {
     </div>
   </main>
 
-  <Footer client:load />
+  <Footer />
 </Layout>
 
 <style>

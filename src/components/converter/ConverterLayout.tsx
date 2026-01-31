@@ -6,7 +6,7 @@ import {
   Search,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -125,9 +125,10 @@ export function ConverterLayout() {
     const converter = new SigmaConverter();
     converterRef.current = converter;
     converter.onProgress(setLoadingProgress);
-    converter.initialize().then(() => {
+    converter.initialize().then(async () => {
       setIsReady(true);
-      converter.getAvailablePipelines().then(setAvailablePipelines);
+      const pipelines = await converter.getAvailablePipelines();
+      setAvailablePipelines(pipelines);
     });
     return () => converter.destroy();
   }, []);
@@ -203,16 +204,19 @@ export function ConverterLayout() {
   const backendConfig = getBackend(selectedBackend);
 
   // Gather all successful conversions for export
-  const exportConversions = new Map<string, string>();
-  if (multiMode) {
-    for (const [key, val] of multiResults) {
-      if (val.success && val.query) {
-        exportConversions.set(key, val.query);
+  const exportConversions = useMemo(() => {
+    const conversions = new Map<string, string>();
+    if (multiMode) {
+      for (const [key, val] of multiResults) {
+        if (val.success && val.query) {
+          conversions.set(key, val.query);
+        }
       }
+    } else if (result?.success && result.query) {
+      conversions.set(selectedBackend, result.query);
     }
-  } else if (result?.success && result.query) {
-    exportConversions.set(selectedBackend, result.query);
-  }
+    return conversions;
+  }, [multiMode, multiResults, result, selectedBackend]);
 
   return (
     <div className="relative space-y-6">

@@ -26,6 +26,8 @@ interface PagefindAPI {
   ) => Promise<{ results: PagefindResult[] } | null>;
 }
 
+const ALPHANUM_RE = /^[a-zA-Z0-9]$/;
+
 // Example searches to cycle through
 const searchExamples = [
   "prefetch",
@@ -77,7 +79,7 @@ export function AnimatedSearch() {
         !e.ctrlKey &&
         !e.metaKey &&
         !e.altKey &&
-        /^[a-zA-Z0-9]$/.test(e.key)
+        ALPHANUM_RE.test(e.key)
       ) {
         inputRef.current?.focus();
         // The character will be typed into the now-focused input

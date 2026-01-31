@@ -1,6 +1,5 @@
 import {
   HiOutlineArrowsRightLeft,
-  HiOutlineBolt,
   HiOutlineComputerDesktop,
   HiOutlineCube,
   HiOutlineDocumentText,
@@ -23,7 +22,6 @@ interface CategoryFiltersProps {
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   all: HiOutlineSquares2X2,
-  lolbin: HiOutlineBolt,
   windows: HiOutlineComputerDesktop,
   browsers: HiOutlineGlobeAlt,
   apps: HiOutlineCube,
@@ -42,12 +40,6 @@ const colorConfig: Record<
     active:
       "data-[active]:border-primary data-[active]:bg-primary/10 data-[active]:text-primary data-[active]:shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)]",
     glow: "hover:shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)]",
-  },
-  lolbin: {
-    icon: "text-amber-400",
-    active:
-      "data-[active]:border-amber-500/50 data-[active]:bg-amber-500/10 data-[active]:text-amber-400 data-[active]:shadow-[0_0_20px_-5px_rgba(245,158,11,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(245,158,11,0.3)]",
   },
   windows: {
     icon: "text-blue-400",
