@@ -236,72 +236,50 @@ const filterCategories = [
 
       <!-- Stats Cards - Redesigned -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+        <div class="rounded-xl glass-card p-5">
+          <div class="text-3xl font-bold text-primary font-mono tracking-tight">
+            {stats.total}
+          </div>
           <div
-            class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/20 transition-colors"
-          ></div>
-          <div class="relative">
-            <div
-              class="text-3xl font-bold text-primary font-mono tracking-tight"
-            >
-              {stats.total}
-            </div>
-            <div
-              class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
-            >
-              Total Targets
-            </div>
+            class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
+          >
+            Total Targets
           </div>
         </div>
-        <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+        <div class="rounded-xl glass-card p-5">
           <div
-            class="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-cyan-500/20 transition-colors"
-          ></div>
-          <div class="relative">
-            <div
-              class="text-3xl font-bold text-cyan-400 font-mono tracking-tight"
-            >
-              {stats.compounds}
-            </div>
-            <div
-              class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
-            >
-              Collections
-            </div>
+            class="text-3xl font-bold text-cyan-400 font-mono tracking-tight"
+          >
+            {stats.compounds}
+          </div>
+          <div
+            class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
+          >
+            Collections
           </div>
         </div>
-        <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+        <div class="rounded-xl glass-card p-5">
           <div
-            class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-emerald-500/20 transition-colors"
-          ></div>
-          <div class="relative">
-            <div
-              class="text-3xl font-bold text-emerald-400 font-mono tracking-tight"
-            >
-              {stats.individuals}
-            </div>
-            <div
-              class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
-            >
-              Individual
-            </div>
+            class="text-3xl font-bold text-emerald-400 font-mono tracking-tight"
+          >
+            {stats.individuals}
+          </div>
+          <div
+            class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
+          >
+            Individual
           </div>
         </div>
-        <div class="group relative overflow-hidden rounded-xl glass-card p-5">
+        <div class="rounded-xl glass-card p-5">
           <div
-            class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-500/20 transition-colors"
-          ></div>
-          <div class="relative">
-            <div
-              class="text-3xl font-bold text-amber-400 font-mono tracking-tight"
-            >
-              {categories.length}
-            </div>
-            <div
-              class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
-            >
-              Categories
-            </div>
+            class="text-3xl font-bold text-amber-400 font-mono tracking-tight"
+          >
+            {categories.length}
+          </div>
+          <div
+            class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
+          >
+            Categories
           </div>
         </div>
       </div>

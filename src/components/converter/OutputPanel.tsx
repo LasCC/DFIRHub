@@ -1,5 +1,6 @@
 import { AlertTriangle, Check, Copy } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { codeToHtml } from "shiki";
 
 interface OutputPanelProps {
   query: string;
@@ -9,6 +10,26 @@ interface OutputPanelProps {
   isLoading?: boolean;
 }
 
+const shikiLangMap: Record<string, string> = {
+  splunk: "text",
+  esql: "text",
+  lucene: "text",
+  eql: "text",
+  kql: "text",
+  logql: "text",
+  datadog: "text",
+  "yara-l": "text",
+  quickwit: "text",
+  netwitness: "text",
+  crowdstrike: "text",
+  carbonblack: "text",
+  sentinelone: "text",
+  python: "python",
+  uaql: "text",
+  sql: "sql",
+  surrealql: "text",
+};
+
 export function OutputPanel({
   query,
   error,
@@ -17,6 +38,7 @@ export function OutputPanel({
   isLoading,
 }: OutputPanelProps) {
   const [copied, setCopied] = useState(false);
+  const [highlightedHtml, setHighlightedHtml] = useState<string>("");
 
   const handleCopy = useCallback(async () => {
     if (!query) return;
@@ -25,8 +47,40 @@ export function OutputPanel({
     setTimeout(() => setCopied(false), 2000);
   }, [query]);
 
+  useEffect(() => {
+    if (!query || error || isLoading) {
+      setHighlightedHtml("");
+      return;
+    }
+
+    let cancelled = false;
+
+    async function highlight() {
+      try {
+        const lang = shikiLangMap[language] ?? "text";
+        const html = await codeToHtml(query, {
+          lang,
+          theme: "vesper",
+        });
+        if (!cancelled) {
+          setHighlightedHtml(html);
+        }
+      } catch {
+        if (!cancelled) {
+          setHighlightedHtml("");
+        }
+      }
+    }
+
+    highlight();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [query, language, error, isLoading]);
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-[#101010]">
       <div className="flex items-center justify-between border-white/[0.06] border-b px-4 py-2">
         <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
           {backend}{" "}
@@ -66,11 +120,19 @@ export function OutputPanel({
             <pre className="whitespace-pre-wrap font-mono text-xs">{error}</pre>
           </div>
         )}
-        {query && !error && !isLoading && (
-          <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground">
-            {query}
-          </pre>
-        )}
+        {query &&
+          !error &&
+          !isLoading &&
+          (highlightedHtml ? (
+            <div
+              className="[&_pre]:!bg-transparent [&_pre]:whitespace-pre-wrap [&_pre]:font-mono [&_pre]:text-sm [&_pre]:leading-relaxed [&_code]:!bg-transparent"
+              dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+            />
+          ) : (
+            <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-foreground">
+              {query}
+            </pre>
+          ))}
         {!(query || error || isLoading) && (
           <p className="text-muted-foreground/50 text-sm">
             Convert a Sigma rule to see the output here.

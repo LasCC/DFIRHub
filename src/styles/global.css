@@ -318,11 +318,6 @@
     }
   }
 
-  /* ─── Subtle Text Emphasis ─── */
-  .glow-text-subtle {
-    text-shadow: 0 0 8px currentColor;
-  }
-
   /* ─── Sharp Badge/Tag Styles ─── */
   .tag {
     display: inline-flex;

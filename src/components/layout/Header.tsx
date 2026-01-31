@@ -1,7 +1,7 @@
 import {
   ChevronRight,
+  Code,
   FileSearch,
-  FlaskConical,
   Github,
   Hammer,
   Layers,
@@ -85,7 +85,7 @@ const navItems: NavItem[] = [
   {
     href: "/converter",
     label: "converter",
-    icon: <FlaskConical className="h-4 w-4" />,
+    icon: <Code className="h-4 w-4" />,
   },
 ];
 
@@ -166,7 +166,7 @@ export function Header({ showSearch = true }: HeaderProps) {
             className="focus-ring hidden h-8 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 text-xs font-medium text-primary transition-all hover:bg-primary/20 md:flex"
             href="/converter"
           >
-            <FlaskConical className="h-3.5 w-3.5" />
+            <Code className="h-3.5 w-3.5" />
             <span>converter</span>
             <span className="rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wider text-primary">
               New

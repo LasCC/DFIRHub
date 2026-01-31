@@ -1,5 +1,6 @@
 import {
   Blocks,
+  Code,
   FileSearch,
   Hammer,
   Home,
@@ -397,6 +398,26 @@ export function Search({ showTrigger = true }: SearchProps) {
                   </kbd>
                   <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
                     b
+                  </kbd>
+                </span>
+              </CommandItem>
+              <CommandItem
+                className="group my-0.5 rounded-lg text-sm"
+                onSelect={() => handleSelect("/converter")}
+              >
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-purple-500/20 bg-purple-500/20 transition-colors group-data-[selected=true]:border-purple-400/30 group-data-[selected=true]:bg-purple-500/30">
+                  <Code
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 text-purple-400"
+                  />
+                </div>
+                <span>converter</span>
+                <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
+                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
+                    g
+                  </kbd>
+                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
+                    v
                   </kbd>
                 </span>
               </CommandItem>

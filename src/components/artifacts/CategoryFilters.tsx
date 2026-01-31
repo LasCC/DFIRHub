@@ -31,57 +31,46 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   compound: HiOutlineRectangleStack,
 };
 
-const colorConfig: Record<
-  string,
-  { icon: string; active: string; glow: string }
-> = {
+const colorConfig: Record<string, { icon: string; active: string }> = {
   all: {
     icon: "text-zinc-400",
     active:
-      "data-[active]:border-primary data-[active]:bg-primary/10 data-[active]:text-primary data-[active]:shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)]",
+      "data-[active]:border-primary data-[active]:bg-primary/10 data-[active]:text-primary",
   },
   windows: {
     icon: "text-blue-400",
     active:
-      "data-[active]:border-blue-500/50 data-[active]:bg-blue-500/10 data-[active]:text-blue-400 data-[active]:shadow-[0_0_20px_-5px_rgba(59,130,246,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(59,130,246,0.3)]",
+      "data-[active]:border-blue-500/50 data-[active]:bg-blue-500/10 data-[active]:text-blue-400",
   },
   browsers: {
     icon: "text-orange-400",
     active:
-      "data-[active]:border-orange-500/50 data-[active]:bg-orange-500/10 data-[active]:text-orange-400 data-[active]:shadow-[0_0_20px_-5px_rgba(249,115,22,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(249,115,22,0.3)]",
+      "data-[active]:border-orange-500/50 data-[active]:bg-orange-500/10 data-[active]:text-orange-400",
   },
   apps: {
     icon: "text-emerald-400",
     active:
-      "data-[active]:border-emerald-500/50 data-[active]:bg-emerald-500/10 data-[active]:text-emerald-400 data-[active]:shadow-[0_0_20px_-5px_rgba(52,211,153,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(52,211,153,0.3)]",
+      "data-[active]:border-emerald-500/50 data-[active]:bg-emerald-500/10 data-[active]:text-emerald-400",
   },
   antivirus: {
     icon: "text-red-400",
     active:
-      "data-[active]:border-red-500/50 data-[active]:bg-red-500/10 data-[active]:text-red-400 data-[active]:shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(239,68,68,0.3)]",
+      "data-[active]:border-red-500/50 data-[active]:bg-red-500/10 data-[active]:text-red-400",
   },
   logs: {
     icon: "text-yellow-400",
     active:
-      "data-[active]:border-yellow-500/50 data-[active]:bg-yellow-500/10 data-[active]:text-yellow-400 data-[active]:shadow-[0_0_20px_-5px_rgba(234,179,8,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(234,179,8,0.3)]",
+      "data-[active]:border-yellow-500/50 data-[active]:bg-yellow-500/10 data-[active]:text-yellow-400",
   },
   p2p: {
     icon: "text-purple-400",
     active:
-      "data-[active]:border-purple-500/50 data-[active]:bg-purple-500/10 data-[active]:text-purple-400 data-[active]:shadow-[0_0_20px_-5px_rgba(168,85,247,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(168,85,247,0.3)]",
+      "data-[active]:border-purple-500/50 data-[active]:bg-purple-500/10 data-[active]:text-purple-400",
   },
   compound: {
     icon: "text-cyan-400",
     active:
-      "data-[active]:border-cyan-500/50 data-[active]:bg-cyan-500/10 data-[active]:text-cyan-400 data-[active]:shadow-[0_0_20px_-5px_rgba(6,182,212,0.4)]",
-    glow: "hover:shadow-[0_0_15px_-5px_rgba(6,182,212,0.3)]",
+      "data-[active]:border-cyan-500/50 data-[active]:bg-cyan-500/10 data-[active]:text-cyan-400",
   },
 };
 
@@ -94,7 +83,7 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
 
         return (
           <a
-            className={`group category-filter-btn inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-4 py-2 font-medium text-xs text-zinc-400 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.04] hover:text-zinc-200${config.active} ${config.glow}backdrop-blur-sm`}
+            className={`group category-filter-btn inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-4 py-2 font-medium text-xs text-zinc-400 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.04] hover:text-zinc-200 ${config.active} backdrop-blur-sm`}
             data-filter-id={cat.id}
             data-special={cat.special ? "true" : undefined}
             href={

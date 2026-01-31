@@ -1,3 +1,5 @@
+import { Cog } from "lucide-react";
+
 interface LoadingOverlayProps {
   progress: number;
   isVisible: boolean;
@@ -19,7 +21,7 @@ export function LoadingOverlay({ progress, isVisible }: LoadingOverlayProps) {
       aria-valuemax={100}
     >
       <div className="flex flex-col items-center gap-4">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <Cog aria-hidden="true" className="h-10 w-10 animate-spin text-primary" />
         <div className="w-48">
           <div className="mb-2 text-center text-muted-foreground text-sm">
             Loading Python runtime...
