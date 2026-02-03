@@ -28,6 +28,23 @@ interface PagefindAPI {
 
 const ALPHANUM_RE = /^[a-zA-Z0-9]$/;
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.035 },
+  },
+} as const;
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+  },
+} as const;
+
 // Example searches to cycle through
 const searchExamples = [
   "prefetch",
@@ -48,9 +65,8 @@ export function AnimatedSearch() {
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [currentExample, setCurrentExample] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
-  const [isTyping, setIsTyping] = useState(true);
+  const currentExampleRef = useRef(0);
   const pagefindRef = useRef<PagefindAPI | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -89,48 +105,62 @@ export function AnimatedSearch() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Typewriter effect for placeholder
+  // Typewriter effect for placeholder — fully self-scheduling via setTimeout chains.
+  // Refs track phase (typing vs deleting) and current example index without re-renders.
   useEffect(() => {
     if (query || focused) {
-      return; // Don't animate when user is typing or focused
+      return;
     }
 
-    const example = searchExamples[currentExample];
-    let charIndex = 0;
     let timeout: NodeJS.Timeout;
+    let cancelled = false;
 
-    if (isTyping) {
+    function runCycle() {
+      const example = searchExamples[currentExampleRef.current];
+      let charIndex = 0;
+
       // Typing phase
       const typeChar = () => {
+        if (cancelled) return;
         if (charIndex <= example.length) {
           setDisplayedText(example.slice(0, charIndex));
           charIndex++;
           timeout = setTimeout(typeChar, 80 + Math.random() * 40);
         } else {
           // Pause at end, then start deleting
-          timeout = setTimeout(() => setIsTyping(false), 2000);
+          timeout = setTimeout(startDelete, 2000);
         }
       };
-      typeChar();
-    } else {
+
       // Deleting phase
-      let deleteIndex = example.length;
-      const deleteChar = () => {
-        if (deleteIndex >= 0) {
-          setDisplayedText(example.slice(0, deleteIndex));
-          deleteIndex--;
-          timeout = setTimeout(deleteChar, 40);
-        } else {
-          // Move to next example
-          setCurrentExample((prev) => (prev + 1) % searchExamples.length);
-          setIsTyping(true);
-        }
-      };
-      deleteChar();
+      function startDelete() {
+        let deleteIndex = example.length;
+        const deleteChar = () => {
+          if (cancelled) return;
+          if (deleteIndex >= 0) {
+            setDisplayedText(example.slice(0, deleteIndex));
+            deleteIndex--;
+            timeout = setTimeout(deleteChar, 40);
+          } else {
+            // Move to next example and start new cycle
+            currentExampleRef.current =
+              (currentExampleRef.current + 1) % searchExamples.length;
+            timeout = setTimeout(runCycle, 100);
+          }
+        };
+        deleteChar();
+      }
+
+      typeChar();
     }
 
-    return () => clearTimeout(timeout);
-  }, [currentExample, isTyping, query, focused]);
+    runCycle();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [query, focused]);
 
   // Initialize Pagefind
   const loadPagefind = useCallback(async () => {
@@ -245,23 +275,26 @@ export function AnimatedSearch() {
   const showResults = focused && (query.trim() || results.length > 0);
 
   return (
-    <div className="relative w-full">
+    <div className="relative z-50 w-full">
       {/* Search Input */}
       <div className="group relative">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 opacity-0 blur-sm transition-opacity duration-300 group-focus-within:opacity-100" />
+        <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 opacity-0 blur-sm transition-opacity duration-300 group-focus-within:opacity-100" />
 
-        <div className="relative flex items-center rounded-lg border border-border bg-background transition-colors group-focus-within:border-primary/50">
-          <Search className="ml-5 h-5 w-5 text-primary/50" />
+        <div className="relative flex items-center rounded-xl border border-border bg-background transition-colors group-focus-within:border-primary/50">
+          <Search aria-hidden="true" className="ml-5 h-5 w-5 text-primary/50" />
 
           <input
             aria-label="Search artifacts"
+            autoComplete="off"
             className="h-14 flex-1 bg-transparent px-4 text-base outline-none"
+            name="search"
             onBlur={() => setTimeout(() => setFocused(false), 200)}
             onChange={(e) => handleSearch(e.target.value)}
             onFocus={() => setFocused(true)}
             onKeyDown={handleKeyDown}
             placeholder=""
             ref={inputRef}
+            spellCheck={false}
             type="text"
             value={query}
           />
@@ -287,7 +320,7 @@ export function AnimatedSearch() {
         {showResults && (
           <motion.div
             animate={{ opacity: 1, y: 0 }}
-            className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-lg border border-border bg-background/98 shadow-2xl backdrop-blur-lg"
+            className="absolute top-full right-0 left-0 z-[999] mt-2 overflow-hidden rounded-xl border border-border bg-background/98 shadow-2xl backdrop-blur-lg"
             exit={{ opacity: 0, y: -8 }}
             initial={{ opacity: 0, y: -8 }}
             ref={resultsRef}
@@ -297,7 +330,7 @@ export function AnimatedSearch() {
               <div className="px-4 py-4 text-muted-foreground text-sm">
                 <span className="inline-flex items-center gap-2">
                   <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-                  <span>searching...</span>
+                  <span>searching…</span>
                 </span>
               </div>
             )}
@@ -313,13 +346,7 @@ export function AnimatedSearch() {
                 animate="visible"
                 className="py-1"
                 initial="hidden"
-                variants={{
-                  hidden: { opacity: 0 },
-                  visible: {
-                    opacity: 1,
-                    transition: { staggerChildren: 0.035 },
-                  },
-                }}
+                variants={containerVariants}
               >
                 {results.map((result, index) => (
                   <motion.a
@@ -331,14 +358,7 @@ export function AnimatedSearch() {
                     href={result.url}
                     key={result.id}
                     onMouseEnter={() => setSelectedIndex(index)}
-                    variants={{
-                      hidden: { opacity: 0, x: -12 },
-                      visible: {
-                        opacity: 1,
-                        x: 0,
-                        transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
-                      },
-                    }}
+                    variants={itemVariants}
                   >
                     <ChevronRight
                       className={`h-3 w-3 transition-all duration-150 ${
@@ -357,8 +377,8 @@ export function AnimatedSearch() {
 
             <div className="flex items-center gap-4 border-border/30 border-t bg-card/30 px-4 py-2 text-[10px] text-muted-foreground/50">
               <span className="flex items-center gap-1">
-                <ArrowUp className="h-2.5 w-2.5" />
-                <ArrowDown className="h-2.5 w-2.5" />
+                <ArrowUp aria-hidden="true" className="h-2.5 w-2.5" />
+                <ArrowDown aria-hidden="true" className="h-2.5 w-2.5" />
                 navigate
               </span>
               <span className="flex items-center gap-1">

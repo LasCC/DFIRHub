@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import type { KapeTarget } from "../../lib/kapefiles";
 import { CodeBlock } from "../ui/CodeBlock";
 
@@ -20,7 +21,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
   const [destination, setDestination] = useState("D:\\Evidence");
   const [useVss, setUseVss] = useState(false);
   const [useVhdx, setUseVhdx] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedId, triggerCopied] = useCopyFeedbackKeyed<string>();
 
   // Get all paths from the target (for PowerShell/batch generation)
   const targetPaths = useMemo(() => {
@@ -371,7 +372,7 @@ echo "For compound targets, use KAPE directly for best results."
   const handleCopy = async (command: string, id: string) => {
     try {
       await navigator.clipboard.writeText(command);
-      setCopiedId(id);
+      triggerCopied(id);
       // Announce to screen readers
       const announcer = document.getElementById("live-announcer");
       if (announcer) {
@@ -380,7 +381,6 @@ echo "For compound targets, use KAPE directly for best results."
           announcer.textContent = "";
         }, 1000);
       }
-      setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }

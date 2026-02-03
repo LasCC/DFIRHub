@@ -184,162 +184,423 @@ const categories = [
     count: stats.byCategory.Antivirus || 0,
   },
 ];
+
+// Tool cards
+const tools = [
+  {
+    title: "Artifact Explorer",
+    description:
+      "Browse and search all forensic artifacts with detailed paths, categories, and collection targets",
+    href: "/artifacts",
+    icon: "search",
+    color: "emerald",
+    stat: `${stats.total} artifacts`,
+  },
+  {
+    title: "Script Builder",
+    description:
+      "Generate KAPE collection scripts by selecting exactly the artifacts you need for your investigation",
+    href: "/builder",
+    icon: "wrench",
+    color: "amber",
+    stat: "Custom scripts",
+  },
+  {
+    title: "Sigma Converter",
+    description:
+      "Convert Sigma detection rules to any SIEM query language, entirely in your browser with pySigma",
+    href: "/converter",
+    icon: "code",
+    color: "violet",
+    stat: "15+ backends",
+  },
+  {
+    title: "Collections",
+    description:
+      "Pre-built forensic collection profiles for common investigation scenarios and triage workflows",
+    href: "/collections",
+    icon: "layers",
+    color: "cyan",
+    stat: "Ready to use",
+  },
+];
 ---
 
 <Layout title="DFIRHub">
   <div class="min-h-screen w-full overflow-x-hidden">
     <Header client:load />
 
-    <main class="mx-auto max-w-6xl px-4">
+    <main>
       <!-- Hero -->
-      <div class="text-center py-10 sm:py-16 border-b border-border/30">
-        <h1 class="text-2xl sm:text-3xl font-semibold mb-3">
-          Find DFIR artifacts <span class="text-primary">fast</span>
-        </h1>
-        <p class="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
-          Search {stats.total} Windows forensic artifacts, paths, and collection
-          targets
-        </p>
-
-        <!-- Search -->
-        <div class="max-w-lg mx-auto mb-6 sm:mb-8">
-          <AnimatedSearch client:load />
+      <div class="hero-section relative overflow-visible">
+        <!-- Background atmosphere -->
+        <div class="hero-bg pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <div class="hero-grid absolute inset-0 opacity-[0.035]"></div>
+          <div class="hero-glow"></div>
+          <div class="hero-glow-secondary"></div>
         </div>
 
-        <!-- Category Pills -->
-        <div class="flex justify-center">
-          <CategoryFilters client:idle categories={categories} />
+        <div class="relative mx-auto max-w-6xl px-4 pb-12 pt-16 sm:pb-20 sm:pt-24">
+          <!-- Eyebrow -->
+          <div class="mb-6 flex justify-center">
+            <div
+              class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-3 py-1"
+            >
+              <span class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
+              <span class="text-[11px] text-primary/80 font-medium tracking-wide"
+                >{stats.total} artifacts indexed</span
+              >
+            </div>
+          </div>
+
+          <!-- Heading -->
+          <h1
+            class="hero-heading mx-auto max-w-2xl text-center text-3xl font-semibold leading-tight tracking-tight sm:text-4xl md:text-5xl"
+          >
+            Find forensic artifacts,
+            <span class="hero-accent relative">
+              <span class="relative z-10 text-primary">fast</span>
+              <span
+                class="absolute -inset-x-2 bottom-0 h-[0.35em] bg-primary/10 rounded-sm"
+                aria-hidden="true"></span>
+            </span>
+          </h1>
+
+          <p
+            class="mx-auto mt-4 max-w-lg text-center text-sm text-muted-foreground sm:mt-5 sm:text-base"
+          >
+            Search artifact paths, build collection scripts, and convert Sigma rules — all in one place.
+          </p>
+
+          <!-- Search -->
+          <div class="mx-auto mt-8 max-w-xl sm:mt-10">
+            <AnimatedSearch client:load />
+          </div>
+
+          <!-- Category Pills -->
+          <div class="mt-6 flex justify-center sm:mt-8">
+            <CategoryFilters client:idle categories={categories} />
+          </div>
+
+          <!-- Quick stats row -->
+          <div
+            class="mx-auto mt-10 flex max-w-md items-center justify-center gap-6 text-xs text-muted-foreground/50 sm:mt-14 sm:gap-10"
+          >
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
+                >{stats.total}</span
+              >
+              <span>Artifacts</span>
+            </div>
+            <div class="h-6 w-px bg-border/30" aria-hidden="true"></div>
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
+                >{Object.keys(stats.byCategory).length}</span
+              >
+              <span>Categories</span>
+            </div>
+            <div class="h-6 w-px bg-border/30" aria-hidden="true"></div>
+            <div class="flex flex-col items-center gap-1">
+              <span class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
+                >15+</span
+              >
+              <span>SIEM backends</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Investigate by Scenario -->
-      <ScrollReveal client:visible>
-        <section class="py-8 sm:py-12 border-b border-border/30">
-          <div class="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 class="text-xs sm:text-sm text-muted-foreground">
-              <span class="text-primary">//</span> INVESTIGATE BY SCENARIO
-            </h2>
-          </div>
-
-          <ScenarioGrid client:visible scenarios={scenariosWithCounts} />
-        </section>
-      </ScrollReveal>
-
-      <!-- Popular Artifacts - Marquee -->
-      <ScrollReveal client:visible delay={0.1}>
-        <section class="py-8 sm:py-12">
-          <div class="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 class="text-xs sm:text-sm text-muted-foreground">
-              <span class="text-primary">//</span> POPULAR ARTIFACTS
-            </h2>
-            <a
-              href="/artifacts"
-              class="text-xs text-primary hover:text-primary/80 transition-colors"
-            >
-              view all →
-            </a>
-          </div>
-
-          <!-- Marquee Container -->
-          <div class="relative overflow-hidden">
-            <!-- Fade edges -->
-            <div
-              class="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-background to-transparent z-10"
-            ></div>
-            <div
-              class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-background to-transparent z-10"
-            ></div>
-
-            <!-- Row 1 - scrolls left -->
-            <div class="marquee-row mb-3">
-              <div class="marquee-content animate-marquee">
-                {[
-                                    ...popularArtifactsRow1,
-                                    ...popularArtifactsRow1,
-                                ].map((artifact) => {
-                                    if (!artifact) return null;
-                                    const href = "/artifact/" + artifact.slug;
-                                    const pathCount = artifact.isCompound
-                                        ? artifact.referencedTargets.length +
-                                          " targets"
-                                        : artifact.targets.filter(
-                                              (e) => !e.path.endsWith(".tkape"),
-                                          ).length + " paths";
-                                    return (
-                                        <a
-                                            href={href}
-                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
-                                        >
-                                            <h3 class="font-medium text-xs sm:text-sm mb-1 group-hover:text-primary transition-colors truncate">
-                                                {artifact.name}
-                                            </h3>
-                                            <p class="text-[10px] sm:text-xs text-muted-foreground mb-2 truncate">
-                                                {artifact.description ||
-                                                    "Forensic artifact"}
-                                            </p>
-                                            <div class="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-[10px]">
-                                                <span class="text-muted-foreground/50 uppercase">
-                                                    {artifact.category}
-                                                </span>
-                                                <span class="text-muted-foreground/30">
-                                                    ·
-                                                </span>
-                                                <span class="text-muted-foreground/50">
-                                                    {pathCount}
-                                                </span>
-                                            </div>
-                                        </a>
-                                    );
-                                })}
-              </div>
+      <div class="mx-auto max-w-6xl px-4">
+        <!-- Tools Section -->
+        <ScrollReveal client:visible>
+          <section class="py-10 sm:py-16">
+            <div class="mb-6 flex items-center justify-between sm:mb-8">
+              <h2 class="text-xs text-muted-foreground sm:text-sm">
+                <span class="text-primary">//</span> TOOLS
+              </h2>
             </div>
 
-            <!-- Row 2 - scrolls right -->
-            <div class="marquee-row">
-              <div class="marquee-content animate-marquee-reverse">
-                {[
-                                    ...popularArtifactsRow2,
-                                    ...popularArtifactsRow2,
-                                ].map((artifact) => {
-                                    if (!artifact) return null;
-                                    const href = "/artifact/" + artifact.slug;
-                                    const pathCount = artifact.isCompound
-                                        ? artifact.referencedTargets.length +
-                                          " targets"
-                                        : artifact.targets.filter(
-                                              (e) => !e.path.endsWith(".tkape"),
-                                          ).length + " paths";
-                                    return (
-                                        <a
-                                            href={href}
-                                            class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
-                                        >
-                                            <h3 class="font-medium text-xs sm:text-sm mb-1 group-hover:text-primary transition-colors truncate">
-                                                {artifact.name}
-                                            </h3>
-                                            <p class="text-[10px] sm:text-xs text-muted-foreground mb-2 truncate">
-                                                {artifact.description ||
-                                                    "Forensic artifact"}
-                                            </p>
-                                            <div class="flex items-center gap-1 sm:gap-2 text-[9px] sm:text-[10px]">
-                                                <span class="text-muted-foreground/50 uppercase">
-                                                    {artifact.category}
-                                                </span>
-                                                <span class="text-muted-foreground/30">
-                                                    ·
-                                                </span>
-                                                <span class="text-muted-foreground/50">
-                                                    {pathCount}
-                                                </span>
-                                            </div>
-                                        </a>
-                                    );
-                                })}
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              {
+                tools.map((tool) => (
+                  <a
+                    href={tool.href}
+                    class:list={[
+                      "tool-card group relative overflow-hidden rounded-xl p-5 sm:p-6",
+                      "border border-white/[0.06] bg-white/[0.02]",
+                      "transition-all duration-300 ease-out",
+                      "hover:border-white/[0.12] hover:bg-white/[0.04]",
+                    ]}
+                  >
+                    <div class="mb-4 flex items-start justify-between">
+                      <div
+                        class:list={[
+                          "flex h-9 w-9 items-center justify-center rounded-lg",
+                          tool.color === "emerald" &&
+                            "bg-emerald-500/10 text-emerald-400",
+                          tool.color === "amber" &&
+                            "bg-amber-500/10 text-amber-400",
+                          tool.color === "violet" &&
+                            "bg-violet-500/10 text-violet-400",
+                          tool.color === "cyan" &&
+                            "bg-cyan-500/10 text-cyan-400",
+                        ]}
+                      >
+                        {tool.icon === "search" && (
+                          <svg
+                            aria-hidden="true"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
+                          </svg>
+                        )}
+                        {tool.icon === "wrench" && (
+                          <svg
+                            aria-hidden="true"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9" />
+                            <path d="m18 15 4-4" />
+                            <path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" />
+                          </svg>
+                        )}
+                        {tool.icon === "code" && (
+                          <svg
+                            aria-hidden="true"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <polyline points="16 18 22 12 16 6" />
+                            <polyline points="8 6 2 12 8 18" />
+                          </svg>
+                        )}
+                        {tool.icon === "layers" && (
+                          <svg
+                            aria-hidden="true"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+                            <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
+                            <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
+                          </svg>
+                        )}
+                      </div>
+                      <span
+                        class:list={[
+                          "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                          tool.color === "emerald" &&
+                            "bg-emerald-500/10 text-emerald-400/70",
+                          tool.color === "amber" &&
+                            "bg-amber-500/10 text-amber-400/70",
+                          tool.color === "violet" &&
+                            "bg-violet-500/10 text-violet-400/70",
+                          tool.color === "cyan" &&
+                            "bg-cyan-500/10 text-cyan-400/70",
+                        ]}
+                      >
+                        {tool.stat}
+                      </span>
+                    </div>
+
+                    <h3 class="mb-1.5 text-sm font-medium text-foreground transition-colors group-hover:text-foreground sm:text-base">
+                      {tool.title}
+                    </h3>
+                    <p class="text-xs leading-relaxed text-muted-foreground/70 sm:text-sm">
+                      {tool.description}
+                    </p>
+
+                    <div class="mt-4 flex items-center gap-1 text-xs text-muted-foreground/40 transition-colors group-hover:text-primary/60">
+                      <span>Explore</span>
+                      <svg
+                        aria-hidden="true"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="transition-transform group-hover:translate-x-0.5"
+                      >
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                      </svg>
+                    </div>
+
+                    <!-- Subtle corner glow on hover -->
+                    <div
+                      class:list={[
+                        "pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100",
+                        tool.color === "emerald" && "bg-emerald-500/[0.07]",
+                        tool.color === "amber" && "bg-amber-500/[0.07]",
+                        tool.color === "violet" && "bg-violet-500/[0.07]",
+                        tool.color === "cyan" && "bg-cyan-500/[0.07]",
+                      ]}
+                      aria-hidden="true"
+                    />
+                  </a>
+                ))
+              }
+            </div>
+          </section>
+        </ScrollReveal>
+
+        <!-- Investigate by Scenario -->
+        <ScrollReveal client:visible>
+          <section class="border-t border-border/20 py-10 sm:py-16">
+            <div class="mb-6 flex items-center justify-between sm:mb-8">
+              <h2 class="text-xs text-muted-foreground sm:text-sm">
+                <span class="text-primary">//</span> INVESTIGATE BY SCENARIO
+              </h2>
+            </div>
+
+            <ScenarioGrid client:visible scenarios={scenariosWithCounts} />
+          </section>
+        </ScrollReveal>
+
+        <!-- Popular Artifacts - Marquee -->
+        <ScrollReveal client:visible delay={0.1}>
+          <section class="border-t border-border/20 py-10 sm:py-16">
+            <div class="mb-6 flex items-center justify-between sm:mb-8">
+              <h2 class="text-xs text-muted-foreground sm:text-sm">
+                <span class="text-primary">//</span> POPULAR ARTIFACTS
+              </h2>
+              <a
+                href="/artifacts"
+                class="text-xs text-primary hover:text-primary/80 transition-colors"
+              >
+                view all &rarr;
+              </a>
+            </div>
+
+            <!-- Marquee Container -->
+            <div class="relative overflow-hidden">
+              <!-- Fade edges -->
+              <div
+                class="pointer-events-none absolute bottom-0 left-0 top-0 z-10 w-8 bg-gradient-to-r from-background to-transparent sm:w-20"
+              >
+              </div>
+              <div
+                class="pointer-events-none absolute bottom-0 right-0 top-0 z-10 w-8 bg-gradient-to-l from-background to-transparent sm:w-20"
+              >
+              </div>
+
+              <!-- Row 1 - scrolls left -->
+              <div class="marquee-row mb-3">
+                <div class="marquee-content animate-marquee">
+                  {
+                    [
+                      ...popularArtifactsRow1,
+                      ...popularArtifactsRow1,
+                    ].map((artifact) => {
+                      if (!artifact) return null;
+                      const href = "/artifact/" + artifact.slug;
+                      const pathCount = artifact.isCompound
+                        ? artifact.referencedTargets.length + " targets"
+                        : artifact.targets.filter(
+                            (e) => !e.path.endsWith(".tkape")
+                          ).length + " paths";
+                      return (
+                        <a
+                          href={href}
+                          class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
+                        >
+                          <h3 class="mb-1 truncate text-xs font-medium transition-colors group-hover:text-primary sm:text-sm">
+                            {artifact.name}
+                          </h3>
+                          <p class="mb-2 truncate text-[10px] text-muted-foreground sm:text-xs">
+                            {artifact.description || "Forensic artifact"}
+                          </p>
+                          <div class="flex items-center gap-1 text-[9px] sm:gap-2 sm:text-[10px]">
+                            <span class="uppercase text-muted-foreground/50">
+                              {artifact.category}
+                            </span>
+                            <span class="text-muted-foreground/30">&middot;</span>
+                            <span class="text-muted-foreground/50">
+                              {pathCount}
+                            </span>
+                          </div>
+                        </a>
+                      );
+                    })
+                  }
+                </div>
+              </div>
+
+              <!-- Row 2 - scrolls right -->
+              <div class="marquee-row">
+                <div class="marquee-content animate-marquee-reverse">
+                  {
+                    [
+                      ...popularArtifactsRow2,
+                      ...popularArtifactsRow2,
+                    ].map((artifact) => {
+                      if (!artifact) return null;
+                      const href = "/artifact/" + artifact.slug;
+                      const pathCount = artifact.isCompound
+                        ? artifact.referencedTargets.length + " targets"
+                        : artifact.targets.filter(
+                            (e) => !e.path.endsWith(".tkape")
+                          ).length + " paths";
+                      return (
+                        <a
+                          href={href}
+                          class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
+                        >
+                          <h3 class="mb-1 truncate text-xs font-medium transition-colors group-hover:text-primary sm:text-sm">
+                            {artifact.name}
+                          </h3>
+                          <p class="mb-2 truncate text-[10px] text-muted-foreground sm:text-xs">
+                            {artifact.description || "Forensic artifact"}
+                          </p>
+                          <div class="flex items-center gap-1 text-[9px] sm:gap-2 sm:text-[10px]">
+                            <span class="uppercase text-muted-foreground/50">
+                              {artifact.category}
+                            </span>
+                            <span class="text-muted-foreground/30">&middot;</span>
+                            <span class="text-muted-foreground/50">
+                              {pathCount}
+                            </span>
+                          </div>
+                        </a>
+                      );
+                    })
+                  }
+                </div>
               </div>
             </div>
-          </div>
-        </section>
-      </ScrollReveal>
+          </section>
+        </ScrollReveal>
+      </div>
     </main>
 
     <Footer />
@@ -361,7 +622,67 @@ const categories = [
     animation: blink 1s infinite;
   }
 
-  /* Marquee styles */
+  /* ---- Hero background effects ---- */
+  .hero-section {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .hero-grid {
+    background-image: linear-gradient(
+        rgba(255, 255, 255, 0.5) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(
+      ellipse 60% 70% at 50% 50%,
+      black 20%,
+      transparent 100%
+    );
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(16, 185, 129, 0.08) 0%,
+      rgba(16, 185, 129, 0.02) 40%,
+      transparent 70%
+    );
+    filter: blur(40px);
+  }
+
+  .hero-glow-secondary {
+    position: absolute;
+    bottom: -10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 200px;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(16, 185, 129, 0.04) 0%,
+      transparent 70%
+    );
+    filter: blur(60px);
+  }
+
+  /* ---- Tool card subtle border glow ---- */
+  .tool-card {
+    background: rgba(255, 255, 255, 0.015);
+  }
+  .tool-card:hover {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 8px 32px -8px rgba(0, 0, 0, 0.4);
+  }
+
+  /* ---- Marquee styles ---- */
   .marquee-row {
     display: flex;
     overflow: hidden;
@@ -405,5 +726,19 @@ const categories = [
   /* Pause on hover */
   .marquee-row:hover .marquee-content {
     animation-play-state: paused;
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee,
+    .animate-marquee-reverse {
+      animation: none;
+    }
+    :global(.animate-pulse) {
+      animation: none;
+    }
+    :global(.animate-blink) {
+      animation: none;
+    }
   }
 </style>
