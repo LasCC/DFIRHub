@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 
 interface PathBrowserProps {
@@ -7,7 +8,7 @@ interface PathBrowserProps {
 }
 
 export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
-  const [copiedPath, setCopiedPath] = useState<string | null>(null);
+  const [copiedPath, triggerCopied] = useCopyFeedbackKeyed<string>();
   const [expandedTargets, setExpandedTargets] = useState<Set<string>>(
     new Set()
   );
@@ -34,7 +35,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
     const fullPath = fileMask ? `${path}${fileMask}` : path;
     try {
       await navigator.clipboard.writeText(fullPath);
-      setCopiedPath(fullPath);
+      triggerCopied(fullPath);
       // Announce to screen readers
       const announcer = document.getElementById("live-announcer");
       if (announcer) {
@@ -43,7 +44,6 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
           announcer.textContent = "";
         }, 1000);
       }
-      setTimeout(() => setCopiedPath(null), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -55,7 +55,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
       .join("\n");
     try {
       await navigator.clipboard.writeText(allPaths);
-      setCopiedPath("all");
+      triggerCopied("all");
       const announcer = document.getElementById("live-announcer");
       if (announcer) {
         announcer.textContent = "All paths copied to clipboard";
@@ -63,7 +63,6 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
           announcer.textContent = "";
         }, 1000);
       }
-      setTimeout(() => setCopiedPath(null), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }
