@@ -8,7 +8,6 @@ import {
   HiOutlineRectangleStack,
   HiOutlineShieldCheck,
 } from "react-icons/hi2";
-import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 import { CodeBlock } from "../ui/CodeBlock";
 
@@ -107,7 +106,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
     useVss: false,
     useVhdx: false,
   });
-  const [copied, triggerCopied] = useCopyFeedback();
+  const [copied, setCopied] = useState(false);
 
   // Filter targets by category and search
   const filteredTargets = useMemo(() => {
@@ -440,7 +439,8 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(generatedScript);
-      triggerCopied();
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
     }

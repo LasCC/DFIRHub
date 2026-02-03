@@ -35,23 +35,6 @@ declare global {
   }
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.04 },
-  },
-} as const;
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -12 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
-  },
-} as const;
-
 // Quick access items with keyboard shortcuts
 const quickAccessItems = [
   { href: "/artifact/prefetch", label: "Prefetch", shortcut: "1" },
@@ -260,10 +243,10 @@ export function InlineSearch() {
         {/* Glow effect */}
         <div
           aria-hidden="true"
-          className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-accent/20 opacity-0 blur-sm transition-opacity duration-300 group-focus-within:opacity-100 group-hover:opacity-100"
+          className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-primary/10 to-accent/20 opacity-0 blur-sm transition-opacity duration-300 group-focus-within:opacity-100 group-hover:opacity-100"
         />
 
-        <div className="relative flex items-center rounded-xl border border-border bg-background transition-colors duration-200 group-focus-within:border-primary/50">
+        <div className="relative flex items-center border border-border bg-background transition-colors duration-200 group-focus-within:border-primary/50">
           {/* Terminal prompt */}
           <span
             aria-hidden="true"
@@ -322,7 +305,7 @@ export function InlineSearch() {
       {showResults && (
         <div
           aria-label="Search results"
-          className="absolute top-full right-0 left-0 mt-2 animate-slide-down overflow-hidden rounded-xl border border-border bg-background/98 shadow-2xl backdrop-blur-lg"
+          className="absolute top-full right-0 left-0 mt-2 animate-slide-down overflow-hidden border border-border bg-background/98 shadow-2xl backdrop-blur-lg"
           id="search-results"
           ref={resultsRef}
           role="listbox"
@@ -402,7 +385,13 @@ export function InlineSearch() {
               <motion.div
                 animate="visible"
                 initial="hidden"
-                variants={containerVariants}
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.04 },
+                  },
+                }}
               >
                 {results.map((result, index) => (
                   <motion.a
@@ -417,7 +406,14 @@ export function InlineSearch() {
                     key={result.id}
                     onMouseEnter={() => setSelectedIndex(index)}
                     role="option"
-                    variants={itemVariants}
+                    variants={{
+                      hidden: { opacity: 0, x: -12 },
+                      visible: {
+                        opacity: 1,
+                        x: 0,
+                        transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+                      },
+                    }}
                   >
                     <div className="mb-1 flex items-center gap-2">
                       <ChevronRight

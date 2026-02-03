@@ -9,7 +9,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-
 import {
   CommandDialog,
   CommandEmpty,
@@ -207,10 +206,9 @@ export function Search({ showTrigger = true }: SearchProps) {
     return match ? match[1] : url;
   };
 
-  const [isMac, setIsMac] = useState(false);
-  useEffect(() => {
-    setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
-  }, []);
+  const isMac =
+    typeof navigator !== "undefined" &&
+    navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
   return (
     <>

@@ -52,12 +52,7 @@ export class SigmaConverter {
     rule: string,
     backend: string,
     pipelineNames?: string[],
-    pipelineYmls?: string[],
-    options?: {
-      filterYml?: string;
-      correlationMethod?: string;
-      backendOptions?: Record<string, unknown>;
-    }
+    pipelineYmls?: string[]
   ): Promise<ConversionResult> {
     if (!this.ready) {
       return { success: false, error: "Converter not initialized", backend };
@@ -79,9 +74,6 @@ export class SigmaConverter {
         packageName: config.package,
         pipelineNames,
         pipelineYmls,
-        filterYml: options?.filterYml,
-        correlationMethod: options?.correlationMethod,
-        backendOptions: options?.backendOptions,
       };
 
       const result = await workerConvert(params);
@@ -105,18 +97,13 @@ export class SigmaConverter {
     rule: string,
     backendIds: string[],
     pipelineNames?: string[],
-    pipelineYmls?: string[],
-    options?: {
-      filterYml?: string;
-      correlationMethod?: string;
-      backendOptions?: Record<string, unknown>;
-    }
+    pipelineYmls?: string[]
   ): Promise<Map<string, ConversionResult>> {
     const results = new Map<string, ConversionResult>();
     for (const id of backendIds) {
       results.set(
         id,
-        await this.convert(rule, id, pipelineNames, pipelineYmls, options)
+        await this.convert(rule, id, pipelineNames, pipelineYmls)
       );
     }
     return results;

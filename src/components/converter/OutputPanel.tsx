@@ -1,7 +1,6 @@
 import { AlertTriangle, Check, Copy } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
-import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 
 interface OutputPanelProps {
   query: string;
@@ -12,23 +11,23 @@ interface OutputPanelProps {
 }
 
 const shikiLangMap: Record<string, string> = {
-  splunk: "kusto",
-  esql: "sql",
+  splunk: "text",
+  esql: "text",
   lucene: "text",
-  eql: "python",
-  kql: "kusto",
-  logql: "kusto",
+  eql: "text",
+  kql: "text",
+  logql: "text",
   datadog: "text",
-  "yara-l": "javascript",
+  "yara-l": "text",
   quickwit: "text",
   netwitness: "text",
-  crowdstrike: "kusto",
+  crowdstrike: "text",
   carbonblack: "text",
-  sentinelone: "sql",
+  sentinelone: "text",
   python: "python",
   uaql: "text",
   sql: "sql",
-  surrealql: "sql",
+  surrealql: "text",
 };
 
 export function OutputPanel({
@@ -38,14 +37,15 @@ export function OutputPanel({
   language,
   isLoading,
 }: OutputPanelProps) {
-  const [copied, triggerCopied] = useCopyFeedback();
+  const [copied, setCopied] = useState(false);
   const [highlightedHtml, setHighlightedHtml] = useState<string>("");
 
   const handleCopy = useCallback(async () => {
     if (!query) return;
     await navigator.clipboard.writeText(query);
-    triggerCopied();
-  }, [query, triggerCopied]);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [query]);
 
   useEffect(() => {
     if (!query || error || isLoading) {

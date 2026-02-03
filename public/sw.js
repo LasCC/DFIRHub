@@ -1,9 +1,9 @@
 const CACHE_NAME = "dfirhub-converter-v1";
-const PYODIDE_CACHE = "dfirhub-pyodide-v2";
+const PYODIDE_CACHE = "dfirhub-pyodide-v1";
 
 const APP_SHELL_URLS = ["/converter"];
 
-const PYODIDE_CDN = "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/";
+const PYODIDE_CDN = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

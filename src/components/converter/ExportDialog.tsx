@@ -1,6 +1,6 @@
 import * as yaml from "js-yaml";
 import { Download, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { DetectionPackageExporter } from "@/lib/sigma/export";
 
 interface ExportDialogProps {
@@ -15,18 +15,6 @@ export function ExportDialog({
   onClose,
 }: ExportDialogProps) {
   const [exporting, setExporting] = useState(false);
-
-  // Close on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -66,18 +54,7 @@ export function ExportDialog({
   }, [rule, conversions, onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Export Detection Package"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-lg border border-white/[0.06] bg-zinc-900 p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-semibold text-lg">Export Detection Package</h2>
@@ -87,7 +64,7 @@ export function ExportDialog({
             onClick={onClose}
             type="button"
           >
-            <X aria-hidden="true" className="h-5 w-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -120,11 +97,11 @@ export function ExportDialog({
           {exporting ? (
             <>
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
-              Generating…
+              Generating...
             </>
           ) : (
             <>
-              <Download aria-hidden="true" className="h-4 w-4" />
+              <Download className="h-4 w-4" />
               Download Package
             </>
           )}
