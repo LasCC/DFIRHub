@@ -11,7 +11,7 @@ export function useSigmaSearch() {
   const [results, setResults] = useState<SigmaRuleEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [indexReady, setIndexReady] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     let cancelled = false;

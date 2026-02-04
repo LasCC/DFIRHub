@@ -43,8 +43,8 @@ async function initPyodide(): Promise<void> {
   sendStatus("Loading Pyodide runtime", 0.1);
 
   const { loadPyodide } = await import(
-    /* @vite-ignore */
-    "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.mjs"
+    // @ts-expect-error -- Pyodide loaded from CDN at runtime
+    /* @vite-ignore */ "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.mjs"
   );
   pyodide = (await loadPyodide({
     indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/",

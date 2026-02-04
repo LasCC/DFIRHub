@@ -95,7 +95,7 @@ export function KeyboardShortcuts() {
       );
 
       const first = focusable[0];
-      const last = focusable.at(-1);
+      const last = Array.from(focusable).at(-1);
 
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();

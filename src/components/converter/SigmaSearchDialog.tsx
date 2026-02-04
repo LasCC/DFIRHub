@@ -195,25 +195,17 @@ export function SigmaSearchDialog({
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
-              <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1 py-0.5 text-[9px]">
-                ↑
-              </kbd>
-              <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1 py-0.5 text-[9px]">
-                ↓
-              </kbd>
+              <kbd className="kbd text-[9px]">↑</kbd>
+              <kbd className="kbd text-[9px]">↓</kbd>
             </div>
             <span>navigate</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-              ↵
-            </kbd>
+            <kbd className="kbd text-[9px]">↵</kbd>
             <span>import</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-              esc
-            </kbd>
+            <kbd className="kbd text-[9px]">esc</kbd>
             <span>close</span>
           </span>
         </div>

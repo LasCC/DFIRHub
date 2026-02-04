@@ -111,8 +111,8 @@ export function InlineSearch() {
 
     try {
       const pagefind = (await import(
-        /* @vite-ignore */
-        "/pagefind/pagefind.js"
+        // @ts-expect-error -- pagefind.js is generated at build time by Pagefind
+        /* @vite-ignore */ "/pagefind/pagefind.js"
       )) as unknown as PagefindAPI;
 
       if (pagefind && typeof pagefind.search === "function") {
@@ -280,7 +280,7 @@ export function InlineSearch() {
             }
             aria-controls="search-results"
             aria-describedby="search-hint"
-            aria-expanded={showResults}
+            aria-expanded={showResults as boolean}
             aria-label="Search artifacts"
             autoCapitalize="off"
             autoComplete="off"

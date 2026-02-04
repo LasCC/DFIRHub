@@ -170,9 +170,9 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
         <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
           Sigma Rule (YAML)
         </span>
-        <kbd className="flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.04] px-2 py-1 text-muted-foreground text-xs">
+        <span className="rounded-md border border-white/[0.06] bg-white/[0.04] px-2 py-1 text-muted-foreground text-xs">
           ⌘↵ convert
-        </kbd>
+        </span>
       </div>
       <div className="flex-1">
         <Editor

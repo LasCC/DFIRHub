@@ -173,8 +173,8 @@ export function AnimatedSearch() {
 
     try {
       const pagefind = (await import(
-        /* @vite-ignore */
-        "/pagefind/pagefind.js"
+        // @ts-expect-error -- pagefind.js is generated at build time by Pagefind
+        /* @vite-ignore */ "/pagefind/pagefind.js"
       )) as unknown as PagefindAPI;
 
       if (pagefind && typeof pagefind.search === "function") {

@@ -252,9 +252,7 @@ export function Header({ showSearch = true }: HeaderProps) {
         {/* Keyboard hints */}
         <div className="border-white/[0.06] border-t bg-white/[0.02] px-4 py-2.5">
           <p className="flex items-center gap-2 text-[10px] text-muted-foreground/50">
-            <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-              ⌘K
-            </kbd>
+            <kbd className="kbd text-[9px]">⌘K</kbd>
             <span>to search & navigate</span>
           </p>
         </div>

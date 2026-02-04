@@ -91,8 +91,8 @@ export function Search({ showTrigger = true }: SearchProps) {
 
     try {
       const pagefind = (await import(
-        /* @vite-ignore */
-        "/pagefind/pagefind.js"
+        // @ts-expect-error -- pagefind.js is generated at build time by Pagefind
+        /* @vite-ignore */ "/pagefind/pagefind.js"
       )) as unknown as PagefindAPI;
 
       if (pagefind && typeof pagefind.search === "function") {
@@ -238,12 +238,8 @@ export function Search({ showTrigger = true }: SearchProps) {
           />
           <span className="ml-2 hidden sm:inline">search</span>
           <span className="ml-2 hidden items-center gap-1 sm:flex">
-            <kbd className="rounded border border-white/[0.08] bg-white/[0.06] px-1.5 py-0.5 text-[9px] text-muted-foreground/70">
-              {isMac ? "⌘" : "ctrl"}
-            </kbd>
-            <kbd className="rounded border border-white/[0.08] bg-white/[0.06] px-1.5 py-0.5 text-[9px] text-muted-foreground/70">
-              K
-            </kbd>
+            <kbd className="kbd text-[9px]">{isMac ? "⌘" : "ctrl"}</kbd>
+            <kbd className="kbd text-[9px]">K</kbd>
           </span>
         </button>
       )}
@@ -335,12 +331,8 @@ export function Search({ showTrigger = true }: SearchProps) {
                 </div>
                 <span>home</span>
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    g
-                  </kbd>
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    h
-                  </kbd>
+                  <kbd className="kbd text-[9px]">g</kbd>
+                  <kbd className="kbd text-[9px]">h</kbd>
                 </span>
               </CommandItem>
               <CommandItem
@@ -355,12 +347,8 @@ export function Search({ showTrigger = true }: SearchProps) {
                 </div>
                 <span>all artifacts</span>
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    g
-                  </kbd>
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    a
-                  </kbd>
+                  <kbd className="kbd text-[9px]">g</kbd>
+                  <kbd className="kbd text-[9px]">a</kbd>
                 </span>
               </CommandItem>
               <CommandItem
@@ -375,12 +363,8 @@ export function Search({ showTrigger = true }: SearchProps) {
                 </div>
                 <span>collections</span>
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    g
-                  </kbd>
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    c
-                  </kbd>
+                  <kbd className="kbd text-[9px]">g</kbd>
+                  <kbd className="kbd text-[9px]">c</kbd>
                 </span>
               </CommandItem>
               <CommandItem
@@ -395,12 +379,8 @@ export function Search({ showTrigger = true }: SearchProps) {
                 </div>
                 <span>builder</span>
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    g
-                  </kbd>
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    b
-                  </kbd>
+                  <kbd className="kbd text-[9px]">g</kbd>
+                  <kbd className="kbd text-[9px]">b</kbd>
                 </span>
               </CommandItem>
               <CommandItem
@@ -415,12 +395,8 @@ export function Search({ showTrigger = true }: SearchProps) {
                 </div>
                 <span>converter</span>
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    g
-                  </kbd>
-                  <kbd className="rounded border border-white/[0.06] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                    v
-                  </kbd>
+                  <kbd className="kbd text-[9px]">g</kbd>
+                  <kbd className="kbd text-[9px]">v</kbd>
                 </span>
               </CommandItem>
             </CommandGroup>
@@ -477,25 +453,17 @@ export function Search({ showTrigger = true }: SearchProps) {
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <div className="flex items-center gap-0.5">
-                <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1 py-0.5 text-[9px]">
-                  ↑
-                </kbd>
-                <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1 py-0.5 text-[9px]">
-                  ↓
-                </kbd>
+                <kbd className="kbd text-[9px]">↑</kbd>
+                <kbd className="kbd text-[9px]">↓</kbd>
               </div>
               <span>navigate</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                ↵
-              </kbd>
+              <kbd className="kbd text-[9px]">↵</kbd>
               <span>select</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <kbd className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[9px]">
-                esc
-              </kbd>
+              <kbd className="kbd text-[9px]">esc</kbd>
               <span>close</span>
             </span>
           </div>

@@ -101,6 +101,7 @@ export function ScrollReveal({
 }: {
   children: ReactNode;
   className?: string;
+  delay?: number;
 }) {
   return <div className={className}>{children}</div>;
 }

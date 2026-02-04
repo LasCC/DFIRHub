@@ -22,7 +22,12 @@ interface SigmaMeta {
   ruleCount: number;
 }
 
-const OUTPUT_DIR = join(import.meta.dir, "..", "public", "sigma-rules");
+const OUTPUT_DIR = join(
+  new URL(".", import.meta.url).pathname,
+  "..",
+  "public",
+  "sigma-rules"
+);
 const GITHUB_API = "https://api.github.com/repos/SigmaHQ/sigma/releases";
 
 async function getLatestRelease(): Promise<{

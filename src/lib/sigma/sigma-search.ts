@@ -79,8 +79,8 @@ export function searchSigmaRules(query: string): SigmaRuleEntry[] {
   if (!searchInstance) return [];
   if (!query.trim()) return [];
 
-  const results = searchInstance.search(query, { limit: 50 });
-  return results as unknown as SigmaRuleEntry[];
+  const results = searchInstance.search(query);
+  return (results as unknown as SigmaRuleEntry[]).slice(0, 50);
 }
 
 export function getSigmaRuleCount(): number {

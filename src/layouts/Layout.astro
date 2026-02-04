@@ -236,7 +236,7 @@ const fullTitle =
 
           if (focusableItems.length > 0) {
             const currentIndex = Array.from(focusableItems).indexOf(
-              document.activeElement
+              document.activeElement as HTMLElement
             );
 
             let nextIndex: number;
