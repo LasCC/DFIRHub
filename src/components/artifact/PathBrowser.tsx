@@ -413,14 +413,6 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
           {entry.name && (
             <span className="text-muted-foreground text-xs">{entry.name}</span>
           )}
-          {entry.recursive && (
-            <span
-              className="text-cyan-400 text-[10px]"
-              data-tooltip="Recursive subdirectory collection"
-            >
-              ↓ recursive
-            </span>
-          )}
         </div>
         <code className="block select-all break-all font-mono text-xs leading-relaxed">
           {segments.map((seg, i) => {
