@@ -199,22 +199,22 @@ const filterCategories = [
       </header>
 
       <!-- Active Filter Banner (hidden by default, shown via JS) -->
-      <div id="filter-banner" class="hidden mb-6 p-4 rounded-xl glass-subtle">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <span class="text-sm text-muted-foreground">Filtered by:</span>
+      <div id="filter-banner" class="hidden mb-6 p-3 sm:p-4 rounded-xl glass-subtle">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+            <span class="text-xs sm:text-sm text-muted-foreground shrink-0">Filtered by:</span>
             <span
               id="filter-label"
-              class="text-sm font-semibold text-primary"
+              class="text-xs sm:text-sm font-semibold text-primary truncate"
             ></span>
             <span
               id="filter-count"
-              class="text-xs text-muted-foreground font-mono"
+              class="text-[10px] sm:text-xs text-muted-foreground font-mono shrink-0"
             ></span>
           </div>
           <a
             href="/artifacts"
-            class="text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+            class="text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1 shrink-0"
           >
             clear filter
             <svg
