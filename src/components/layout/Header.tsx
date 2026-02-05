@@ -1,9 +1,9 @@
 import {
   ChevronRight,
-  Code,
   FileSearch,
   Github,
   Hammer,
+  HatGlasses,
   Layers,
   Menu,
   X,
@@ -11,48 +11,16 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Search } from "../search/Search";
 
-// Magnifying glass icon SVG component
-const SearchIcon = ({ className }: { className?: string }) => (
+// Official Sigma logo (monocle shape from sigmahq.io)
+const SigmaLogo = ({ className }: { className?: string }) => (
   <svg
     aria-hidden="true"
     className={className}
-    fill="none"
-    height="24"
-    viewBox="0 0 32 32"
-    width="24"
+    fill="currentColor"
+    viewBox="155 155 750 625"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <title>Search</title>
-    <circle
-      cx="13"
-      cy="13"
-      fill="none"
-      r="9"
-      stroke="currentColor"
-      strokeWidth="2.5"
-    />
-    <circle
-      cx="13"
-      cy="13"
-      fill="none"
-      r="6"
-      stroke="currentColor"
-      strokeOpacity="0.3"
-      strokeWidth="0.5"
-    />
-    <line
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="3"
-      x1="20"
-      x2="28"
-      y1="20"
-      y2="28"
-    />
-    <circle cx="10" cy="10" fill="currentColor" fillOpacity="0.6" r="1.2" />
-    <circle cx="14" cy="11" fill="currentColor" fillOpacity="0.8" r="1.2" />
-    <circle cx="11" cy="15" fill="currentColor" fillOpacity="0.5" r="1.2" />
-    <circle cx="16" cy="14" fill="currentColor" fillOpacity="0.7" r="1.2" />
+    <path d="m890.394412 165c3.019653 25.589448-5.253407 50.2282-24.819179 73.916253-19.565772 23.688054-45.907539 35.53208-79.025312 35.53208l-62.977337.363397c39.393202 52.779296 59.977836 120.64775 53.603978 194.68827-14.47716 168.170707-162.549778 304.5-330.729454 304.5s-292.780187-136.329293-278.30303-304.5c14.477156-168.170706 162.549776-304.5 330.729452-304.5zm-401.090784 111.166667c-106.780747 0-200.795108 86.558282-209.986954 193.333334s69.91959 193.333333 176.700337 193.333333c106.780746 0 200.795108-86.558281 209.986952-193.333333 9.191849-106.775052-69.919588-193.333334-176.700335-193.333334z" />
   </svg>
 );
 
@@ -89,7 +57,7 @@ const navItems: NavItem[] = [
   {
     href: "/converter",
     label: "converter",
-    icon: <Code className="h-4 w-4" />,
+    icon: <SigmaLogo className="h-4 w-4" />,
     badgeClass: "border-purple-500/20 bg-purple-500/10 text-purple-400",
   },
 ];
@@ -158,7 +126,7 @@ export function Header({ showSearch = true }: HeaderProps) {
           className="group focus-ring flex items-center gap-2 rounded-sm"
           href="/"
         >
-          <SearchIcon aria-hidden="true" className="h-5 w-5 text-primary" />
+          <HatGlasses aria-hidden="true" className="h-5 w-5 text-primary" />
           <span className="font-semibold text-lg tracking-tight">
             dfir<span className="text-primary">hub</span>
           </span>
@@ -171,7 +139,7 @@ export function Header({ showSearch = true }: HeaderProps) {
             className="focus-ring hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground md:flex"
             href="/converter"
           >
-            <Code className="h-3.5 w-3.5" />
+            <SigmaLogo className="h-3.5 w-3.5" />
             <span>Sigma Converter</span>
           </a>
 

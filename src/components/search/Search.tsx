@@ -1,6 +1,5 @@
 import {
   Blocks,
-  Code,
   FileSearch,
   Hammer,
   Home,
@@ -388,10 +387,15 @@ export function Search({ showTrigger = true }: SearchProps) {
                 onSelect={() => handleSelect("/converter")}
               >
                 <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-purple-500/20 bg-purple-500/20 transition-colors group-data-[selected=true]:border-purple-400/30 group-data-[selected=true]:bg-purple-500/30">
-                  <Code
+                  <svg
                     aria-hidden="true"
                     className="h-3.5 w-3.5 text-purple-400"
-                  />
+                    fill="currentColor"
+                    viewBox="155 155 750 625"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="m890.394412 165c3.019653 25.589448-5.253407 50.2282-24.819179 73.916253-19.565772 23.688054-45.907539 35.53208-79.025312 35.53208l-62.977337.363397c39.393202 52.779296 59.977836 120.64775 53.603978 194.68827-14.47716 168.170707-162.549778 304.5-330.729454 304.5s-292.780187-136.329293-278.30303-304.5c14.477156-168.170706 162.549776-304.5 330.729452-304.5zm-401.090784 111.166667c-106.780747 0-200.795108 86.558282-209.986954 193.333334s69.91959 193.333333 176.700337 193.333333c106.780746 0 200.795108-86.558281 209.986952-193.333333 9.191849-106.775052-69.919588-193.333334-176.700335-193.333334z" />
+                  </svg>
                 </div>
                 <span>converter</span>
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">

@@ -55,7 +55,7 @@ export function LoadingOverlay({ progress, isVisible }: LoadingOverlayProps) {
     <div
       aria-busy="true"
       aria-label={`Loading Pyodide runtime: ${percent}%`}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      className="fixed top-0 left-0 z-50 flex h-[100dvh] w-full items-center justify-center bg-background/80 backdrop-blur-sm"
       role="progressbar"
       aria-valuenow={percent}
       aria-valuemin={0}

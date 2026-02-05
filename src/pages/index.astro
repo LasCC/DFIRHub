@@ -1,7 +1,6 @@
 ---
 import { ScrollReveal } from "../components/artifact/ArtifactContent";
 import { CategoryFilters } from "../components/artifacts/CategoryFilters";
-import { ScenarioGrid } from "../components/home/ScenarioGrid";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import { AnimatedSearch } from "../components/search/AnimatedSearch";
@@ -185,6 +184,16 @@ const categories = [
   },
 ];
 
+// Scenario color classes for hero grid
+const scenarioColorMap = {
+  cyan: { icon: "text-cyan-400", iconBg: "bg-cyan-500/10", glow: "bg-cyan-500/[0.07]" },
+  blue: { icon: "text-blue-400", iconBg: "bg-blue-500/10", glow: "bg-blue-500/[0.07]" },
+  red: { icon: "text-red-400", iconBg: "bg-red-500/10", glow: "bg-red-500/[0.07]" },
+  green: { icon: "text-green-400", iconBg: "bg-green-500/10", glow: "bg-green-500/[0.07]" },
+  purple: { icon: "text-purple-400", iconBg: "bg-purple-500/10", glow: "bg-purple-500/[0.07]" },
+  amber: { icon: "text-amber-400", iconBg: "bg-amber-500/10", glow: "bg-amber-500/[0.07]" },
+};
+
 // Tool cards
 const tools = [
   {
@@ -210,7 +219,7 @@ const tools = [
     description:
       "Convert Sigma detection rules to any SIEM query language, entirely in your browser with pySigma",
     href: "/converter",
-    icon: "code",
+    icon: "sigma",
     color: "violet",
     stat: "15+ backends",
   },
@@ -302,6 +311,39 @@ const tools = [
               <!-- Category Pills -->
               <div class="mt-6 flex justify-center sm:mt-8 lg:justify-start">
                 <CategoryFilters client:idle categories={categories} />
+              </div>
+
+              <!-- Scenario Quick Links -->
+              <div class="mt-5 flex items-center justify-center gap-3 sm:mt-6 lg:justify-start">
+                <span class="text-[10px] uppercase tracking-widest text-muted-foreground">Investigate by scenario</span>
+                <div class="h-px w-4 bg-border/20" aria-hidden="true"></div>
+              </div>
+              <div class="mt-2.5 flex gap-2 overflow-x-auto scrollbar-hide lg:flex-wrap lg:justify-start">
+                {scenariosWithCounts.map((scenario) => {
+                  const colors = scenarioColorMap[scenario.color] || scenarioColorMap.cyan;
+                  return (
+                    <a
+                      href={`/artifacts?scenario=${scenario.id}`}
+                      class:list={[
+                        "group inline-flex shrink-0 items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] pl-1.5 pr-3 py-1",
+                        "text-xs text-muted-foreground transition-all duration-200",
+                        "hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-foreground",
+                      ]}
+                    >
+                      <div class:list={["flex h-5 w-5 items-center justify-center rounded-full", colors.iconBg]}>
+                        <svg aria-hidden="true" class:list={["h-3 w-3", colors.icon]} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                          {scenario.id === "lateral-movement" && <path d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z" />}
+                          {scenario.id === "browser-forensics" && <><path d="M21 12a9 9 0 1 0-9 9" /><path d="M3.6 9h16.8" /><path d="M3.6 15h7.9" /><path d="M11.5 3a17 17 0 0 0 0 18" /><path d="M12.5 3a16.984 16.984 0 0 1 2.574 8.62" /><path d="M15 18a3 3 0 1 0 6 0 3 3 0 1 0-6 0" /><path d="M20.2 20.2l1.8 1.8" /></>}
+                          {scenario.id === "persistence" && <path d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 0 1-3.6 9.75m6.633-4.596a18.666 18.666 0 0 1-2.485 5.33" />}
+                          {scenario.id === "execution" && <path d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z" />}
+                          {scenario.id === "user-activity" && <path d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />}
+                          {scenario.id === "anti-forensics" && <path d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />}
+                        </svg>
+                      </div>
+                      <span>{scenario.title}</span>
+                    </a>
+                  );
+                })}
               </div>
 
               <!-- Quick stats row -->
@@ -478,20 +520,16 @@ const tools = [
                             <path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" />
                           </svg>
                         )}
-                        {tool.icon === "code" && (
+                        {tool.icon === "sigma" && (
                           <svg
                             aria-hidden="true"
                             width="18"
                             height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            viewBox="155 155 750 625"
+                            fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg"
                           >
-                            <polyline points="16 18 22 12 16 6" />
-                            <polyline points="8 6 2 12 8 18" />
+                            <path d="m890.394412 165c3.019653 25.589448-5.253407 50.2282-24.819179 73.916253-19.565772 23.688054-45.907539 35.53208-79.025312 35.53208l-62.977337.363397c39.393202 52.779296 59.977836 120.64775 53.603978 194.68827-14.47716 168.170707-162.549778 304.5-330.729454 304.5s-292.780187-136.329293-278.30303-304.5c14.477156-168.170706 162.549776-304.5 330.729452-304.5zm-401.090784 111.166667c-106.780747 0-200.795108 86.558282-209.986954 193.333334s69.91959 193.333333 176.700337 193.333333c106.780746 0 200.795108-86.558281 209.986952-193.333333 9.191849-106.775052-69.919588-193.333334-176.700335-193.333334z" />
                           </svg>
                         )}
                         {tool.icon === "layers" && (
@@ -694,23 +732,7 @@ const tools = [
           </section>
         </ScrollReveal>
 
-        <!-- Investigate by Scenario -->
-        <ScrollReveal client:visible>
-          <section class="border-t border-border/20 py-10 sm:py-16">
-            <div class="mb-6 flex items-center gap-4 sm:mb-8">
-              <h2 class="text-xs text-muted-foreground sm:text-sm">
-                <span class="text-primary font-mono">//</span> INVESTIGATE BY
-                SCENARIO
-              </h2>
-              <div
-                class="h-px flex-1 bg-gradient-to-r from-border/40 to-transparent"
-                aria-hidden="true"
-              ></div>
-            </div>
 
-            <ScenarioGrid client:visible scenarios={scenariosWithCounts} />
-          </section>
-        </ScrollReveal>
 
         <!-- Popular Artifacts - Marquee -->
         <ScrollReveal client:visible delay={0.1}>

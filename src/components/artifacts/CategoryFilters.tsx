@@ -76,14 +76,17 @@ const colorConfig: Record<string, { icon: string; active: string }> = {
 
 export function CategoryFilters({ categories }: CategoryFiltersProps) {
   return (
-    <div className="flex flex-wrap gap-2" id="category-filters">
+    <div
+      className="flex gap-2 overflow-x-auto scrollbar-hide"
+      id="category-filters"
+    >
       {categories.map((cat) => {
         const Icon = iconMap[cat.id.toLowerCase()] || HiOutlineSquares2X2;
         const config = colorConfig[cat.id.toLowerCase()] || colorConfig.all;
 
         return (
           <a
-            className={`group category-filter-btn inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-4 py-2 font-medium text-xs text-zinc-400 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.04] hover:text-zinc-200 ${config.active} backdrop-blur-sm`}
+            className={`group category-filter-btn inline-flex shrink-0 items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-4 py-2 font-medium text-xs text-zinc-400 transition-all duration-300 hover:border-white/10 hover:bg-white/[0.04] hover:text-zinc-200 ${config.active} backdrop-blur-sm`}
             data-filter-id={cat.id}
             data-special={cat.special ? "true" : undefined}
             href={

@@ -234,58 +234,8 @@ const filterCategories = [
         </div>
       </div>
 
-      <!-- Stats Cards - Redesigned -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-        <div class="rounded-xl glass-card p-5">
-          <div class="text-3xl font-bold text-primary font-mono tracking-tight">
-            {stats.total}
-          </div>
-          <div
-            class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
-          >
-            Total Targets
-          </div>
-        </div>
-        <div class="rounded-xl glass-card p-5">
-          <div
-            class="text-3xl font-bold text-cyan-400 font-mono tracking-tight"
-          >
-            {stats.compounds}
-          </div>
-          <div
-            class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
-          >
-            Collections
-          </div>
-        </div>
-        <div class="rounded-xl glass-card p-5">
-          <div
-            class="text-3xl font-bold text-emerald-400 font-mono tracking-tight"
-          >
-            {stats.individuals}
-          </div>
-          <div
-            class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
-          >
-            Individual
-          </div>
-        </div>
-        <div class="rounded-xl glass-card p-5">
-          <div
-            class="text-3xl font-bold text-amber-400 font-mono tracking-tight"
-          >
-            {categories.length}
-          </div>
-          <div
-            class="text-xs text-muted-foreground mt-1 uppercase tracking-wider"
-          >
-            Categories
-          </div>
-        </div>
-      </div>
-
-      <!-- Category Filter -->
-      <div class="mb-8">
+      <!-- Category Filter (sticky below header) -->
+      <div class="sticky top-14 z-40 -mx-4 px-4 py-3 bg-[#09090b]/80 backdrop-blur-md border-b border-white/[0.04] mb-8">
         <CategoryFilters client:idle categories={filterCategories} />
       </div>
 
