@@ -34,7 +34,7 @@ export function PipelineSelector({
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+          className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
             hasSelection
               ? "border-primary/40 bg-primary/10 text-primary"
               : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"

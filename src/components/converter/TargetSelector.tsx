@@ -125,7 +125,7 @@ export function TargetSelector({
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary transition-colors hover:bg-primary/15"
+          className="flex shrink-0 items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary transition-colors hover:bg-primary/15"
           title="Select conversion target backend"
           type="button"
         >

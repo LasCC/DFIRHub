@@ -337,51 +337,186 @@ export function ConverterLayout() {
       {/* Loading Overlay */}
       <LoadingOverlay isVisible={!isReady} progress={loadingProgress} />
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Source group */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              className="flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-white/[0.1] hover:text-foreground"
-              title="Load a pre-built Sigma rule example"
-              type="button"
-            >
-              Examples
-              <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            {sigmaExamples.map((example) => (
+      {/* Toolbar — single row on desktop, two rows on mobile */}
+      <div className="space-y-2 md:space-y-0">
+        {/* Desktop: single row | Mobile row 1: Examples, Search, spacer, Convert */}
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
               <button
-                className="w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.04]"
-                key={example.title}
-                onClick={() => handleExampleSelect(example.yaml)}
+                className="flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-white/[0.1] hover:text-foreground"
+                title="Load a pre-built Sigma rule example"
                 type="button"
               >
-                <div className="font-medium text-foreground">
-                  {example.title}
-                </div>
-                <div className="text-xs text-muted-foreground/60">
-                  {example.description}
-                </div>
+                Examples
+                <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
               </button>
-            ))}
-          </PopoverContent>
-        </Popover>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              {sigmaExamples.map((example) => (
+                <button
+                  className="w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.04]"
+                  key={example.title}
+                  onClick={() => handleExampleSelect(example.yaml)}
+                  type="button"
+                >
+                  <div className="font-medium text-foreground">
+                    {example.title}
+                  </div>
+                  <div className="text-xs text-muted-foreground/60">
+                    {example.description}
+                  </div>
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
 
-        <button
-          className="flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-white/[0.1] hover:text-foreground"
-          onClick={() => setShowSigmaSearch(true)}
-          title="Search and import rules from SigmaHQ (⌘⇧K)"
-          type="button"
-        >
-          <Search aria-hidden="true" className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Search SigmaHQ</span>
-        </button>
+          <button
+            className="flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-white/[0.1] hover:text-foreground"
+            onClick={() => setShowSigmaSearch(true)}
+            title="Search and import rules from SigmaHQ (⌘⇧K)"
+            type="button"
+          >
+            <Search aria-hidden="true" className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Search SigmaHQ</span>
+          </button>
 
-        {/* Target + Pipeline selectors — order 2 on mobile so they wrap to row 2 */}
-        <div className="order-3 md:order-none">
+          {/* Target + Pipeline + toggles — inline on desktop, hidden on mobile (shown in row 2) */}
+          <div className="hidden items-center gap-2 md:flex">
+            <TargetSelector
+              multiSelect={multiMode}
+              onMultiSelect={setSelectedMulti}
+              onSelect={setSelectedBackend}
+              selected={selectedBackend}
+              selectedMulti={selectedMulti}
+            />
+            <PipelineSelector
+              availablePipelines={availablePipelines}
+              customPipelineYaml={customPipelineYaml}
+              onCustomPipelineChange={setCustomPipelineYaml}
+              onPipelineChange={setSelectedPipeline}
+              selectedPipeline={selectedPipeline}
+            />
+            <button
+              aria-pressed={multiMode}
+              className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                multiMode
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+              }`}
+              onClick={() => setMultiMode(!multiMode)}
+              title="Convert to multiple backends at once"
+              type="button"
+            >
+              <Columns aria-hidden="true" className="h-3.5 w-3.5" />
+              Multi
+            </button>
+            <button
+              aria-pressed={autoConvert}
+              className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                autoConvert
+                  ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
+                  : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+              }`}
+              onClick={() => setAutoConvert(!autoConvert)}
+              title="Automatically convert on every change (500ms debounce)"
+              type="button"
+            >
+              <Zap aria-hidden="true" className="h-3.5 w-3.5" />
+              Auto
+            </button>
+          </div>
+
+          <div className="flex-1" />
+
+          {/* Split button: Convert + More */}
+          <div
+            className="relative flex shrink-0 items-center"
+            ref={moreMenuRef}
+          >
+            <button
+              className="flex items-center gap-2 rounded-l-lg bg-primary px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-primary/90 disabled:opacity-50"
+              disabled={!isReady || isConverting || !rule.trim()}
+              onClick={handleConvert}
+              title="Convert Sigma rule to the selected backend (⌘↵)"
+              type="button"
+            >
+              Convert
+              <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+            </button>
+            <div className="h-5 w-px bg-background/20" />
+            <button
+              className="flex items-center self-stretch rounded-r-lg bg-primary px-2.5 text-background transition-colors hover:bg-primary/90"
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              title="More actions"
+              type="button"
+            >
+              <Ellipsis aria-hidden="true" className="h-4 w-4" />
+            </button>
+
+            {/* Dropdown menu */}
+            {showMoreMenu && (
+              <div className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-white/[0.08] bg-[#161619] shadow-xl shadow-black/40">
+                <div className="p-1">
+                  <button
+                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground disabled:opacity-40"
+                    disabled={!rule.trim()}
+                    onClick={() => {
+                      handleShare();
+                      setShowMoreMenu(false);
+                    }}
+                    type="button"
+                  >
+                    {shareCopied ? (
+                      <Check className="h-3.5 w-3.5 text-primary" />
+                    ) : (
+                      <Link className="h-3.5 w-3.5" />
+                    )}
+                    {shareCopied ? "Copied!" : "Copy share link"}
+                  </button>
+
+                  {exportConversions.size > 0 && (
+                    <button
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
+                      onClick={() => {
+                        setShowExport(true);
+                        setShowMoreMenu(false);
+                      }}
+                      type="button"
+                    >
+                      <FileDown className="h-3.5 w-3.5" />
+                      Export as ZIP
+                    </button>
+                  )}
+
+                  <div className="mx-2 my-1 h-px bg-white/[0.06]" />
+
+                  <button
+                    className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.06] ${
+                      showAdvanced
+                        ? "text-violet-400"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    onClick={() => {
+                      setShowAdvanced(!showAdvanced);
+                      setShowMoreMenu(false);
+                    }}
+                    type="button"
+                  >
+                    <Settings2 className="h-3.5 w-3.5" />
+                    Advanced options
+                    {showAdvanced && (
+                      <Check className="ml-auto h-3 w-3 text-violet-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile row 2: Target, Pipeline, Multi, Auto — horizontal scroll */}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide md:hidden">
           <TargetSelector
             multiSelect={multiMode}
             onMultiSelect={setSelectedMulti}
@@ -389,9 +524,6 @@ export function ConverterLayout() {
             selected={selectedBackend}
             selectedMulti={selectedMulti}
           />
-        </div>
-
-        <div className="order-3 md:order-none">
           <PipelineSelector
             availablePipelines={availablePipelines}
             customPipelineYaml={customPipelineYaml}
@@ -399,124 +531,32 @@ export function ConverterLayout() {
             onPipelineChange={setSelectedPipeline}
             selectedPipeline={selectedPipeline}
           />
-        </div>
-
-        {/* Toggle buttons — also wrap to row 2 on mobile */}
-        <button
-          aria-pressed={multiMode}
-          className={`order-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors md:order-none ${
-            multiMode
-              ? "border-primary/30 bg-primary/10 text-primary"
-              : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
-          }`}
-          onClick={() => setMultiMode(!multiMode)}
-          title="Convert to multiple backends at once"
-          type="button"
-        >
-          <Columns aria-hidden="true" className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">Multi</span>
-        </button>
-        <button
-          aria-pressed={autoConvert}
-          className={`order-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors md:order-none ${
-            autoConvert
-              ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
-              : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
-          }`}
-          onClick={() => setAutoConvert(!autoConvert)}
-          title="Automatically convert on every change (500ms debounce)"
-          type="button"
-        >
-          <Zap aria-hidden="true" className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">Auto</span>
-        </button>
-
-        {/* Spacer — push convert right (order 1 on mobile = same row as source buttons) */}
-        <div className="order-1 flex-1 md:order-none" />
-
-        {/* Split button: Convert + More — order 2 on mobile = end of row 1 */}
-        <div
-          className="relative order-2 flex shrink-0 items-center md:order-none"
-          ref={moreMenuRef}
-        >
           <button
-            className="flex items-center gap-2 rounded-l-lg bg-primary px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-primary/90 disabled:opacity-50"
-            disabled={!isReady || isConverting || !rule.trim()}
-            onClick={handleConvert}
-            title="Convert Sigma rule to the selected backend (⌘↵)"
+            aria-pressed={multiMode}
+            className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+              multiMode
+                ? "border-primary/30 bg-primary/10 text-primary"
+                : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+            }`}
+            onClick={() => setMultiMode(!multiMode)}
+            title="Convert to multiple backends at once"
             type="button"
           >
-            Convert
-            <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+            <Columns aria-hidden="true" className="h-3.5 w-3.5" />
           </button>
-          <div className="h-5 w-px bg-background/20" />
           <button
-            className="flex items-center self-stretch rounded-r-lg bg-primary px-2.5 text-background transition-colors hover:bg-primary/90"
-            onClick={() => setShowMoreMenu(!showMoreMenu)}
-            title="More actions"
+            aria-pressed={autoConvert}
+            className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+              autoConvert
+                ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
+                : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+            }`}
+            onClick={() => setAutoConvert(!autoConvert)}
+            title="Automatically convert on every change (500ms debounce)"
             type="button"
           >
-            <Ellipsis aria-hidden="true" className="h-4 w-4" />
+            <Zap aria-hidden="true" className="h-3.5 w-3.5" />
           </button>
-
-          {/* Dropdown menu */}
-          {showMoreMenu && (
-            <div className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-white/[0.08] bg-[#161619] shadow-xl shadow-black/40">
-              <div className="p-1">
-                <button
-                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground disabled:opacity-40"
-                  disabled={!rule.trim()}
-                  onClick={() => {
-                    handleShare();
-                    setShowMoreMenu(false);
-                  }}
-                  type="button"
-                >
-                  {shareCopied ? (
-                    <Check className="h-3.5 w-3.5 text-primary" />
-                  ) : (
-                    <Link className="h-3.5 w-3.5" />
-                  )}
-                  {shareCopied ? "Copied!" : "Copy share link"}
-                </button>
-
-                {exportConversions.size > 0 && (
-                  <button
-                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
-                    onClick={() => {
-                      setShowExport(true);
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                  >
-                    <FileDown className="h-3.5 w-3.5" />
-                    Export as ZIP
-                  </button>
-                )}
-
-                <div className="mx-2 my-1 h-px bg-white/[0.06]" />
-
-                <button
-                  className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.06] ${
-                    showAdvanced
-                      ? "text-violet-400"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={() => {
-                    setShowAdvanced(!showAdvanced);
-                    setShowMoreMenu(false);
-                  }}
-                  type="button"
-                >
-                  <Settings2 className="h-3.5 w-3.5" />
-                  Advanced options
-                  {showAdvanced && (
-                    <Check className="ml-auto h-3 w-3 text-violet-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
