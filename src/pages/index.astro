@@ -234,77 +234,104 @@ const tools = [
       <!-- Hero -->
       <div class="hero-section relative overflow-visible">
         <!-- Background atmosphere -->
-        <div class="hero-bg pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div class="hero-grid absolute inset-0 opacity-[0.035]"></div>
-          <div class="hero-glow"></div>
-          <div class="hero-glow-secondary"></div>
+        <div
+          class="pointer-events-none absolute inset-0 overflow-hidden"
+          aria-hidden="true"
+        >
+          <div class="hero-dots absolute inset-0 opacity-[0.035]"></div>
+          <!-- Aurora gradient blobs -->
+          <div
+            class="animate-aurora-1 absolute -left-32 -top-24 h-[500px] w-[600px] rounded-full bg-primary/[0.06] blur-[100px]"
+          ></div>
+          <div
+            class="animate-aurora-2 absolute -right-32 top-12 h-[400px] w-[500px] rounded-full bg-emerald-500/[0.04] blur-[120px]"
+          ></div>
+          <!-- Bottom fade -->
+          <div
+            class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent"
+          ></div>
         </div>
 
-        <div class="relative mx-auto max-w-6xl px-4 pb-12 pt-16 sm:pb-20 sm:pt-24">
-          <!-- Eyebrow -->
-          <div class="mb-6 flex justify-center">
-            <div
-              class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-3 py-1"
-            >
-              <span class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
-              <span class="text-[11px] text-primary/80 font-medium tracking-wide"
-                >{stats.total} artifacts indexed</span
+        <div
+          class="relative mx-auto max-w-6xl px-4 pb-12 pt-16 sm:pb-20 sm:pt-24"
+        >
+          <div>
+            <div class="text-center lg:text-left">
+              <!-- Eyebrow -->
+              <div class="mb-6 flex justify-center lg:justify-start">
+                <div
+                  class="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/[0.06] px-3 py-1"
+                >
+                  <span
+                    class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"
+                  ></span>
+                  <span
+                    class="text-[11px] text-primary/80 font-medium tracking-wide"
+                    ><span class="font-mono">{stats.total}</span> artifacts
+                    indexed</span
+                  >
+                </div>
+              </div>
+
+              <!-- Heading -->
+              <h1
+                class="mx-auto max-w-2xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:mx-0"
               >
-            </div>
-          </div>
+                Find forensic artifacts,
+                <span class="hero-accent relative">
+                  <span class="relative z-10 text-gradient-primary">fast</span>
+                  <span
+                    class="absolute -inset-x-2 bottom-0 h-[0.35em] bg-primary/10 rounded-sm"
+                    aria-hidden="true"
+                  ></span>
+                </span>
+              </h1>
 
-          <!-- Heading -->
-          <h1
-            class="hero-heading mx-auto max-w-2xl text-center text-3xl font-semibold leading-tight tracking-tight sm:text-4xl md:text-5xl"
-          >
-            Find forensic artifacts,
-            <span class="hero-accent relative">
-              <span class="relative z-10 text-primary">fast</span>
-              <span
-                class="absolute -inset-x-2 bottom-0 h-[0.35em] bg-primary/10 rounded-sm"
-                aria-hidden="true"></span>
-            </span>
-          </h1>
-
-          <p
-            class="mx-auto mt-4 max-w-lg text-center text-sm text-muted-foreground sm:mt-5 sm:text-base"
-          >
-            Search artifact paths, build collection scripts, and convert Sigma rules — all in one place.
-          </p>
-
-          <!-- Search -->
-          <div class="mx-auto mt-8 max-w-xl sm:mt-10">
-            <AnimatedSearch client:load />
-          </div>
-
-          <!-- Category Pills -->
-          <div class="mt-6 flex justify-center sm:mt-8">
-            <CategoryFilters client:idle categories={categories} />
-          </div>
-
-          <!-- Quick stats row -->
-          <div
-            class="mx-auto mt-10 flex max-w-md items-center justify-center gap-6 text-xs text-muted-foreground/50 sm:mt-14 sm:gap-10"
-          >
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
-                >{stats.total}</span
+              <p
+                class="mx-auto mt-4 max-w-lg text-sm text-muted-foreground sm:mt-5 sm:text-base lg:mx-0"
               >
-              <span>Artifacts</span>
-            </div>
-            <div class="h-6 w-px bg-border/30" aria-hidden="true"></div>
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
-                >{Object.keys(stats.byCategory).length}</span
+                Search artifact paths, build collection scripts, and convert
+                Sigma rules. All in one place.
+              </p>
+
+              <!-- Search -->
+              <div class="mx-auto mt-8 max-w-xl sm:mt-10 lg:mx-0">
+                <AnimatedSearch client:load />
+              </div>
+
+              <!-- Category Pills -->
+              <div class="mt-6 flex justify-center sm:mt-8 lg:justify-start">
+                <CategoryFilters client:idle categories={categories} />
+              </div>
+
+              <!-- Quick stats row -->
+              <div
+                class="mx-auto mt-10 flex max-w-md items-center justify-center gap-6 text-xs text-muted-foreground/50 sm:mt-14 sm:gap-10 lg:mx-0 lg:justify-start"
               >
-              <span>Categories</span>
-            </div>
-            <div class="h-6 w-px bg-border/30" aria-hidden="true"></div>
-            <div class="flex flex-col items-center gap-1">
-              <span class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
-                >15+</span
-              >
-              <span>SIEM backends</span>
+                <div class="flex flex-col items-center gap-1 lg:items-start">
+                  <span
+                    class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
+                    >{stats.total}</span
+                  >
+                  <span>Artifacts</span>
+                </div>
+                <div class="h-6 w-px bg-border/30" aria-hidden="true"></div>
+                <div class="flex flex-col items-center gap-1 lg:items-start">
+                  <span
+                    class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
+                    >{Object.keys(stats.byCategory).length}</span
+                  >
+                  <span>Categories</span>
+                </div>
+                <div class="h-6 w-px bg-border/30" aria-hidden="true"></div>
+                <div class="flex flex-col items-center gap-1 lg:items-start">
+                  <span
+                    class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
+                    >15+</span
+                  >
+                  <span>SIEM backends</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -314,15 +341,94 @@ const tools = [
         <!-- Tools Section -->
         <ScrollReveal client:visible>
           <section class="py-10 sm:py-16">
-            <div class="mb-6 flex items-center justify-between sm:mb-8">
+            <div class="mb-6 flex items-center gap-4 sm:mb-8">
               <h2 class="text-xs text-muted-foreground sm:text-sm">
-                <span class="text-primary">//</span> TOOLS
+                <span class="text-primary font-mono">//</span> TOOLS
               </h2>
+              <div
+                class="h-px flex-1 bg-gradient-to-r from-border/40 to-transparent"
+                aria-hidden="true"
+              ></div>
             </div>
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-              {
-                tools.map((tool) => (
+            <div
+              class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3"
+            >
+              <!-- Featured: Artifact Explorer — full width -->
+              <a
+                href={tools[0].href}
+                class="tool-card tool-featured group relative col-span-1 overflow-hidden rounded-xl border border-primary/10 p-6 transition-all duration-300 ease-out sm:col-span-2 sm:p-8 lg:col-span-3"
+              >
+                <div
+                  class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div class="flex-1">
+                    <div class="mb-4 flex items-center gap-3">
+                      <div
+                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <path d="m21 21-4.3-4.3"></path>
+                        </svg>
+                      </div>
+                      <span
+                        class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-400/70"
+                      >
+                        {tools[0].stat}
+                      </span>
+                    </div>
+                    <h3
+                      class="mb-2 text-base font-medium text-foreground transition-colors group-hover:text-foreground sm:text-lg"
+                    >
+                      {tools[0].title}
+                    </h3>
+                    <p
+                      class="max-w-lg text-xs leading-relaxed text-muted-foreground/70 sm:text-sm"
+                    >
+                      {tools[0].description}
+                    </p>
+                    <div
+                      class="mt-4 flex items-center gap-1 text-xs text-muted-foreground/40 transition-colors group-hover:text-primary/60"
+                    >
+                      <span>Explore</span>
+                      <svg
+                        aria-hidden="true"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="transition-transform group-hover:translate-x-0.5"
+                      >
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <!-- Subtle corner glow on hover -->
+                <div
+                  class="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-emerald-500/[0.07] opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
+                  aria-hidden="true"
+                ></div>
+              </a>
+
+              <!-- Secondary tool cards -->
+              {tools.slice(1).map((tool) => (
                   <a
                     href={tool.href}
                     class:list={[
@@ -332,12 +438,21 @@ const tools = [
                       "hover:border-white/[0.12] hover:bg-white/[0.04]",
                     ]}
                   >
+                    <!-- Top gradient accent line -->
+                    <div
+                      class:list={[
+                        "absolute inset-x-0 top-0 h-px",
+                        tool.color === "amber" && "bg-gradient-to-r from-transparent via-amber-500/40 to-transparent",
+                        tool.color === "violet" && "bg-gradient-to-r from-transparent via-violet-500/40 to-transparent",
+                        tool.color === "cyan" && "bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent",
+                      ]}
+                      aria-hidden="true"
+                    />
+
                     <div class="mb-4 flex items-start justify-between">
                       <div
                         class:list={[
                           "flex h-9 w-9 items-center justify-center rounded-lg",
-                          tool.color === "emerald" &&
-                            "bg-emerald-500/10 text-emerald-400",
                           tool.color === "amber" &&
                             "bg-amber-500/10 text-amber-400",
                           tool.color === "violet" &&
@@ -346,22 +461,6 @@ const tools = [
                             "bg-cyan-500/10 text-cyan-400",
                         ]}
                       >
-                        {tool.icon === "search" && (
-                          <svg
-                            aria-hidden="true"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="m21 21-4.3-4.3" />
-                          </svg>
-                        )}
                         {tool.icon === "wrench" && (
                           <svg
                             aria-hidden="true"
@@ -416,8 +515,6 @@ const tools = [
                       <span
                         class:list={[
                           "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                          tool.color === "emerald" &&
-                            "bg-emerald-500/10 text-emerald-400/70",
                           tool.color === "amber" &&
                             "bg-amber-500/10 text-amber-400/70",
                           tool.color === "violet" &&
@@ -460,7 +557,6 @@ const tools = [
                     <div
                       class:list={[
                         "pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100",
-                        tool.color === "emerald" && "bg-emerald-500/[0.07]",
                         tool.color === "amber" && "bg-amber-500/[0.07]",
                         tool.color === "violet" && "bg-violet-500/[0.07]",
                         tool.color === "cyan" && "bg-cyan-500/[0.07]",
@@ -468,8 +564,132 @@ const tools = [
                       aria-hidden="true"
                     />
                   </a>
-                ))
-              }
+                ))}
+            </div>
+          </section>
+        </ScrollReveal>
+
+        <!-- Why DFIRHub -->
+        <ScrollReveal client:visible>
+          <section class="border-t border-border/20 py-10 sm:py-16">
+            <div class="mb-6 flex items-center gap-4 sm:mb-8">
+              <h2 class="text-xs text-muted-foreground sm:text-sm">
+                <span class="text-primary font-mono">//</span> WHY DFIRHUB
+              </h2>
+              <div
+                class="h-px flex-1 bg-gradient-to-r from-border/40 to-transparent"
+                aria-hidden="true"
+              ></div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+              <!-- Always Current -->
+              <div
+                class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6"
+              >
+                <div
+                  class="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"
+                >
+                  <svg
+                    aria-hidden="true"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21.5 2v6h-6"></path>
+                    <path d="M2.5 22v-6h6"></path>
+                    <path d="M2.5 11.5a10 10 0 0 1 18.8-4.3"></path>
+                    <path d="M21.5 12.5a10 10 0 0 1-18.8 4.2"></path>
+                  </svg>
+                </div>
+                <h3
+                  class="mb-1.5 text-sm font-medium text-foreground sm:text-base"
+                >
+                  Always Current
+                </h3>
+                <p
+                  class="text-xs leading-relaxed text-muted-foreground/70 sm:text-sm"
+                >
+                  Artifacts synced weekly from KapeFiles. Always up to date with
+                  the latest forensic targets.
+                </p>
+              </div>
+
+              <!-- Browser-Native -->
+              <div
+                class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6"
+              >
+                <div
+                  class="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"
+                >
+                  <svg
+                    aria-hidden="true"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                    <path d="M3 9h18"></path>
+                    <path d="M9 21V9"></path>
+                  </svg>
+                </div>
+                <h3
+                  class="mb-1.5 text-sm font-medium text-foreground sm:text-base"
+                >
+                  Browser-Native
+                </h3>
+                <p
+                  class="text-xs leading-relaxed text-muted-foreground/70 sm:text-sm"
+                >
+                  Everything runs in your browser. No server, no telemetry, no
+                  data leaves your machine.
+                </p>
+              </div>
+
+              <!-- Investigation-Ready -->
+              <div
+                class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6"
+              >
+                <div
+                  class="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"
+                >
+                  <svg
+                    aria-hidden="true"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="4 17 10 11 4 5"></polyline>
+                    <line x1="12" x2="20" y1="19" y2="19"></line>
+                  </svg>
+                </div>
+                <h3
+                  class="mb-1.5 text-sm font-medium text-foreground sm:text-base"
+                >
+                  Investigation-Ready
+                </h3>
+                <p
+                  class="text-xs leading-relaxed text-muted-foreground/70 sm:text-sm"
+                >
+                  From artifact lookup to collection script in seconds. Built
+                  for DFIR practitioners.
+                </p>
+              </div>
             </div>
           </section>
         </ScrollReveal>
@@ -477,10 +697,15 @@ const tools = [
         <!-- Investigate by Scenario -->
         <ScrollReveal client:visible>
           <section class="border-t border-border/20 py-10 sm:py-16">
-            <div class="mb-6 flex items-center justify-between sm:mb-8">
+            <div class="mb-6 flex items-center gap-4 sm:mb-8">
               <h2 class="text-xs text-muted-foreground sm:text-sm">
-                <span class="text-primary">//</span> INVESTIGATE BY SCENARIO
+                <span class="text-primary font-mono">//</span> INVESTIGATE BY
+                SCENARIO
               </h2>
+              <div
+                class="h-px flex-1 bg-gradient-to-r from-border/40 to-transparent"
+                aria-hidden="true"
+              ></div>
             </div>
 
             <ScenarioGrid client:visible scenarios={scenariosWithCounts} />
@@ -490,13 +715,17 @@ const tools = [
         <!-- Popular Artifacts - Marquee -->
         <ScrollReveal client:visible delay={0.1}>
           <section class="border-t border-border/20 py-10 sm:py-16">
-            <div class="mb-6 flex items-center justify-between sm:mb-8">
+            <div class="mb-6 flex items-center gap-4 sm:mb-8">
               <h2 class="text-xs text-muted-foreground sm:text-sm">
-                <span class="text-primary">//</span> POPULAR ARTIFACTS
+                <span class="text-primary font-mono">//</span> POPULAR ARTIFACTS
               </h2>
+              <div
+                class="h-px flex-1 bg-gradient-to-r from-border/40 to-transparent"
+                aria-hidden="true"
+              ></div>
               <a
                 href="/artifacts"
-                class="text-xs text-primary hover:text-primary/80 transition-colors"
+                class="flex-shrink-0 text-xs text-primary hover:text-primary/80 transition-colors"
               >
                 view all &rarr;
               </a>
@@ -507,18 +736,15 @@ const tools = [
               <!-- Fade edges -->
               <div
                 class="pointer-events-none absolute bottom-0 left-0 top-0 z-10 w-8 bg-gradient-to-r from-background to-transparent sm:w-20"
-              >
-              </div>
+              ></div>
               <div
                 class="pointer-events-none absolute bottom-0 right-0 top-0 z-10 w-8 bg-gradient-to-l from-background to-transparent sm:w-20"
-              >
-              </div>
+              ></div>
 
               <!-- Row 1 - scrolls left -->
               <div class="marquee-row mb-3">
                 <div class="marquee-content animate-marquee">
-                  {
-                    [
+                  {[
                       ...popularArtifactsRow1,
                       ...popularArtifactsRow1,
                     ].map((artifact) => {
@@ -532,35 +758,33 @@ const tools = [
                       return (
                         <a
                           href={href}
-                          class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
+                          class="marquee-item group flex-shrink-0 w-44 sm:w-60 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
                         >
-                          <h3 class="mb-1 truncate text-xs font-medium transition-colors group-hover:text-primary sm:text-sm">
+                          <h3 class="mb-1 flex items-center gap-1.5 truncate text-xs font-medium transition-colors group-hover:text-primary sm:text-sm">
+                            <span class="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/60" aria-hidden="true"></span>
                             {artifact.name}
                           </h3>
                           <p class="mb-2 truncate text-[10px] text-muted-foreground sm:text-xs">
                             {artifact.description || "Forensic artifact"}
                           </p>
-                          <div class="flex items-center gap-1 text-[9px] sm:gap-2 sm:text-[10px]">
-                            <span class="uppercase text-muted-foreground/50">
+                          <div class="flex items-center gap-1.5 text-[9px] sm:gap-2 sm:text-[10px]">
+                            <span class="rounded bg-white/[0.04] px-1.5 py-0.5 uppercase text-muted-foreground/50">
                               {artifact.category}
                             </span>
-                            <span class="text-muted-foreground/30">&middot;</span>
-                            <span class="text-muted-foreground/50">
+                            <span class="font-mono tabular-nums text-muted-foreground/50">
                               {pathCount}
                             </span>
                           </div>
                         </a>
                       );
-                    })
-                  }
+                    })}
                 </div>
               </div>
 
               <!-- Row 2 - scrolls right -->
               <div class="marquee-row">
                 <div class="marquee-content animate-marquee-reverse">
-                  {
-                    [
+                  {[
                       ...popularArtifactsRow2,
                       ...popularArtifactsRow2,
                     ].map((artifact) => {
@@ -574,27 +798,26 @@ const tools = [
                       return (
                         <a
                           href={href}
-                          class="marquee-item group flex-shrink-0 w-40 sm:w-56 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
+                          class="marquee-item group flex-shrink-0 w-44 sm:w-60 p-3 sm:p-4 glass-card rounded-xl hover:border-primary/40"
                         >
-                          <h3 class="mb-1 truncate text-xs font-medium transition-colors group-hover:text-primary sm:text-sm">
+                          <h3 class="mb-1 flex items-center gap-1.5 truncate text-xs font-medium transition-colors group-hover:text-primary sm:text-sm">
+                            <span class="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/60" aria-hidden="true"></span>
                             {artifact.name}
                           </h3>
                           <p class="mb-2 truncate text-[10px] text-muted-foreground sm:text-xs">
                             {artifact.description || "Forensic artifact"}
                           </p>
-                          <div class="flex items-center gap-1 text-[9px] sm:gap-2 sm:text-[10px]">
-                            <span class="uppercase text-muted-foreground/50">
+                          <div class="flex items-center gap-1.5 text-[9px] sm:gap-2 sm:text-[10px]">
+                            <span class="rounded bg-white/[0.04] px-1.5 py-0.5 uppercase text-muted-foreground/50">
                               {artifact.category}
                             </span>
-                            <span class="text-muted-foreground/30">&middot;</span>
-                            <span class="text-muted-foreground/50">
+                            <span class="font-mono tabular-nums text-muted-foreground/50">
                               {pathCount}
                             </span>
                           </div>
                         </a>
                       );
-                    })
-                  }
+                    })}
                 </div>
               </div>
             </div>
@@ -627,49 +850,31 @@ const tools = [
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   }
 
-  .hero-grid {
-    background-image: linear-gradient(
-        rgba(255, 255, 255, 0.5) 1px,
-        transparent 1px
-      ),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
-    background-size: 64px 64px;
+  .hero-dots {
+    background-image: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.5) 1px,
+      transparent 1px
+    );
+    background-size: 32px 32px;
     mask-image: radial-gradient(
-      ellipse 60% 70% at 50% 50%,
+      ellipse 70% 60% at 50% 40%,
       black 20%,
       transparent 100%
     );
   }
 
-  .hero-glow {
-    position: absolute;
-    top: -20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 400px;
-    background: radial-gradient(
-      ellipse at center,
-      rgba(16, 185, 129, 0.08) 0%,
-      rgba(16, 185, 129, 0.02) 40%,
-      transparent 70%
-    );
-    filter: blur(40px);
+  /* ---- Tool featured card ---- */
+  .tool-featured {
+    background: rgba(16, 185, 129, 0.02);
+    border-color: rgba(16, 185, 129, 0.1);
   }
-
-  .hero-glow-secondary {
-    position: absolute;
-    bottom: -10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 800px;
-    height: 200px;
-    background: radial-gradient(
-      ellipse at center,
-      rgba(16, 185, 129, 0.04) 0%,
-      transparent 70%
-    );
-    filter: blur(60px);
+  .tool-featured:hover {
+    background: rgba(16, 185, 129, 0.04);
+    border-color: rgba(16, 185, 129, 0.18);
+    box-shadow:
+      0 0 0 1px rgba(16, 185, 129, 0.08),
+      0 8px 32px -8px rgba(0, 0, 0, 0.4);
   }
 
   /* ---- Tool card subtle border glow ---- */
@@ -738,6 +943,10 @@ const tools = [
       animation: none;
     }
     :global(.animate-blink) {
+      animation: none;
+    }
+    :global(.animate-aurora-1),
+    :global(.animate-aurora-2) {
       animation: none;
     }
   }

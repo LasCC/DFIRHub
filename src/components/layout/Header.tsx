@@ -64,6 +64,7 @@ interface NavItem {
   href: string;
   label: string;
   icon: React.ReactNode;
+  badgeClass: string;
 }
 
 const navItems: NavItem[] = [
@@ -71,21 +72,25 @@ const navItems: NavItem[] = [
     href: "/artifacts",
     label: "artifacts",
     icon: <FileSearch className="h-4 w-4" />,
+    badgeClass: "border-primary/20 bg-primary/10 text-primary",
   },
   {
     href: "/collections",
     label: "collections",
     icon: <Layers className="h-4 w-4" />,
+    badgeClass: "border-cyan-500/20 bg-cyan-500/10 text-cyan-400",
   },
   {
     href: "/builder",
     label: "builder",
     icon: <Hammer className="h-4 w-4" />,
+    badgeClass: "border-amber-500/20 bg-amber-500/10 text-amber-400",
   },
   {
     href: "/converter",
     label: "converter",
     icon: <Code className="h-4 w-4" />,
+    badgeClass: "border-purple-500/20 bg-purple-500/10 text-purple-400",
   },
 ];
 
@@ -161,16 +166,13 @@ export function Header({ showSearch = true }: HeaderProps) {
 
         {/* Right side controls */}
         <div className="flex items-center gap-2">
-          {/* Desktop-only converter button */}
+          {/* Desktop-only converter link */}
           <a
-            className="focus-ring hidden h-8 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 text-xs font-medium text-primary transition-all hover:bg-primary/20 md:flex"
+            className="focus-ring hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground md:flex"
             href="/converter"
           >
             <Code className="h-3.5 w-3.5" />
-            <span>converter</span>
-            <span className="rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wider text-primary">
-              New
-            </span>
+            <span>Sigma Converter</span>
           </a>
 
           {showSearch && <Search />}
@@ -218,10 +220,10 @@ export function Header({ showSearch = true }: HeaderProps) {
               style={{ animationDelay: `${index * 50}ms` }}
               tabIndex={mobileMenuOpen ? 0 : -1}
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10">
-                <span aria-hidden="true" className="text-primary">
-                  {item.icon}
-                </span>
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-lg border ${item.badgeClass}`}
+              >
+                <span aria-hidden="true">{item.icon}</span>
               </div>
               <span className="font-medium">{item.label}</span>
               <ChevronRight

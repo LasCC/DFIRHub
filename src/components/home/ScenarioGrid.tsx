@@ -6,6 +6,7 @@ import {
   HiOutlineServerStack,
 } from "react-icons/hi2";
 import { TbWorldSearch } from "react-icons/tb";
+import { cn } from "@/lib/utils";
 
 interface Scenario {
   id: string;
@@ -30,12 +31,36 @@ const iconMap = {
 };
 
 const colorMap = {
-  cyan: { icon: "text-cyan-400" },
-  blue: { icon: "text-blue-400" },
-  red: { icon: "text-red-400" },
-  green: { icon: "text-green-400" },
-  purple: { icon: "text-purple-400" },
-  amber: { icon: "text-amber-400" },
+  cyan: {
+    icon: "text-cyan-400",
+    iconBg: "bg-cyan-500/10",
+    glow: "bg-cyan-500/[0.07]",
+  },
+  blue: {
+    icon: "text-blue-400",
+    iconBg: "bg-blue-500/10",
+    glow: "bg-blue-500/[0.07]",
+  },
+  red: {
+    icon: "text-red-400",
+    iconBg: "bg-red-500/10",
+    glow: "bg-red-500/[0.07]",
+  },
+  green: {
+    icon: "text-green-400",
+    iconBg: "bg-green-500/10",
+    glow: "bg-green-500/[0.07]",
+  },
+  purple: {
+    icon: "text-purple-400",
+    iconBg: "bg-purple-500/10",
+    glow: "bg-purple-500/[0.07]",
+  },
+  amber: {
+    icon: "text-amber-400",
+    iconBg: "bg-amber-500/10",
+    glow: "bg-amber-500/[0.07]",
+  },
 };
 
 export function ScenarioGrid({ scenarios }: ScenarioGridProps) {
@@ -45,16 +70,25 @@ export function ScenarioGrid({ scenarios }: ScenarioGridProps) {
         const Icon =
           iconMap[scenario.id as keyof typeof iconMap] || HiOutlineCpuChip;
         const colors = colorMap[scenario.color] || colorMap.cyan;
-        const cardClass = "group block p-4 sm:p-5 glass-card rounded-xl";
 
         return (
           <a
-            className={cardClass}
+            className={cn(
+              "group relative block overflow-hidden p-4 sm:p-5 glass-card rounded-xl",
+              "transition-all duration-300"
+            )}
             href={`/artifacts?scenario=${scenario.id}`}
             key={scenario.id}
           >
             <div className="mb-2 flex items-start justify-between sm:mb-3">
-              <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${colors.icon}`} />
+              <div
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg",
+                  colors.iconBg
+                )}
+              >
+                <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", colors.icon)} />
+              </div>
               <span className="text-[10px] text-muted-foreground sm:text-xs">
                 {scenario.count} artifacts
               </span>
@@ -75,6 +109,14 @@ export function ScenarioGrid({ scenarios }: ScenarioGridProps) {
                 </span>
               ))}
             </div>
+            {/* Hover glow blob */}
+            <div
+              className={cn(
+                "pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100",
+                colors.glow
+              )}
+              aria-hidden="true"
+            />
           </a>
         );
       })}

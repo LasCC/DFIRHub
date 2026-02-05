@@ -402,7 +402,12 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
   const colorClasses = getCategoryColors(entry.category || "file");
 
   return (
-    <div className="group relative flex items-start justify-between px-4 py-3 transition-colors hover:z-10 hover:bg-primary/5">
+    <button
+      aria-label={`Copy path: ${fullPath}`}
+      className="group relative flex w-full cursor-pointer items-start justify-between px-4 py-3 text-left transition-colors hover:z-10 hover:bg-primary/5"
+      onClick={() => onCopy(entry.path, entry.fileMask)}
+      type="button"
+    >
       <div className="min-w-0 flex-1">
         <div className="mb-1.5 flex items-center gap-2">
           <span
@@ -414,18 +419,18 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
             <span className="text-muted-foreground text-xs">{entry.name}</span>
           )}
         </div>
-        <code className="block select-all break-all font-mono text-xs leading-relaxed">
+        <code className="block break-all font-mono text-xs leading-relaxed">
           {segments.map((seg, i) => {
             switch (seg.type) {
               case "drive":
                 return (
-                  <span className="text-muted-foreground" key={i}>
+                  <span className="text-foreground/70" key={i}>
                     {seg.text}
                   </span>
                 );
               case "separator":
                 return (
-                  <span className="text-muted-foreground/30" key={i}>
+                  <span className="text-foreground/40" key={i}>
                     {seg.text}
                   </span>
                 );
@@ -446,7 +451,7 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
                 );
               default:
                 return (
-                  <span className="text-primary" key={i}>
+                  <span className="text-foreground/80" key={i}>
                     {seg.text}
                   </span>
                 );
@@ -459,14 +464,45 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
           </p>
         )}
       </div>
-      <button
-        aria-label={`Copy path: ${fullPath}`}
-        className="focus-ring ml-4 shrink-0 rounded-sm px-2 py-1 text-muted-foreground text-xs opacity-0 transition-all hover:text-foreground focus:opacity-100 group-hover:opacity-100"
-        onClick={() => onCopy(entry.path, entry.fileMask)}
-        type="button"
+      <span
+        className={`relative ml-4 shrink-0 rounded-md p-1.5 transition-all ${
+          isCopied
+            ? "text-primary"
+            : "text-muted-foreground/50 opacity-0 hover:text-foreground group-hover:opacity-100 group-focus-visible:opacity-100"
+        }`}
+        title={isCopied ? "Copied!" : "Copy path"}
       >
-        {isCopied ? "copied!" : "copy"}
-      </button>
-    </div>
+        {isCopied ? (
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        ) : (
+          <svg
+            aria-hidden="true"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+          </svg>
+        )}
+      </span>
+    </button>
   );
 }
