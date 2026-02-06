@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+
 import { DetectionPackageExporter } from "../export";
 
 const VALID_SIGMA_RULE = `title: Test Rule

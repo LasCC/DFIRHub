@@ -1,11 +1,13 @@
 import { ChevronDown } from "lucide-react";
+
+import type { BackendConfig } from "@/lib/sigma/types";
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { getBackend, getBackendsByCategory } from "@/lib/sigma/backends";
-import type { BackendConfig } from "@/lib/sigma/types";
 
 interface TargetSelectorProps {
   selected: string;
@@ -67,7 +69,9 @@ function BackendGroup({
   onSelect: (id: string) => void;
   multiSelect: boolean;
 }) {
-  if (backends.length === 0) return null;
+  if (backends.length === 0) {
+    return null;
+  }
   return (
     <div>
       <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">

@@ -43,23 +43,23 @@ export function ExportDialog({
 
       const exporter = new DetectionPackageExporter();
       const zip = await exporter.generate({
-        rule,
         conversions,
         metadata: {
-          title: parsed.title ?? "Sigma Rule",
+          author: parsed.author,
+          description: parsed.description,
           level: parsed.level ?? "unknown",
           mitre:
             parsed.tags?.filter((t: string) => t.startsWith("attack.t")) ?? [],
-          description: parsed.description,
-          author: parsed.author,
+          title: parsed.title ?? "Sigma Rule",
         },
+        rule,
       });
 
       const blob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${(parsed.title ?? "sigma-rule").toLowerCase().replace(/\s+/g, "-")}.zip`;
+      a.download = `${(parsed.title ?? "sigma-rule").toLowerCase().replaceAll(/\s+/g, "-")}.zip`;
       a.click();
       URL.revokeObjectURL(url);
       onClose();
@@ -72,10 +72,14 @@ export function ExportDialog({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
       }}
       onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
+        if (e.key === "Escape") {
+          onClose();
+        }
       }}
       role="dialog"
       aria-modal="true"
@@ -104,7 +108,7 @@ export function ExportDialog({
           <div className="text-muted-foreground text-xs">Package contents:</div>
           <ul className="mt-2 space-y-1 font-mono text-sm">
             <li className="text-foreground/80">rule.yml</li>
-            {Array.from(conversions.keys()).map((backend) => (
+            {[...conversions.keys()].map((backend) => (
               <li className="text-foreground/80" key={backend}>
                 query-{backend}.txt
               </li>

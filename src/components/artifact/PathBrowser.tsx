@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
-import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
+
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
+
+import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 
 interface PathBrowserProps {
   target: KapeTarget;
@@ -15,30 +17,42 @@ function getCategoryColors(category: string): string {
     cat.includes("chrome") ||
     cat.includes("firefox") ||
     cat.includes("edge")
-  )
+  ) {
     return "bg-blue-500/10 border-blue-500/30 text-blue-300";
+  }
   if (
     cat.includes("execution") ||
     cat.includes("prefetch") ||
     cat.includes("amcache")
-  )
+  ) {
     return "bg-red-500/10 border-red-500/30 text-red-300";
+  }
   if (
     cat.includes("persistence") ||
     cat.includes("registry") ||
     cat.includes("startup")
-  )
+  ) {
     return "bg-amber-500/10 border-amber-500/30 text-amber-300";
-  if (cat.includes("usb") || cat.includes("removable"))
+  }
+  if (cat.includes("usb") || cat.includes("removable")) {
     return "bg-pink-500/10 border-pink-500/30 text-pink-300";
-  if (cat.includes("lateral") || cat.includes("rdp") || cat.includes("remote"))
+  }
+  if (
+    cat.includes("lateral") ||
+    cat.includes("rdp") ||
+    cat.includes("remote")
+  ) {
     return "bg-purple-500/10 border-purple-500/30 text-purple-300";
-  if (cat.includes("windows") || cat.includes("os"))
+  }
+  if (cat.includes("windows") || cat.includes("os")) {
     return "bg-blue-500/10 border-blue-500/30 text-blue-300";
-  if (cat.includes("linux"))
+  }
+  if (cat.includes("linux")) {
     return "bg-amber-500/10 border-amber-500/30 text-amber-300";
-  if (cat.includes("macos") || cat.includes("mac"))
+  }
+  if (cat.includes("macos") || cat.includes("mac")) {
     return "bg-zinc-500/10 border-zinc-500/30 text-zinc-300";
+  }
   return "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
 }
 
@@ -46,15 +60,15 @@ function getCategoryColors(category: string): string {
 async function copyToClipboard(text: string, label: string) {
   try {
     await navigator.clipboard.writeText(text);
-    const announcer = document.getElementById("live-announcer");
+    const announcer = document.querySelector("#live-announcer");
     if (announcer) {
       announcer.textContent = `${label} copied to clipboard`;
       setTimeout(() => {
         announcer.textContent = "";
       }, 1000);
     }
-  } catch (err) {
-    console.error("Failed to copy:", err);
+  } catch (error) {
+    console.error("Failed to copy:", error);
   }
 }
 
@@ -127,15 +141,15 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
     () =>
       target.isCompound && resolvedTargets
         ? resolvedTargets.map((t) => ({
+            entries: t.targets.filter((e) => !e.path.endsWith(".tkape")),
             name: t.name,
             slug: t.slug,
-            entries: t.targets.filter((e) => !e.path.endsWith(".tkape")),
           }))
         : [
             {
+              entries: target.targets.filter((e) => !e.path.endsWith(".tkape")),
               name: target.name,
               slug: target.slug,
-              entries: target.targets.filter((e) => !e.path.endsWith(".tkape")),
             },
           ],
     [target, resolvedTargets]
@@ -146,7 +160,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
     const cats = new Set(
       pathEntries.map((e) => (e.category || "file").toLowerCase())
     );
-    return Array.from(cats).sort();
+    return [...cats].toSorted();
   }, [pathEntries]);
 
   // Filtered entries
@@ -172,7 +186,9 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 
   // Filtered grouped paths for compound display
   const filteredGroupedPaths = useMemo(() => {
-    if (!filter && activeCategories.size === 0) return groupedPaths;
+    if (!filter && activeCategories.size === 0) {
+      return groupedPaths;
+    }
 
     const q = filter.toLowerCase();
     return groupedPaths
@@ -211,8 +227,11 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   const toggleExpanded = (name: string) => {
     setExpandedTargets((prev) => {
       const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
+      if (next.has(name)) {
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
       return next;
     });
   };
@@ -220,8 +239,11 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   const toggleCategory = (cat: string) => {
     setActiveCategories((prev) => {
       const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat);
-      else next.add(cat);
+      if (next.has(cat)) {
+        next.delete(cat);
+      } else {
+        next.add(cat);
+      }
       return next;
     });
   };
@@ -380,8 +402,8 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 
       {/* Legend */}
       <div className="border-white/[0.04] border-t bg-white/[0.02] px-4 py-2 text-[10px] text-muted-foreground">
-        <span className="text-primary">{"›"}</span> paths use Windows
-        environment syntax
+        <span className="text-primary">›</span> paths use Windows environment
+        syntax
       </div>
     </div>
   );
@@ -426,19 +448,21 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
         <code className="block break-all font-mono text-xs leading-relaxed">
           {segments.map((seg, i) => {
             switch (seg.type) {
-              case "drive":
+              case "drive": {
                 return (
                   <span className="text-foreground/70" key={i}>
                     {seg.text}
                   </span>
                 );
-              case "separator":
+              }
+              case "separator": {
                 return (
                   <span className="text-foreground/40" key={i}>
                     {seg.text}
                   </span>
                 );
-              case "envvar":
+              }
+              case "envvar": {
                 return (
                   <span
                     className="rounded-sm bg-cyan-500/10 px-0.5 text-cyan-400"
@@ -447,18 +471,21 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
                     {seg.text}
                   </span>
                 );
-              case "mask":
+              }
+              case "mask": {
                 return (
                   <span className="text-amber-400" key={i}>
                     {seg.text}
                   </span>
                 );
-              default:
+              }
+              default: {
                 return (
                   <span className="text-foreground/80" key={i}>
                     {seg.text}
                   </span>
                 );
+              }
             }
           })}
         </code>

@@ -11,12 +11,12 @@ interface AdvancedOptionsProps {
 }
 
 const DOCS = {
+  backends: "https://sigmahq.io/docs/digging-deeper/backends.html",
+  backendsApi: "https://sigmahq-pysigma.readthedocs.io/en/latest/Backends.html",
+  correlations: "https://sigmahq.io/docs/meta/correlations.html",
   filters: "https://sigmahq.io/docs/meta/filters.html",
   filtersSpec:
     "https://github.com/SigmaHQ/sigma-specification/blob/main/specification/sigma-filters-specification.md",
-  correlations: "https://sigmahq.io/docs/meta/correlations.html",
-  backends: "https://sigmahq.io/docs/digging-deeper/backends.html",
-  backendsApi: "https://sigmahq-pysigma.readthedocs.io/en/latest/Backends.html",
 };
 
 export function AdvancedOptions({

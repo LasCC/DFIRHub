@@ -1,5 +1,6 @@
 import { ExternalLink } from "lucide-react";
 import { useMemo } from "react";
+
 import {
   getRelatedKapeTargets,
   parseLogsourceFromYaml,
@@ -12,11 +13,15 @@ interface RelatedArtifactsProps {
 export function RelatedArtifacts({ rule }: RelatedArtifactsProps) {
   const relatedTargets = useMemo(() => {
     const logsource = parseLogsourceFromYaml(rule);
-    if (!logsource) return [];
+    if (!logsource) {
+      return [];
+    }
     return getRelatedKapeTargets(logsource);
   }, [rule]);
 
-  if (relatedTargets.length === 0) return null;
+  if (relatedTargets.length === 0) {
+    return null;
+  }
 
   return (
     <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">

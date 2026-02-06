@@ -1,7 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import yaml from "js-yaml";
 import JSZip from "jszip";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
 interface SigmaRuleEntry {
   id: string;
@@ -47,14 +47,16 @@ async function getLatestRelease(): Promise<{
     throw new Error(`GitHub API error: ${res.status} ${res.statusText}`);
   }
 
-  const releases = (await res.json()) as Array<{
+  const releases = (await res.json()) as {
     tag_name: string;
-    assets: Array<{ name: string; browser_download_url: string }>;
-  }>;
+    assets: { name: string; browser_download_url: string }[];
+  }[];
 
   // Find latest release with tag pattern r* that has a core+ zip
   for (const release of releases) {
-    if (!release.tag_name.startsWith("r")) continue;
+    if (!release.tag_name.startsWith("r")) {
+      continue;
+    }
 
     const zipAsset = release.assets.find(
       (a) => a.name.includes("sigma_all_rules") && a.name.endsWith(".zip")
@@ -88,31 +90,35 @@ function parseRule(
   try {
     const docs = yaml.loadAll(content) as Record<string, unknown>[];
     const doc = docs[0];
-    if (!doc || typeof doc !== "object") return null;
+    if (!doc || typeof doc !== "object") {
+      return null;
+    }
 
     const id = String(doc.id ?? "");
     const title = String(doc.title ?? "");
-    if (!(id && title)) return null;
+    if (!(id && title)) {
+      return null;
+    }
 
     const logsource = (doc.logsource ?? {}) as Record<string, string>;
     const rawTags = Array.isArray(doc.tags) ? doc.tags : [];
 
     return {
       entry: {
-        id,
-        title,
+        author: String(doc.author ?? ""),
+        date: String(doc.date ?? ""),
         description: String(doc.description ?? ""),
+        filename,
+        id,
         level: String(doc.level ?? "medium"),
-        status: String(doc.status ?? ""),
         logsource: {
           category: logsource.category,
           product: logsource.product,
           service: logsource.service,
         },
+        status: String(doc.status ?? ""),
         tags: rawTags.map(String),
-        author: String(doc.author ?? ""),
-        date: String(doc.date ?? ""),
-        filename,
+        title,
       },
       yaml: content,
     };
@@ -124,7 +130,7 @@ function parseRule(
 
 async function checkExistingMeta(): Promise<SigmaMeta | null> {
   try {
-    const content = await readFile(join(OUTPUT_DIR, "meta.json"), "utf-8");
+    const content = await readFile(join(OUTPUT_DIR, "meta.json"), "utf8");
     return JSON.parse(content) as SigmaMeta;
   } catch {
     return null;
@@ -184,8 +190,8 @@ async function main() {
   index.sort((a, b) => a.title.localeCompare(b.title));
 
   const meta: SigmaMeta = {
-    releaseTag: tag,
     generatedAt: new Date().toISOString(),
+    releaseTag: tag,
     ruleCount: index.length,
   };
 
@@ -203,7 +209,7 @@ async function main() {
   console.log(`  meta.json: ${meta.releaseTag}`);
 }
 
-main().catch((err) => {
-  console.error("Failed to build sigma index:", err);
+main().catch((error) => {
+  console.error("Failed to build sigma index:", error);
   process.exit(1);
 });

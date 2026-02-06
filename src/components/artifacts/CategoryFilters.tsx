@@ -23,55 +23,55 @@ interface CategoryFiltersProps {
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   all: HiOutlineSquares2X2,
-  windows: HiOutlineComputerDesktop,
-  browsers: HiOutlineGlobeAlt,
-  apps: HiOutlineCube,
   antivirus: HiOutlineShieldCheck,
+  apps: HiOutlineCube,
+  browsers: HiOutlineGlobeAlt,
+  compound: HiOutlineRectangleStack,
   logs: HiOutlineDocumentText,
   p2p: HiOutlineArrowsRightLeft,
-  compound: HiOutlineRectangleStack,
+  windows: HiOutlineComputerDesktop,
 };
 
 const colorConfig: Record<string, { icon: string; active: string }> = {
   all: {
-    icon: "text-zinc-400",
     active:
       "data-[active]:border-primary data-[active]:bg-primary/10 data-[active]:text-primary",
-  },
-  windows: {
-    icon: "text-blue-400",
-    active:
-      "data-[active]:border-blue-500/50 data-[active]:bg-blue-500/10 data-[active]:text-blue-400",
-  },
-  browsers: {
-    icon: "text-orange-400",
-    active:
-      "data-[active]:border-orange-500/50 data-[active]:bg-orange-500/10 data-[active]:text-orange-400",
-  },
-  apps: {
-    icon: "text-emerald-400",
-    active:
-      "data-[active]:border-emerald-500/50 data-[active]:bg-emerald-500/10 data-[active]:text-emerald-400",
+    icon: "text-zinc-400",
   },
   antivirus: {
-    icon: "text-red-400",
     active:
       "data-[active]:border-red-500/50 data-[active]:bg-red-500/10 data-[active]:text-red-400",
+    icon: "text-red-400",
   },
-  logs: {
-    icon: "text-yellow-400",
+  apps: {
     active:
-      "data-[active]:border-yellow-500/50 data-[active]:bg-yellow-500/10 data-[active]:text-yellow-400",
+      "data-[active]:border-emerald-500/50 data-[active]:bg-emerald-500/10 data-[active]:text-emerald-400",
+    icon: "text-emerald-400",
   },
-  p2p: {
-    icon: "text-purple-400",
+  browsers: {
     active:
-      "data-[active]:border-purple-500/50 data-[active]:bg-purple-500/10 data-[active]:text-purple-400",
+      "data-[active]:border-orange-500/50 data-[active]:bg-orange-500/10 data-[active]:text-orange-400",
+    icon: "text-orange-400",
   },
   compound: {
-    icon: "text-cyan-400",
     active:
       "data-[active]:border-cyan-500/50 data-[active]:bg-cyan-500/10 data-[active]:text-cyan-400",
+    icon: "text-cyan-400",
+  },
+  logs: {
+    active:
+      "data-[active]:border-yellow-500/50 data-[active]:bg-yellow-500/10 data-[active]:text-yellow-400",
+    icon: "text-yellow-400",
+  },
+  p2p: {
+    active:
+      "data-[active]:border-purple-500/50 data-[active]:bg-purple-500/10 data-[active]:text-purple-400",
+    icon: "text-purple-400",
+  },
+  windows: {
+    active:
+      "data-[active]:border-blue-500/50 data-[active]:bg-blue-500/10 data-[active]:text-blue-400",
+    icon: "text-blue-400",
   },
 };
 
@@ -81,14 +81,18 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
     setScrolledEnd(atEnd);
   }, []);
 
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     checkScroll();
     el.addEventListener("scroll", checkScroll, { passive: true });
     window.addEventListener("resize", checkScroll);

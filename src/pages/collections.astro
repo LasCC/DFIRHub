@@ -2,16 +2,13 @@
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
-import {
-  getCompoundTargets,
-  type KapeTarget,
-  resolveCompoundReferences,
-} from "../lib/kapefiles";
+import { getCompoundTargets, resolveCompoundReferences } from '../lib/kapefiles';
+import type { KapeTarget } from '../lib/kapefiles';
 
 const collections = getCompoundTargets();
 
 // Sort collections by number of referenced targets (most comprehensive first)
-const sortedCollections = [...collections].sort(
+const sortedCollections = [...collections].toSorted(
   (a, b) => b.referencedTargets.length - a.referencedTargets.length
 );
 

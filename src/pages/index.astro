@@ -978,9 +978,9 @@ const tools = [
 
 <script>
   function initScrollShadow(wrapperId: string, scrollId: string) {
-    const wrapper = document.getElementById(wrapperId);
-    const scroll = document.getElementById(scrollId);
-    if (!wrapper || !scroll) return;
+    const wrapper = document.querySelector(`#${wrapperId}`);
+    const scroll = document.querySelector(`#${scrollId}`);
+    if (!wrapper || !scroll) {return;}
 
     const w = wrapper;
     const s = scroll;

@@ -1,7 +1,9 @@
 import type { DialogProps } from "@radix-ui/react-dialog";
+
 import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
 import * as React from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -33,27 +35,25 @@ const CommandDialog = ({
   children,
   shouldFilter = false,
   ...props
-}: CommandDialogProps) => {
-  return (
-    <Dialog {...props}>
-      <DialogContent
-        aria-describedby={undefined}
-        className="overflow-hidden p-0 shadow-lg"
+}: CommandDialogProps) => (
+  <Dialog {...props}>
+    <DialogContent
+      aria-describedby={undefined}
+      className="overflow-hidden p-0 shadow-lg"
+    >
+      <DialogTitle className="sr-only">Command Menu</DialogTitle>
+      <DialogDescription className="sr-only">
+        Search for commands or actions
+      </DialogDescription>
+      <Command
+        className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+        shouldFilter={shouldFilter}
       >
-        <DialogTitle className="sr-only">Command Menu</DialogTitle>
-        <DialogDescription className="sr-only">
-          Search for commands or actions
-        </DialogDescription>
-        <Command
-          className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
-          shouldFilter={shouldFilter}
-        >
-          {children}
-        </Command>
-      </DialogContent>
-    </Dialog>
-  );
-};
+        {children}
+      </Command>
+    </DialogContent>
+  </Dialog>
+);
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
@@ -145,17 +145,15 @@ CommandItem.displayName = CommandPrimitive.Item.displayName;
 const CommandShortcut = ({
   className,
   ...props
-}: React.HTMLAttributes<HTMLSpanElement>) => {
-  return (
-    <span
-      className={cn(
-        "ml-auto text-muted-foreground text-xs tracking-widest",
-        className
-      )}
-      {...props}
-    />
-  );
-};
+}: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span
+    className={cn(
+      "ml-auto text-muted-foreground text-xs tracking-widest",
+      className
+    )}
+    {...props}
+  />
+);
 CommandShortcut.displayName = "CommandShortcut";
 
 export {

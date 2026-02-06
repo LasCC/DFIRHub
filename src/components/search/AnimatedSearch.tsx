@@ -40,8 +40,8 @@ const itemVariants = {
   hidden: { opacity: 0, x: -12 },
   visible: {
     opacity: 1,
-    x: 0,
     transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+    x: 0,
   },
 } as const;
 
@@ -121,7 +121,9 @@ export function AnimatedSearch() {
 
       // Typing phase
       const typeChar = () => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         if (charIndex <= example.length) {
           setDisplayedText(example.slice(0, charIndex));
           charIndex++;
@@ -136,7 +138,9 @@ export function AnimatedSearch() {
       function startDelete() {
         let deleteIndex = example.length;
         const deleteChar = () => {
-          if (cancelled) return;
+          if (cancelled) {
+            return;
+          }
           if (deleteIndex >= 0) {
             setDisplayedText(example.slice(0, deleteIndex));
             deleteIndex--;
@@ -220,10 +224,10 @@ export function AnimatedSearch() {
             response.results.slice(0, 12).map(async (result) => {
               const data = await result.data();
               return {
-                id: result.id,
-                url: data.url,
-                meta: data.meta,
                 excerpt: data.excerpt,
+                id: result.id,
+                meta: data.meta,
+                url: data.url,
               };
             })
           )
@@ -248,25 +252,29 @@ export function AnimatedSearch() {
       const totalItems = results.length;
 
       switch (e.key) {
-        case "ArrowDown":
+        case "ArrowDown": {
           e.preventDefault();
           setSelectedIndex((prev) => (prev + 1) % totalItems);
           break;
-        case "ArrowUp":
+        }
+        case "ArrowUp": {
           e.preventDefault();
           setSelectedIndex((prev) => (prev - 1 + totalItems) % totalItems);
           break;
-        case "Enter":
+        }
+        case "Enter": {
           e.preventDefault();
           if (selectedIndex >= 0 && results[selectedIndex]) {
             window.location.href = results[selectedIndex].url;
           }
           break;
-        case "Escape":
+        }
+        case "Escape": {
           e.preventDefault();
           inputRef.current?.blur();
           setFocused(false);
           break;
+        }
       }
     },
     [results, selectedIndex]

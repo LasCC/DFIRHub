@@ -8,9 +8,9 @@ interface CodeBlockProps {
 
 // Map our formats to Shiki language identifiers
 const languageMap: Record<string, string> = {
-  powershell: "powershell",
-  batch: "bat",
   bash: "bash",
+  batch: "bat",
+  powershell: "powershell",
   shell: "bash",
   text: "text",
 };

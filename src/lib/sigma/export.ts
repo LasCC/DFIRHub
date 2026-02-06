@@ -1,7 +1,9 @@
 import JSZip from "jszip";
+
+import type { ExportPackageOptions } from "./types";
+
 import { getFileExtension } from "./backends";
 import { generateReadme, generateTestCases } from "./templates";
-import type { ExportPackageOptions } from "./types";
 
 export class DetectionPackageExporter {
   async generate(options: ExportPackageOptions): Promise<JSZip> {

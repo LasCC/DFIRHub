@@ -1,4 +1,5 @@
 import registerPromiseWorker from "promise-worker/register";
+
 import sigmaConverterPy from "../python/sigma_converter.py?raw";
 
 interface PyodideInterface {

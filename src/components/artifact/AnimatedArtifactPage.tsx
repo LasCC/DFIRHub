@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
+
+import { motion } from "framer-motion";
 
 interface AnimatedArtifactPageProps {
   children: ReactNode;
@@ -16,8 +17,8 @@ export function AnimatedArtifactPage({ children }: AnimatedArtifactPageProps) {
         visible: {
           opacity: 1,
           transition: {
-            staggerChildren: 0.08,
             delayChildren: 0.1,
+            staggerChildren: 0.08,
           },
         },
       }}
@@ -42,11 +43,11 @@ export function AnimatedSection({
         hidden: { opacity: 0, y: 20 },
         visible: {
           opacity: 1,
-          y: 0,
           transition: {
             duration: 0.5,
             ease: [0.16, 1, 0.3, 1],
           },
+          y: 0,
         },
       }}
     >
@@ -70,11 +71,11 @@ export function AnimatedHeader({
         hidden: { opacity: 0, y: -10 },
         visible: {
           opacity: 1,
-          y: 0,
           transition: {
             duration: 0.4,
             ease: [0.16, 1, 0.3, 1],
           },
+          y: 0,
         },
       }}
     >
@@ -98,11 +99,11 @@ export function AnimatedBreadcrumb({
         hidden: { opacity: 0, x: -20 },
         visible: {
           opacity: 1,
-          x: 0,
           transition: {
             duration: 0.4,
             ease: [0.16, 1, 0.3, 1],
           },
+          x: 0,
         },
       }}
     >
@@ -180,11 +181,11 @@ export function AnimatedListItem({
         hidden: { opacity: 0, x: -10 },
         visible: {
           opacity: 1,
-          x: 0,
           transition: {
             duration: 0.25,
             ease: "easeOut",
           },
+          x: 0,
         },
       }}
     >
@@ -209,8 +210,8 @@ export function AnimatedFooter({
         visible: {
           opacity: 1,
           transition: {
-            duration: 0.5,
             delay: 0.2,
+            duration: 0.5,
           },
         },
       }}

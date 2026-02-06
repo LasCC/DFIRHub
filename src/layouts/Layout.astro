@@ -183,7 +183,7 @@ const fullTitle =
         // "?" - Show keyboard shortcuts help
         if (e.key === "?" && e.shiftKey) {
           e.preventDefault();
-          const helpTrigger = document.getElementById("keyboard-help-trigger");
+          const helpTrigger = document.querySelector("#keyboard-help-trigger");
           if (helpTrigger) {
             helpTrigger.click();
           }
@@ -235,7 +235,7 @@ const fullTitle =
           );
 
           if (focusableItems.length > 0) {
-            const currentIndex = Array.from(focusableItems).indexOf(
+            const currentIndex = [...focusableItems].indexOf(
               document.activeElement as HTMLElement
             );
 
@@ -256,7 +256,7 @@ const fullTitle =
 
       // Screen reader announcement helper
       function announce(message: string) {
-        const announcer = document.getElementById("live-announcer");
+        const announcer = document.querySelector("#live-announcer");
         if (announcer) {
           announcer.textContent = message;
           // Clear after announcement
@@ -272,7 +272,7 @@ const fullTitle =
       // Focus management for SPA-like navigation
       document.addEventListener("astro:page-load", () => {
         // Focus main content after navigation
-        const mainContent = document.getElementById("main-content");
+        const mainContent = document.querySelector("#main-content");
         if (mainContent && isKeyboardUser) {
           mainContent.focus();
         }

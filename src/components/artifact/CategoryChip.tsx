@@ -15,53 +15,53 @@ interface CategoryChipProps {
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  windows: HiOutlineComputerDesktop,
-  browsers: HiOutlineGlobeAlt,
-  apps: HiOutlineCube,
   antivirus: HiOutlineShieldCheck,
+  apps: HiOutlineCube,
+  browsers: HiOutlineGlobeAlt,
+  compound: HiOutlineRectangleStack,
   logs: HiOutlineDocumentText,
   p2p: HiOutlineArrowsRightLeft,
-  compound: HiOutlineRectangleStack,
+  windows: HiOutlineComputerDesktop,
 };
 
 const colorConfig: Record<
   string,
   { text: string; border: string; bg: string }
 > = {
-  windows: {
-    text: "text-blue-400",
-    border: "border-blue-500/50",
-    bg: "bg-blue-500/10",
-  },
-  browsers: {
-    text: "text-orange-400",
-    border: "border-orange-500/50",
-    bg: "bg-orange-500/10",
+  antivirus: {
+    bg: "bg-red-500/10",
+    border: "border-red-500/50",
+    text: "text-red-400",
   },
   apps: {
-    text: "text-emerald-400",
-    border: "border-emerald-500/50",
     bg: "bg-emerald-500/10",
+    border: "border-emerald-500/50",
+    text: "text-emerald-400",
   },
-  antivirus: {
-    text: "text-red-400",
-    border: "border-red-500/50",
-    bg: "bg-red-500/10",
-  },
-  logs: {
-    text: "text-yellow-400",
-    border: "border-yellow-500/50",
-    bg: "bg-yellow-500/10",
-  },
-  p2p: {
-    text: "text-purple-400",
-    border: "border-purple-500/50",
-    bg: "bg-purple-500/10",
+  browsers: {
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/50",
+    text: "text-orange-400",
   },
   compound: {
-    text: "text-cyan-400",
-    border: "border-cyan-500/50",
     bg: "bg-cyan-500/10",
+    border: "border-cyan-500/50",
+    text: "text-cyan-400",
+  },
+  logs: {
+    bg: "bg-yellow-500/10",
+    border: "border-yellow-500/50",
+    text: "text-yellow-400",
+  },
+  p2p: {
+    bg: "bg-purple-500/10",
+    border: "border-purple-500/50",
+    text: "text-purple-400",
+  },
+  windows: {
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/50",
+    text: "text-blue-400",
   },
 };
 

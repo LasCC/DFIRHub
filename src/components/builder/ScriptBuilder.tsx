@@ -8,8 +8,11 @@ import {
   HiOutlineRectangleStack,
   HiOutlineShieldCheck,
 } from "react-icons/hi2";
+
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
+
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
+
 import { CodeBlock } from "../ui/CodeBlock";
 
 type ExportFormat = "kape" | "powershell" | "batch" | "wsl";
@@ -24,53 +27,53 @@ const categoryIconMap: Record<
   string,
   React.ComponentType<{ className?: string }>
 > = {
-  windows: HiOutlineComputerDesktop,
-  browsers: HiOutlineGlobeAlt,
-  apps: HiOutlineCube,
   antivirus: HiOutlineShieldCheck,
+  apps: HiOutlineCube,
+  browsers: HiOutlineGlobeAlt,
+  compound: HiOutlineRectangleStack,
   logs: HiOutlineDocumentText,
   p2p: HiOutlineArrowsRightLeft,
-  compound: HiOutlineRectangleStack,
+  windows: HiOutlineComputerDesktop,
 };
 
 const categoryColorMap: Record<
   string,
   { text: string; border: string; bg: string }
 > = {
-  windows: {
-    text: "text-blue-400",
-    border: "border-blue-500/40",
-    bg: "bg-blue-500/10",
-  },
-  browsers: {
-    text: "text-orange-400",
-    border: "border-orange-500/40",
-    bg: "bg-orange-500/10",
+  antivirus: {
+    bg: "bg-red-500/10",
+    border: "border-red-500/40",
+    text: "text-red-400",
   },
   apps: {
-    text: "text-emerald-400",
-    border: "border-emerald-500/40",
     bg: "bg-emerald-500/10",
+    border: "border-emerald-500/40",
+    text: "text-emerald-400",
   },
-  antivirus: {
-    text: "text-red-400",
-    border: "border-red-500/40",
-    bg: "bg-red-500/10",
-  },
-  logs: {
-    text: "text-yellow-400",
-    border: "border-yellow-500/40",
-    bg: "bg-yellow-500/10",
-  },
-  p2p: {
-    text: "text-purple-400",
-    border: "border-purple-500/40",
-    bg: "bg-purple-500/10",
+  browsers: {
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/40",
+    text: "text-orange-400",
   },
   compound: {
-    text: "text-cyan-400",
-    border: "border-cyan-500/40",
     bg: "bg-cyan-500/10",
+    border: "border-cyan-500/40",
+    text: "text-cyan-400",
+  },
+  logs: {
+    bg: "bg-yellow-500/10",
+    border: "border-yellow-500/40",
+    text: "text-yellow-400",
+  },
+  p2p: {
+    bg: "bg-purple-500/10",
+    border: "border-purple-500/40",
+    text: "text-purple-400",
+  },
+  windows: {
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/40",
+    text: "text-blue-400",
   },
 };
 
@@ -101,11 +104,11 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [options, setOptions] = useState<ScriptOptions>({
+    destination: "D:\\Evidence",
     format: "kape",
     source: "C:",
-    destination: "D:\\Evidence",
-    useVss: false,
     useVhdx: false,
+    useVss: false,
   });
   const [copied, triggerCopied] = useCopyFeedback();
 
@@ -120,13 +123,14 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
           t.description.toLowerCase().includes(query)
       );
     }
-    return targets.sort((a, b) => a.name.localeCompare(b.name));
+    return targets.toSorted((a, b) => a.name.localeCompare(b.name));
   }, [allTargets, activeCategory, searchQuery]);
 
   // Get selected target objects
-  const selectedTargetObjects = useMemo(() => {
-    return allTargets.filter((t) => selectedTargets.has(t.slug));
-  }, [allTargets, selectedTargets]);
+  const selectedTargetObjects = useMemo(
+    () => allTargets.filter((t) => selectedTargets.has(t.slug)),
+    [allTargets, selectedTargets]
+  );
 
   // Generate script based on selected targets and options
   const generatedScript = useMemo(() => {
@@ -191,7 +195,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 
           // Convert %user% to PowerShell variable
           if (hasUserVar) {
-            sourcePath = sourcePath.replace(/%user%/gi, "$env:USERNAME");
+            sourcePath = sourcePath.replaceAll("%user%", "$env:USERNAME");
           }
 
           lines.push(`# ${entryNum}. ${entry.name}`);
@@ -269,7 +273,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 
           // Convert %user% to %USERNAME%
           if (hasUserVar) {
-            sourcePath = sourcePath.replace(/%user%/gi, "%USERNAME%");
+            sourcePath = sourcePath.replaceAll("%user%", "%USERNAME%");
           }
 
           lines.push(`REM ${entry.name}`);
@@ -313,10 +317,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
         const match = windowsPath.match(DRIVE_LETTER_REGEX);
         if (match) {
           const drive = match[1].toLowerCase();
-          const rest = match[2].replace(/\\/g, "/");
+          const rest = match[2].replaceAll("\\", "/");
           return `/mnt/${drive}${rest}`;
         }
-        return windowsPath.replace(/\\/g, "/");
+        return windowsPath.replaceAll("\\", "/");
       };
 
       const wslDest = toWslPath(options.destination);
@@ -372,15 +376,15 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
           if (STARTS_WITH_DRIVE_REGEX.test(sourcePath)) {
             sourcePath = sourcePath.replace(STARTS_WITH_DRIVE_REGEX, wslSource);
           }
-          sourcePath = sourcePath.replace(/\\/g, "/");
+          sourcePath = sourcePath.replaceAll("\\", "/");
 
           // Replace %user% with $WIN_USER for Bash
           if (sourcePath.toLowerCase().includes("%user%")) {
-            sourcePath = sourcePath.replace(/%user%/gi, "$WIN_USER");
+            sourcePath = sourcePath.replaceAll("%user%", "$WIN_USER");
           }
 
           // Clean up any double slashes
-          sourcePath = sourcePath.replace(/([^:])\/\//g, "$1/");
+          sourcePath = sourcePath.replaceAll(/([^:])\/\//g, "$1/");
           // Strip trailing slash for clean path joining
           sourcePath = sourcePath.replace(/\/+$/, "");
 
@@ -418,8 +422,11 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
   const toggleTarget = (slug: string) => {
     setSelectedTargets((prev) => {
       const next = new Set(prev);
-      if (next.has(slug)) next.delete(slug);
-      else next.add(slug);
+      if (next.has(slug)) {
+        next.delete(slug);
+      } else {
+        next.add(slug);
+      }
       return next;
     });
   };
@@ -442,23 +449,23 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
     try {
       await navigator.clipboard.writeText(generatedScript);
       triggerCopied();
-    } catch (err) {
-      console.error("Failed to copy:", err);
+    } catch (error) {
+      console.error("Failed to copy:", error);
     }
   };
 
   const handleDownload = () => {
     const extensions: Record<ExportFormat, string> = {
+      batch: ".bat",
       kape: ".txt",
       powershell: ".ps1",
-      batch: ".bat",
       wsl: ".sh",
     };
 
     const mimeTypes: Record<ExportFormat, string> = {
+      batch: "application/x-bat",
       kape: "text/plain",
       powershell: "application/x-powershell",
-      batch: "application/x-bat",
       wsl: "application/x-sh",
     };
 
@@ -469,7 +476,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
     const a = document.createElement("a");
     a.href = url;
     a.download = `dfirhub_collection${extensions[options.format]}`;
-    document.body.appendChild(a);
+    document.body.append(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
@@ -492,9 +499,9 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
           {categories.map((cat) => {
             const Icon = categoryIconMap[cat.toLowerCase()];
             const colors = categoryColorMap[cat.toLowerCase()] || {
-              text: "text-muted-foreground",
-              border: "border-white/[0.08]",
               bg: "bg-white/[0.04]",
+              border: "border-white/[0.08]",
+              text: "text-muted-foreground",
             };
             const isActive = activeCategory === cat;
 

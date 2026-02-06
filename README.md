@@ -27,12 +27,12 @@ Open `http://localhost:4321`.
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `bun dev` | Development server |
-| `bun build` | Production build |
-| `bun preview` | Preview production build |
-| `bun run test` | Run tests |
+| Command               | Description                            |
+| --------------------- | -------------------------------------- |
+| `bun dev`             | Development server                     |
+| `bun build`           | Production build                       |
+| `bun preview`         | Preview production build               |
+| `bun run test`        | Run tests                              |
 | `bun run sigma:index` | Rebuild Sigma rules index from SigmaHQ |
 
 ## Project Structure
@@ -54,24 +54,24 @@ src/
 
 Both workflows require a `NETLIFY_BUILD_HOOK` secret (Netlify → Build hooks → copy URL → GitHub → Repo secrets).
 
-| Workflow | Schedule | What it does |
-|----------|----------|--------------|
-| `update-kapefiles.yml` | Weekly (Mon 00:00 UTC) | Triggers Netlify rebuild to pull latest KapeFiles submodule |
+| Workflow                 | Schedule                 | What it does                                                                           |
+| ------------------------ | ------------------------ | -------------------------------------------------------------------------------------- |
+| `update-kapefiles.yml`   | Weekly (Mon 00:00 UTC)   | Triggers Netlify rebuild to pull latest KapeFiles submodule                            |
 | `update-sigma-rules.yml` | Monthly (1st, 02:00 UTC) | Rebuilds Sigma rules index from SigmaHQ API, commits changes, triggers Netlify rebuild |
 
 Both support `workflow_dispatch` for manual triggering.
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `/` or `Cmd+K` | Open search |
-| `Cmd+Shift+K` | Open Sigma search (converter page) |
-| `g h` | Go to home |
-| `g a` | Go to artefacts |
-| `g c` | Go to collections |
-| `g b` | Go to builder |
-| `?` | Show all shortcuts |
+| Shortcut       | Action                             |
+| -------------- | ---------------------------------- |
+| `/` or `Cmd+K` | Open search                        |
+| `Cmd+Shift+K`  | Open Sigma search (converter page) |
+| `g h`          | Go to home                         |
+| `g a`          | Go to artefacts                    |
+| `g c`          | Go to collections                  |
+| `g b`          | Go to builder                      |
+| `?`            | Show all shortcuts                 |
 
 ## Tech Stack
 

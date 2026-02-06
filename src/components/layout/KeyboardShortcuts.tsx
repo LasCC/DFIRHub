@@ -11,37 +11,37 @@ interface ShortcutGroup {
 
 const shortcutGroups: ShortcutGroup[] = [
   {
+    shortcuts: [
+      { description: "Go to home", keys: ["g", "h"] },
+      { description: "Go to all artifacts", keys: ["g", "a"] },
+      { description: "Go to collections", keys: ["g", "c"] },
+      { description: "Go to builder", keys: ["g", "b"] },
+    ],
     title: "Navigation",
-    shortcuts: [
-      { keys: ["g", "h"], description: "Go to home" },
-      { keys: ["g", "a"], description: "Go to all artifacts" },
-      { keys: ["g", "c"], description: "Go to collections" },
-      { keys: ["g", "b"], description: "Go to builder" },
-    ],
   },
   {
+    shortcuts: [
+      { description: "Focus search input", keys: ["/"] },
+      { description: "Open search dialog", keys: ["⌘", "K"] },
+      { description: "Navigate results", keys: ["↑", "↓"] },
+      { description: "Select result", keys: ["↵"] },
+      { description: "Close search", keys: ["Esc"] },
+    ],
     title: "Search",
-    shortcuts: [
-      { keys: ["/"], description: "Focus search input" },
-      { keys: ["⌘", "K"], description: "Open search dialog" },
-      { keys: ["↑", "↓"], description: "Navigate results" },
-      { keys: ["↵"], description: "Select result" },
-      { keys: ["Esc"], description: "Close search" },
-    ],
   },
   {
+    shortcuts: [
+      { description: "Move down in list", keys: ["j"] },
+      { description: "Move up in list", keys: ["k"] },
+    ],
     title: "Lists",
-    shortcuts: [
-      { keys: ["j"], description: "Move down in list" },
-      { keys: ["k"], description: "Move up in list" },
-    ],
   },
   {
-    title: "General",
     shortcuts: [
-      { keys: ["?"], description: "Show this help" },
-      { keys: ["Esc"], description: "Close modals / blur" },
+      { description: "Show this help", keys: ["?"] },
+      { description: "Close modals / blur", keys: ["Esc"] },
     ],
+    title: "General",
   },
 ];
 
@@ -74,7 +74,7 @@ export function KeyboardShortcuts() {
 
   // Also listen for the hidden trigger button
   useEffect(() => {
-    const trigger = document.getElementById("keyboard-help-trigger");
+    const trigger = document.querySelector("#keyboard-help-trigger");
     if (trigger) {
       const handleClick = () => setIsOpen(true);
       trigger.addEventListener("click", handleClick);
@@ -85,7 +85,7 @@ export function KeyboardShortcuts() {
   // Focus trap
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Tab") {
-      const modal = document.getElementById("keyboard-shortcuts-modal");
+      const modal = document.querySelector("#keyboard-shortcuts-modal");
       if (!modal) {
         return;
       }
@@ -95,7 +95,7 @@ export function KeyboardShortcuts() {
       );
 
       const first = focusable[0];
-      const last = Array.from(focusable).at(-1);
+      const last = [...focusable].at(-1);
 
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();

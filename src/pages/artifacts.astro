@@ -3,12 +3,8 @@ import { CategoryFilters } from "../components/artifacts/CategoryFilters";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
-import {
-  getCategories,
-  getStats,
-  type KapeTarget,
-  loadAllTargets,
-} from "../lib/kapefiles";
+import { getCategories, getStats, loadAllTargets } from '../lib/kapefiles';
+import type { KapeTarget } from '../lib/kapefiles';
 
 const targets = loadAllTargets();
 const categories = getCategories();
@@ -16,15 +12,15 @@ const stats = getStats();
 
 // Scenario artifact mappings
 const scenarioArtifacts: Record<string, string[]> = {
-  "lateral-movement": [
-    "rdpcache",
-    "eventlogs-rdp",
-    "eventlogs",
-    "psexec",
-    "bits",
-    "smbclient",
-    "networkprofiles",
-    "rdp",
+  "anti-forensics": [
+    "$mft",
+    "$j",
+    "$logfile",
+    "recyclebin",
+    "$usnjrnl",
+    "vss",
+    "thumbcache",
+    "usn",
   ],
   "browser-forensics": [
     "chrome",
@@ -34,6 +30,25 @@ const scenarioArtifacts: Record<string, string[]> = {
     "browsercache",
     "chromiumextensions",
     "browser",
+  ],
+  execution: [
+    "prefetch",
+    "amcache",
+    "shimcache",
+    "srum",
+    "appcompatpca",
+    "userassist",
+    "bam",
+  ],
+  "lateral-movement": [
+    "rdpcache",
+    "eventlogs-rdp",
+    "eventlogs",
+    "psexec",
+    "bits",
+    "smbclient",
+    "networkprofiles",
+    "rdp",
   ],
   persistence: [
     "scheduledtasks",
@@ -45,15 +60,6 @@ const scenarioArtifacts: Record<string, string[]> = {
     "mof",
     "registry",
   ],
-  execution: [
-    "prefetch",
-    "amcache",
-    "shimcache",
-    "srum",
-    "appcompatpca",
-    "userassist",
-    "bam",
-  ],
   "user-activity": [
     "shellbags",
     "recentfilecache",
@@ -63,16 +69,6 @@ const scenarioArtifacts: Record<string, string[]> = {
     "wordwheelquery",
     "recent",
     "mru",
-  ],
-  "anti-forensics": [
-    "$mft",
-    "$j",
-    "$logfile",
-    "recyclebin",
-    "$usnjrnl",
-    "vss",
-    "thumbcache",
-    "usn",
   ],
 };
 
@@ -90,40 +86,40 @@ const categoryStyles: Record<
   string,
   { accent: string; text: string; bg: string }
 > = {
-  Windows: {
-    accent: "bg-blue-500",
-    text: "text-blue-400",
-    bg: "bg-blue-500/5",
-  },
-  Browsers: {
-    accent: "bg-orange-500",
-    text: "text-orange-400",
-    bg: "bg-orange-500/5",
+  Antivirus: {
+    accent: "bg-red-500",
+    bg: "bg-red-500/5",
+    text: "text-red-400",
   },
   Apps: {
     accent: "bg-emerald-500",
-    text: "text-emerald-400",
     bg: "bg-emerald-500/5",
+    text: "text-emerald-400",
   },
-  Antivirus: {
-    accent: "bg-red-500",
-    text: "text-red-400",
-    bg: "bg-red-500/5",
-  },
-  Logs: {
-    accent: "bg-yellow-500",
-    text: "text-yellow-400",
-    bg: "bg-yellow-500/5",
-  },
-  P2P: {
-    accent: "bg-purple-500",
-    text: "text-purple-400",
-    bg: "bg-purple-500/5",
+  Browsers: {
+    accent: "bg-orange-500",
+    bg: "bg-orange-500/5",
+    text: "text-orange-400",
   },
   Compound: {
     accent: "bg-cyan-500",
-    text: "text-cyan-400",
     bg: "bg-cyan-500/5",
+    text: "text-cyan-400",
+  },
+  Logs: {
+    accent: "bg-yellow-500",
+    bg: "bg-yellow-500/5",
+    text: "text-yellow-400",
+  },
+  P2P: {
+    accent: "bg-purple-500",
+    bg: "bg-purple-500/5",
+    text: "text-purple-400",
+  },
+  Windows: {
+    accent: "bg-blue-500",
+    bg: "bg-blue-500/5",
+    text: "text-blue-400",
   },
 };
 
@@ -131,8 +127,8 @@ function getStyle(category: string) {
   return (
     categoryStyles[category] || {
       accent: "bg-zinc-500",
-      text: "text-zinc-400",
       bg: "bg-zinc-500/5",
+      text: "text-zinc-400",
     }
   );
 }
@@ -140,21 +136,21 @@ function getStyle(category: string) {
 // Serialize data for client-side filtering
 const allTargetsJson = JSON.stringify(
   targets.map((t) => ({
-    slug: t.slug,
-    name: t.name,
     category: t.category,
     isCompound: t.isCompound,
+    name: t.name,
+    slug: t.slug,
   }))
 );
 const scenarioArtifactsJson = JSON.stringify(scenarioArtifacts);
 
 // Build filter categories for CategoryFilters component
 const filterCategories = [
-  { id: "all", label: "All", count: stats.total },
+  { count: stats.total, id: "all", label: "All" },
   ...categories.map((cat) => ({
+    count: stats.byCategory[cat] || 0,
     id: cat.toLowerCase(),
     label: cat,
-    count: stats.byCategory[cat] || 0,
   })),
 ];
 ---
@@ -395,12 +391,12 @@ const filterCategories = [
 
   // Scenario labels for display
   const scenarioLabels = {
-    "lateral-movement": "Lateral Movement",
-    "browser-forensics": "Browser Forensics",
-    persistence: "Persistence",
-    execution: "Program Execution",
-    "user-activity": "User Activity",
     "anti-forensics": "Data Recovery",
+    "browser-forensics": "Browser Forensics",
+    execution: "Program Execution",
+    "lateral-movement": "Lateral Movement",
+    persistence: "Persistence",
+    "user-activity": "User Activity",
   };
 
   function updateFilterButtons(activeId) {
@@ -423,18 +419,18 @@ const filterCategories = [
     const scenarioParam = params.get("scenario");
 
     // Query DOM elements fresh each time (for view transitions)
-    const filterBanner = document.getElementById("filter-banner");
-    const filterLabel = document.getElementById("filter-label");
-    const filterCount = document.getElementById("filter-count");
-    const defaultView = document.getElementById("default-view");
-    const filteredView = document.getElementById("filtered-view");
+    const filterBanner = document.querySelector("#filter-banner");
+    const filterLabel = document.querySelector("#filter-label");
+    const filterCount = document.querySelector("#filter-count");
+    const defaultView = document.querySelector("#default-view");
+    const filteredView = document.querySelector("#filtered-view");
     const filteredCards = document.querySelectorAll(".filtered-card");
 
     // Determine which filter is active and update buttons
     const activeFilterId = categoryParam || filterParam || "all";
     updateFilterButtons(activeFilterId);
 
-    let matchingSlugs = new Set();
+    const matchingSlugs = new Set();
     let label = "";
     let isFiltered = false;
 
@@ -487,11 +483,7 @@ const filterCategories = [
         // Filter the cards in filtered view
         filteredCards.forEach((card) => {
           const slug = card.getAttribute("data-slug");
-          if (matchingSlugs.has(slug)) {
-            card.classList.remove("hidden");
-          } else {
-            card.classList.add("hidden");
-          }
+          card.classList.toggle("hidden", !(matchingSlugs.has(slug)));
         });
       } else {
         // No filter - show default view

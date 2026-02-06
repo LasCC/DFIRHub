@@ -1,6 +1,9 @@
+import type { VariantProps } from "class-variance-authority";
+
 import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -19,7 +22,20 @@ const buttonVariants = cva(
     "active:scale-[0.98]",
   ].join(" "),
   {
+    defaultVariants: {
+      size: "default",
+      variant: "default",
+    },
     variants: {
+      size: {
+        default: "h-10 rounded-sm px-4 py-2",
+        sm: "h-8 rounded-sm px-3 text-xs",
+        lg: "h-11 rounded-sm px-6",
+        xl: "h-12 rounded-sm px-8 text-base",
+        icon: "h-10 w-10 rounded-sm",
+        "icon-sm": "h-8 w-8 rounded-sm",
+        "icon-lg": "h-12 w-12 rounded-sm",
+      },
       variant: {
         default: [
           "bg-primary text-primary-foreground",
@@ -58,25 +74,13 @@ const buttonVariants = cva(
           "focus-visible:border-primary focus-visible:bg-primary/15 focus-visible:shadow-primary/20",
         ].join(" "),
       },
-      size: {
-        default: "h-10 rounded-sm px-4 py-2",
-        sm: "h-8 rounded-sm px-3 text-xs",
-        lg: "h-11 rounded-sm px-6",
-        xl: "h-12 rounded-sm px-8 text-base",
-        icon: "h-10 w-10 rounded-sm",
-        "icon-sm": "h-8 w-8 rounded-sm",
-        "icon-lg": "h-12 w-12 rounded-sm",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
     },
   }
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
@@ -101,7 +105,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <Comp
         aria-busy={loading}
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ className, size, variant }))}
         disabled={disabled || loading}
         ref={ref}
         {...props}

@@ -16,12 +16,8 @@ import { PathBrowser } from "../../components/artifact/PathBrowser";
 import Footer from "../../components/layout/Footer.astro";
 import { Header } from "../../components/layout/Header";
 import Layout from "../../layouts/Layout.astro";
-import {
-  findCollectionsContaining,
-  type KapeTarget,
-  loadAllTargets,
-  resolveCompoundReferences,
-} from "../../lib/kapefiles";
+import { findCollectionsContaining, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
+import type { KapeTarget } from '../../lib/kapefiles';
 
 export async function getStaticPaths() {
   const targets = loadAllTargets();
@@ -63,25 +59,17 @@ const seoDescription = target.description
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "TechArticle",
-  headline: `${target.name} - Windows Forensic Artifact`,
-  description: seoDescription,
+  about: {
+    "@type": "Thing",
+    description: "Windows forensic artifact for incident response",
+    name: "Digital Forensics",
+  },
   author: {
     "@type": "Person",
     name: target.author,
   },
-  publisher: {
-    "@type": "Organization",
-    name: "DFIRHub",
-  },
-  mainEntityOfPage: {
-    "@type": "WebPage",
-    "@id": `https://dfirhub.com/artifact/${target.slug}`,
-  },
-  about: {
-    "@type": "Thing",
-    name: "Digital Forensics",
-    description: "Windows forensic artifact for incident response",
-  },
+  description: seoDescription,
+  headline: `${target.name} - Windows Forensic Artifact`,
   keywords: [
     "DFIR",
     "forensics",
@@ -90,6 +78,14 @@ const jsonLd = {
     "KAPE",
     "Windows forensics",
   ].join(", "),
+  mainEntityOfPage: {
+    "@id": `https://dfirhub.com/artifact/${target.slug}`,
+    "@type": "WebPage",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "DFIRHub",
+  },
 };
 ---
 

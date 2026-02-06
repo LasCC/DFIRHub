@@ -6,9 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export function useCopyFeedback(duration = 2000): [boolean, () => void] {
   const [copied, setCopied] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  );
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
   const triggerCopied = useCallback(() => {
     setCopied(true);
@@ -16,9 +14,7 @@ export function useCopyFeedback(duration = 2000): [boolean, () => void] {
     timeoutRef.current = setTimeout(() => setCopied(false), duration);
   }, [duration]);
 
-  useEffect(() => {
-    return () => clearTimeout(timeoutRef.current);
-  }, []);
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
 
   return [copied, triggerCopied];
 }
@@ -31,9 +27,7 @@ export function useCopyFeedbackKeyed<T>(
   duration = 2000
 ): [T | null, (key: T) => void] {
   const [copiedKey, setCopiedKey] = useState<T | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  );
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>();
 
   const triggerCopied = useCallback(
     (key: T) => {
@@ -44,9 +38,7 @@ export function useCopyFeedbackKeyed<T>(
     [duration]
   );
 
-  useEffect(() => {
-    return () => clearTimeout(timeoutRef.current);
-  }, []);
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
 
   return [copiedKey, triggerCopied];
 }

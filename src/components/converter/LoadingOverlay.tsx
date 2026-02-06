@@ -47,7 +47,9 @@ function PythonIcon({ className }: { className?: string }) {
 }
 
 export function LoadingOverlay({ progress, isVisible }: LoadingOverlayProps) {
-  if (!isVisible) return null;
+  if (!isVisible) {
+    return null;
+  }
 
   const percent = Math.round(progress * 100);
 

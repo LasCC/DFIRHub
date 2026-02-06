@@ -19,6 +19,10 @@ import {
   useRef,
   useState,
 } from "react";
+
+import type { ConversionResult } from "@/lib/sigma/types";
+import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
+
 import {
   Popover,
   PopoverContent,
@@ -29,8 +33,7 @@ import { getBackend } from "@/lib/sigma/backends";
 import { decodeShareState, encodeShareState } from "@/lib/sigma/share";
 import { SigmaConverter } from "@/lib/sigma/sigma-converter";
 import { sigmaExamples } from "@/lib/sigma/sigma-examples";
-import type { ConversionResult } from "@/lib/sigma/types";
-import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
+
 import { AdvancedOptions } from "./AdvancedOptions";
 import { DiffView } from "./DiffView";
 import { ExportDialog } from "./ExportDialog";
@@ -61,15 +64,15 @@ interface ConverterSettings {
 }
 
 const DEFAULT_SETTINGS: ConverterSettings = {
-  selectedBackend: "splunk",
-  selectedPipeline: "windows-audit",
-  customPipelineYaml: "",
-  multiMode: false,
-  selectedMulti: ["splunk", "kusto"],
   autoConvert: false,
-  filterYml: "",
-  correlationMethod: "",
   backendOptions: {},
+  correlationMethod: "",
+  customPipelineYaml: "",
+  filterYml: "",
+  multiMode: false,
+  selectedBackend: "splunk",
+  selectedMulti: ["splunk", "kusto"],
+  selectedPipeline: "windows-audit",
 };
 
 function loadSettings(): ConverterSettings {
@@ -144,13 +147,17 @@ export function ConverterLayout() {
 
   const checkMobileScroll = useCallback(() => {
     const el = mobileScrollRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     setMobileScrollEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
   }, []);
 
   useEffect(() => {
     const el = mobileScrollRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     checkMobileScroll();
     el.addEventListener("scroll", checkMobileScroll, { passive: true });
     window.addEventListener("resize", checkMobileScroll);
@@ -163,15 +170,15 @@ export function ConverterLayout() {
   // Persist settings to localStorage
   useEffect(() => {
     saveSettings({
-      selectedBackend,
-      selectedPipeline,
-      customPipelineYaml,
-      multiMode,
-      selectedMulti,
       autoConvert,
-      filterYml,
-      correlationMethod,
       backendOptions,
+      correlationMethod,
+      customPipelineYaml,
+      filterYml,
+      multiMode,
+      selectedBackend,
+      selectedMulti,
+      selectedPipeline,
     });
   }, [
     selectedBackend,
@@ -187,7 +194,9 @@ export function ConverterLayout() {
 
   // Close more menu on click outside
   useEffect(() => {
-    if (!showMoreMenu) return;
+    if (!showMoreMenu) {
+      return;
+    }
     const handleClick = (e: MouseEvent) => {
       if (
         moreMenuRef.current &&
@@ -210,8 +219,12 @@ export function ConverterLayout() {
       if (state) {
         setRule(state.rule);
         setSelectedBackend(state.backend);
-        if (state.pipeline) setSelectedPipeline(state.pipeline);
-        if (state.customPipeline) setCustomPipelineYaml(state.customPipeline);
+        if (state.pipeline) {
+          setSelectedPipeline(state.pipeline);
+        }
+        if (state.customPipeline) {
+          setCustomPipelineYaml(state.customPipeline);
+        }
         // Clean up the URL hash after restoring
         window.history.replaceState(null, "", window.location.pathname);
       }
@@ -224,10 +237,14 @@ export function ConverterLayout() {
     converterRef.current = converter;
     converter.onProgress(setLoadingProgress);
     converter.initialize().then(async () => {
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       setIsReady(true);
       const pipelines = await converter.getAvailablePipelines();
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
       setAvailablePipelines(pipelines);
     });
     return () => {
@@ -251,7 +268,9 @@ export function ConverterLayout() {
 
   const handleConvert = useCallback(async () => {
     const converter = converterRef.current;
-    if (!(converter && converter.isReady() && rule.trim())) return;
+    if (!(converter && converter.isReady() && rule.trim())) {
+      return;
+    }
 
     setIsConverting(true);
 
@@ -261,11 +280,11 @@ export function ConverterLayout() {
       : undefined;
 
     const advancedOpts = {
-      filterYml: filterYml.trim() || undefined,
-      correlationMethod: correlationMethod || undefined,
       backendOptions: Object.keys(backendOptions).length
         ? backendOptions
         : undefined,
+      correlationMethod: correlationMethod || undefined,
+      filterYml: filterYml.trim() || undefined,
     };
 
     if (multiMode) {
@@ -276,7 +295,9 @@ export function ConverterLayout() {
         pipelineYmls,
         advancedOpts
       );
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        return;
+      }
       setMultiResults(results);
     } else {
       const res = await converter.convert(
@@ -286,7 +307,9 @@ export function ConverterLayout() {
         pipelineYmls,
         advancedOpts
       );
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        return;
+      }
       setResult(res);
     }
 
@@ -305,7 +328,9 @@ export function ConverterLayout() {
 
   // Auto-convert with debounce
   useEffect(() => {
-    if (!(autoConvert && isReady)) return;
+    if (!(autoConvert && isReady)) {
+      return;
+    }
 
     const timer = setTimeout(() => {
       handleConvert();
@@ -316,10 +341,10 @@ export function ConverterLayout() {
 
   const handleShare = useCallback(async () => {
     const encoded = encodeShareState({
-      rule,
       backend: selectedBackend,
-      pipeline: selectedPipeline || undefined,
       customPipeline: customPipelineYaml || undefined,
+      pipeline: selectedPipeline || undefined,
+      rule,
     });
     const url = `${window.location.origin}${window.location.pathname}#s=${encoded}`;
     await navigator.clipboard.writeText(url);

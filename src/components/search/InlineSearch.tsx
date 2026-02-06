@@ -47,8 +47,8 @@ const itemVariants = {
   hidden: { opacity: 0, x: -12 },
   visible: {
     opacity: 1,
-    x: 0,
     transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+    x: 0,
   },
 } as const;
 
@@ -81,7 +81,9 @@ export function InlineSearch() {
     } else if (announcerRef.current) {
       announcerRef.current.textContent = message;
       setTimeout(() => {
-        if (announcerRef.current) announcerRef.current.textContent = "";
+        if (announcerRef.current) {
+          announcerRef.current.textContent = "";
+        }
       }, 1000);
     }
   }, []);
@@ -106,8 +108,12 @@ export function InlineSearch() {
 
   // Initialize Pagefind
   const loadPagefind = useCallback(async () => {
-    if (pagefindRef.current) return pagefindRef.current;
-    if (typeof window === "undefined") return null;
+    if (pagefindRef.current) {
+      return pagefindRef.current;
+    }
+    if (typeof window === "undefined") {
+      return null;
+    }
 
     try {
       const pagefind = (await import(
@@ -122,8 +128,8 @@ export function InlineSearch() {
       }
       setPagefindAvailable(false);
       return null;
-    } catch (e) {
-      console.info("Pagefind not available:", e);
+    } catch (error) {
+      console.info("Pagefind not available:", error);
       setPagefindAvailable(false);
       return null;
     }
@@ -153,24 +159,26 @@ export function InlineSearch() {
           debounceTimeoutMs: 150,
         });
 
-        if (!response) return;
+        if (!response) {
+          return;
+        }
 
         const searchResults: SearchResult[] = await Promise.all(
           response.results.slice(0, 8).map(async (result) => {
             const data = await result.data();
             return {
-              id: result.id,
-              url: data.url,
-              meta: data.meta,
               excerpt: data.excerpt,
+              id: result.id,
+              meta: data.meta,
+              url: data.url,
             };
           })
         );
 
         setResults(searchResults);
         announce(`${searchResults.length} results found`);
-      } catch (e) {
-        console.error("Search error:", e);
+      } catch (error) {
+        console.error("Search error:", error);
         setResults([]);
       } finally {
         setLoading(false);
@@ -192,15 +200,17 @@ export function InlineSearch() {
       const totalItems = items.length;
 
       switch (e.key) {
-        case "ArrowDown":
+        case "ArrowDown": {
           e.preventDefault();
           setSelectedIndex((prev) => (prev + 1) % totalItems);
           break;
-        case "ArrowUp":
+        }
+        case "ArrowUp": {
           e.preventDefault();
           setSelectedIndex((prev) => (prev - 1 + totalItems) % totalItems);
           break;
-        case "Enter":
+        }
+        case "Enter": {
           e.preventDefault();
           if (selectedIndex >= 0) {
             const item = query
@@ -212,15 +222,17 @@ export function InlineSearch() {
             }
           }
           break;
-        case "Escape":
+        }
+        case "Escape": {
           e.preventDefault();
           inputRef.current?.blur();
           setFocused(false);
           break;
+        }
         case "1":
         case "2":
         case "3":
-        case "4":
+        case "4": {
           // Quick access shortcuts when holding Ctrl/Cmd
           if ((e.metaKey || e.ctrlKey) && !query) {
             e.preventDefault();
@@ -230,6 +242,7 @@ export function InlineSearch() {
             }
           }
           break;
+        }
       }
     },
     [query, results, selectedIndex]

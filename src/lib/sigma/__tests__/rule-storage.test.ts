@@ -1,5 +1,6 @@
 import "fake-indexeddb/auto";
 import { beforeEach, describe, expect, test } from "vitest";
+
 import { RuleStorage } from "../rule-storage";
 
 let testCounter = 0;

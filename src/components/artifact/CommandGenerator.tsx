@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
+
 import type { KapeTarget } from "../../lib/kapefiles";
+
+import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import { CodeBlock } from "../ui/CodeBlock";
 
 type CommandFormat = "kape" | "powershell" | "batch" | "wsl";
@@ -32,9 +34,9 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
     return target.targets
       .filter((entry) => !entry.path.endsWith(".tkape"))
       .map((entry) => ({
+        fileMask: entry.fileMask,
         name: entry.name,
         path: entry.path,
-        fileMask: entry.fileMask,
       }));
   }, [target]);
 
@@ -93,7 +95,7 @@ Write-Host "For compound targets, use KAPE directly for best results." -Foregrou
       const hasUserVar = sourcePath.includes("%user%");
 
       if (hasUserVar) {
-        sourcePath = sourcePath.replace(/%user%/gi, "$env:USERNAME");
+        sourcePath = sourcePath.replaceAll("%user%", "$env:USERNAME");
       }
 
       lines.push(`# ${entryNum}. ${entry.name}`);
@@ -181,7 +183,7 @@ pause
 
       // Convert %user% to %USERNAME%
       if (hasUserVar) {
-        sourcePath = sourcePath.replace(/%user%/gi, "%USERNAME%");
+        sourcePath = sourcePath.replaceAll("%user%", "%USERNAME%");
       }
 
       lines.push(`REM ${entry.name}`);
@@ -238,11 +240,11 @@ pause
     const match = windowsPath.match(DRIVE_LETTER_REGEX);
     if (match) {
       const drive = match[1].toLowerCase();
-      const rest = match[2].replace(/\\/g, "/");
+      const rest = match[2].replaceAll("\\", "/");
       return `/mnt/${drive}${rest}`;
     }
     // Handle UNC paths or relative paths
-    return windowsPath.replace(/\\/g, "/");
+    return windowsPath.replaceAll("\\", "/");
   }, []);
 
   // Generate WSL (Bash) script
@@ -309,16 +311,16 @@ echo "For compound targets, use KAPE directly for best results."
       }
 
       // Convert backslashes to forward slashes
-      sourcePath = sourcePath.replace(/\\/g, "/");
+      sourcePath = sourcePath.replaceAll("\\", "/");
 
       // Replace %user% with $WIN_USER for Bash
       const hasUserVar = sourcePath.toLowerCase().includes("%user%");
       if (hasUserVar) {
-        sourcePath = sourcePath.replace(/%user%/gi, "$WIN_USER");
+        sourcePath = sourcePath.replaceAll("%user%", "$WIN_USER");
       }
 
       // Clean up any double slashes (except after protocol)
-      sourcePath = sourcePath.replace(/([^:])\/\//g, "$1/");
+      sourcePath = sourcePath.replaceAll(/([^:])\/\//g, "$1/");
       // Strip trailing slash for clean path joining
       sourcePath = sourcePath.replace(/\/+$/, "");
 
@@ -356,16 +358,21 @@ echo "For compound targets, use KAPE directly for best results."
 
   const currentCommand = useMemo(() => {
     switch (format) {
-      case "kape":
+      case "kape": {
         return kapeCommand;
-      case "powershell":
+      }
+      case "powershell": {
         return powershellScript;
-      case "batch":
+      }
+      case "batch": {
         return batchScript;
-      case "wsl":
+      }
+      case "wsl": {
         return wslScript;
-      default:
+      }
+      default: {
         return kapeCommand;
+      }
     }
   }, [format, kapeCommand, powershellScript, batchScript, wslScript]);
 
@@ -374,15 +381,15 @@ echo "For compound targets, use KAPE directly for best results."
       await navigator.clipboard.writeText(command);
       triggerCopied(id);
       // Announce to screen readers
-      const announcer = document.getElementById("live-announcer");
+      const announcer = document.querySelector("#live-announcer");
       if (announcer) {
         announcer.textContent = "Command copied to clipboard";
         setTimeout(() => {
           announcer.textContent = "";
         }, 1000);
       }
-    } catch (err) {
-      console.error("Failed to copy:", err);
+    } catch (error) {
+      console.error("Failed to copy:", error);
     }
   };
 
@@ -395,14 +402,14 @@ echo "For compound targets, use KAPE directly for best results."
         role="tablist"
       >
         {[
-          { id: "kape", label: "KAPE", description: "KAPE command line" },
+          { description: "KAPE command line", id: "kape", label: "KAPE" },
           {
+            description: "PowerShell script",
             id: "powershell",
             label: "PowerShell",
-            description: "PowerShell script",
           },
-          { id: "batch", label: "Batch", description: "Windows batch script" },
-          { id: "wsl", label: "WSL", description: "WSL/Linux bash script" },
+          { description: "Windows batch script", id: "batch", label: "Batch" },
+          { description: "WSL/Linux bash script", id: "wsl", label: "WSL" },
         ].map((tab) => (
           <button
             aria-controls={`${tab.id}-panel`}
@@ -512,7 +519,7 @@ echo "For compound targets, use KAPE directly for best results."
         <div className="mt-3 text-[10px] text-muted-foreground">
           {format === "kape" && (
             <p>
-              <span className="text-primary">{"›"}</span> Run with administrator
+              <span className="text-primary">›</span> Run with administrator
               privileges.{" "}
               <a
                 className="text-primary transition-colors hover:text-primary/80"
@@ -526,8 +533,8 @@ echo "For compound targets, use KAPE directly for best results."
           )}
           {format === "powershell" && (
             <p>
-              <span className="text-primary">{"›"}</span> Save as .ps1 and run
-              as Administrator. Use:{" "}
+              <span className="text-primary">›</span> Save as .ps1 and run as
+              Administrator. Use:{" "}
               <code className="text-primary">
                 powershell -ExecutionPolicy Bypass -File script.ps1
               </code>
@@ -535,15 +542,15 @@ echo "For compound targets, use KAPE directly for best results."
           )}
           {format === "batch" && (
             <p>
-              <span className="text-primary">{"›"}</span> Save as .bat and run
-              as Administrator (right-click → Run as administrator).
+              <span className="text-primary">›</span> Save as .bat and run as
+              Administrator (right-click → Run as administrator).
             </p>
           )}
           {format === "wsl" && (
             <p>
-              <span className="text-primary">{"›"}</span> Save as .sh and run
-              with <code className="text-primary">sudo bash script.sh</code>{" "}
-              from WSL.
+              <span className="text-primary">›</span> Save as .sh and run with{" "}
+              <code className="text-primary">sudo bash script.sh</code> from
+              WSL.
             </p>
           )}
         </div>

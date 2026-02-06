@@ -8,6 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
 import { Search } from "../search/Search";
 
 // Real GitHub mark icon (filled octocat)
@@ -49,28 +50,28 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    href: "/artifacts",
-    label: "artifacts",
-    icon: <FileSearch className="h-4 w-4" />,
     badgeClass: "border-primary/20 bg-primary/10 text-primary",
+    href: "/artifacts",
+    icon: <FileSearch className="h-4 w-4" />,
+    label: "artifacts",
   },
   {
-    href: "/collections",
-    label: "collections",
-    icon: <Layers className="h-4 w-4" />,
     badgeClass: "border-cyan-500/20 bg-cyan-500/10 text-cyan-400",
+    href: "/collections",
+    icon: <Layers className="h-4 w-4" />,
+    label: "collections",
   },
   {
-    href: "/builder",
-    label: "builder",
-    icon: <Hammer className="h-4 w-4" />,
     badgeClass: "border-amber-500/20 bg-amber-500/10 text-amber-400",
+    href: "/builder",
+    icon: <Hammer className="h-4 w-4" />,
+    label: "builder",
   },
   {
-    href: "/converter",
-    label: "converter",
-    icon: <SigmaLogo className="h-4 w-4" />,
     badgeClass: "border-purple-500/20 bg-purple-500/10 text-purple-400",
+    href: "/converter",
+    icon: <SigmaLogo className="h-4 w-4" />,
+    label: "converter",
   },
 ];
 
@@ -105,7 +106,7 @@ export function Header({ showSearch = true }: HeaderProps) {
 
     const firstElement = focusableElements[0];
     // biome-ignore lint/style/useAtIndex: NodeList.at() not supported in all browsers
-    const lastElement = focusableElements[focusableElements.length - 1];
+    const lastElement = focusableElements.at(-1);
 
     const handleTabKey = (e: KeyboardEvent) => {
       if (e.key !== "Tab") {

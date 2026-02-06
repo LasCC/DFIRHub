@@ -1,18 +1,21 @@
 import Editor from "@monaco-editor/react";
 import { useCallback, useRef, useState } from "react";
-import { type SigmaDiagnostic, validateSigmaRule } from "@/lib/sigma/validate";
+
+import type { SigmaDiagnostic } from "@/lib/sigma/validate";
+
+import { validateSigmaRule } from "@/lib/sigma/validate";
 
 const EDITOR_OPTIONS = {
   automaticLayout: true,
-  fontSize: 13,
   fontFamily: "'Berkeley Mono', monospace",
+  fontSize: 13,
   lineNumbers: "on" as const,
   minimap: { enabled: false },
-  padding: { top: 12, bottom: 12 },
+  padding: { bottom: 12, top: 12 },
   renderLineHighlight: "none" as const,
   scrollBeyondLastLine: false,
-  wordWrap: "on" as const,
   tabSize: 2,
+  wordWrap: "on" as const,
 };
 
 interface SigmaEditorProps {
@@ -37,24 +40,28 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
   const runValidation = useCallback((content: string) => {
     const monaco = monacoRef.current;
     const editor = editorRef.current;
-    if (!(monaco && editor)) return;
+    if (!(monaco && editor)) {
+      return;
+    }
 
     const model = editor.getModel();
-    if (!model) return;
+    if (!model) {
+      return;
+    }
 
     const diagnostics = validateSigmaRule(content);
     const markers = diagnostics.map((d: SigmaDiagnostic) => ({
+      endColumn: d.endCol,
+      endLineNumber: d.endLine,
+      message: d.message,
       severity:
         d.severity === "error"
           ? monaco.MarkerSeverity.Error
           : d.severity === "warning"
             ? monaco.MarkerSeverity.Warning
             : monaco.MarkerSeverity.Info,
-      message: d.message,
-      startLineNumber: d.startLine,
       startColumn: d.startCol,
-      endLineNumber: d.endLine,
-      endColumn: d.endCol,
+      startLineNumber: d.startLine,
     }));
 
     monaco.editor.setModelMarkers(model, "sigma-validation", markers);
@@ -71,7 +78,9 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     dragCounter.current--;
-    if (dragCounter.current === 0) setIsDragging(false);
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
   }, []);
 
   const handleDrop = useCallback(
@@ -80,10 +89,12 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
       dragCounter.current = 0;
       setIsDragging(false);
 
-      const file = Array.from(e.dataTransfer.files).find((f) =>
+      const file = [...e.dataTransfer.files].find((f) =>
         /\.ya?ml$/i.test(f.name)
       );
-      if (!file) return;
+      if (!file) {
+        return;
+      }
 
       const reader = new FileReader();
       reader.onload = () => {
@@ -100,26 +111,26 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
     monacoRef.current = monaco;
     monaco.editor.defineTheme("vesper", {
       base: "vs-dark",
-      inherit: true,
-      rules: [
-        { token: "", foreground: "b0b0b0", background: "101010" },
-        { token: "string", foreground: "99FFE4" },
-        { token: "string.yaml", foreground: "99FFE4" },
-        { token: "keyword", foreground: "FFC799" },
-        { token: "number", foreground: "FFC799" },
-        { token: "comment", foreground: "505050" },
-        { token: "type", foreground: "FFC799" },
-        { token: "tag", foreground: "FFC799" },
-      ],
       colors: {
         "editor.background": "#101010",
         "editor.foreground": "#b0b0b0",
         "editor.lineHighlightBackground": "#101010",
         "editor.selectionBackground": "#ffffff15",
         "editorCursor.foreground": "#b0b0b0",
-        "editorLineNumber.foreground": "#505050",
         "editorLineNumber.activeForeground": "#b0b0b0",
+        "editorLineNumber.foreground": "#505050",
       },
+      inherit: true,
+      rules: [
+        { background: "101010", foreground: "b0b0b0", token: "" },
+        { foreground: "99FFE4", token: "string" },
+        { foreground: "99FFE4", token: "string.yaml" },
+        { foreground: "FFC799", token: "keyword" },
+        { foreground: "FFC799", token: "number" },
+        { foreground: "505050", token: "comment" },
+        { foreground: "FFC799", token: "type" },
+        { foreground: "FFC799", token: "tag" },
+      ],
     });
   }, []);
 

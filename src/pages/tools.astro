@@ -16,15 +16,15 @@ for (const tool of tools) {
 // Get category info
 function getCategoryInfo(id: string) {
   return (
-    toolCategories.find((c) => c.id === id) || { id, name: id, description: "" }
+    toolCategories.find((c) => c.id === id) || { description: "", id, name: id }
   );
 }
 
 // Platform colors
 const platformColors: Record<string, string> = {
-  windows: "text-blue-400 border-blue-500/30 bg-blue-500/10",
-  linux: "text-amber-400 border-amber-500/30 bg-amber-500/10",
   darwin: "text-zinc-400 border-zinc-500/30 bg-zinc-500/10",
+  linux: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+  windows: "text-blue-400 border-blue-500/30 bg-blue-500/10",
 };
 ---
 

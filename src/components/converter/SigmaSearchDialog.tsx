@@ -1,5 +1,8 @@
 import { Loader2, Search as SearchIcon } from "lucide-react";
 import { useCallback, useState } from "react";
+
+import type { SigmaRuleEntry } from "@/lib/sigma/sigma-search";
+
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,7 +11,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import type { SigmaRuleEntry } from "@/lib/sigma/sigma-search";
 import { loadSigmaRule } from "@/lib/sigma/sigma-search";
 import { useSigmaSearch } from "@/lib/sigma/useSigmaSearch";
 
@@ -21,9 +23,9 @@ interface SigmaSearchDialogProps {
 const LEVEL_COLORS: Record<string, string> = {
   critical: "border-red-500/40 bg-red-500/15 text-red-400",
   high: "border-orange-500/40 bg-orange-500/15 text-orange-400",
-  medium: "border-yellow-500/40 bg-yellow-500/15 text-yellow-400",
-  low: "border-blue-500/40 bg-blue-500/15 text-blue-400",
   informational: "border-zinc-500/40 bg-zinc-500/15 text-zinc-400",
+  low: "border-blue-500/40 bg-blue-500/15 text-blue-400",
+  medium: "border-yellow-500/40 bg-yellow-500/15 text-yellow-400",
 };
 
 function LevelBadge({ level }: { level: string }) {
@@ -47,7 +49,9 @@ function LogsourceBadge({
     logsource.product,
     logsource.service,
   ].filter(Boolean);
-  if (parts.length === 0) return null;
+  if (parts.length === 0) {
+    return null;
+  }
 
   return (
     <span className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[10px] leading-none text-muted-foreground">
@@ -62,7 +66,9 @@ function MitreTags({ tags }: { tags: string[] }) {
     .map((t) => t.replace("attack.", "").toUpperCase())
     .slice(0, 3);
 
-  if (mitre.length === 0) return null;
+  if (mitre.length === 0) {
+    return null;
+  }
 
   return (
     <>

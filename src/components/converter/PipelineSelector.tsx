@@ -1,11 +1,13 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
+
+import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
 
 interface PipelineSelectorProps {
   selectedPipeline: string;

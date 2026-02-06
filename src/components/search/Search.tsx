@@ -99,8 +99,8 @@ export function Search({ showTrigger = true }: SearchProps) {
         return pagefind;
       }
       return null;
-    } catch (e) {
-      console.info("Pagefind not available:", e);
+    } catch (error) {
+      console.info("Pagefind not available:", error);
       return null;
     }
   }, []);
@@ -170,18 +170,18 @@ export function Search({ showTrigger = true }: SearchProps) {
           response.results.slice(0, 10).map(async (result) => {
             const data = await result.data();
             return {
-              id: result.id,
-              url: data.url,
-              meta: data.meta,
               excerpt: data.excerpt,
+              id: result.id,
+              meta: data.meta,
+              url: data.url,
             };
           })
         );
 
         setResults(searchResults);
         announce(`${searchResults.length} results found`);
-      } catch (e) {
-        console.error("Search error:", e);
+      } catch (error) {
+        console.error("Search error:", error);
         setResults([]);
       } finally {
         setLoading(false);

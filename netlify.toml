@@ -1,182 +1,182 @@
 [build]
-  command = "rm -rf .astro/content-cache && git submodule update --init --recursive --remote && bun install && bun run build"
-  publish = "dist"
+command = "rm -rf .astro/content-cache && git submodule update --init --recursive --remote && bun install && bun run build"
+publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+NODE_VERSION = "20"
 
 # Quick access redirects for popular artifacts
 # Popular shortcuts below, or use /a/<slug> for any artifact dynamically
 
 # Execution artifacts
 [[redirects]]
-  from = "/srum"
-  to = "/artifact/srum"
-  status = 301
+from = "/srum"
+to = "/artifact/srum"
+status = 301
 
 [[redirects]]
-  from = "/prefetch"
-  to = "/artifact/prefetch"
-  status = 301
+from = "/prefetch"
+to = "/artifact/prefetch"
+status = 301
 
 [[redirects]]
-  from = "/amcache"
-  to = "/artifact/amcache"
-  status = 301
+from = "/amcache"
+to = "/artifact/amcache"
+status = 301
 
 [[redirects]]
-  from = "/shimcache"
-  to = "/artifact/shimcache"
-  status = 301
+from = "/shimcache"
+to = "/artifact/shimcache"
+status = 301
 
 # Browser artifacts
 [[redirects]]
-  from = "/chrome"
-  to = "/artifact/chrome"
-  status = 301
+from = "/chrome"
+to = "/artifact/chrome"
+status = 301
 
 [[redirects]]
-  from = "/firefox"
-  to = "/artifact/firefox"
-  status = 301
+from = "/firefox"
+to = "/artifact/firefox"
+status = 301
 
 [[redirects]]
-  from = "/edge"
-  to = "/artifact/edge"
-  status = 301
+from = "/edge"
+to = "/artifact/edge"
+status = 301
 
 # Registry artifacts
 [[redirects]]
-  from = "/ntuser"
-  to = "/artifact/registryhivesuser"
-  status = 301
+from = "/ntuser"
+to = "/artifact/registryhivesuser"
+status = 301
 
 [[redirects]]
-  from = "/sam"
-  to = "/artifact/registryhivessystem"
-  status = 301
+from = "/sam"
+to = "/artifact/registryhivessystem"
+status = 301
 
 # User activity
 [[redirects]]
-  from = "/shellbags"
-  to = "/artifact/shellbags"
-  status = 301
+from = "/shellbags"
+to = "/artifact/shellbags"
+status = 301
 
 [[redirects]]
-  from = "/jumplists"
-  to = "/artifact/jumplists"
-  status = 301
+from = "/jumplists"
+to = "/artifact/jumplists"
+status = 301
 
 [[redirects]]
-  from = "/lnk"
-  to = "/artifact/lnkfilesandumpdirectories"
-  status = 301
+from = "/lnk"
+to = "/artifact/lnkfilesandumpdirectories"
+status = 301
 
 # Event logs
 [[redirects]]
-  from = "/eventlogs"
-  to = "/artifact/eventlogs"
-  status = 301
+from = "/eventlogs"
+to = "/artifact/eventlogs"
+status = 301
 
 [[redirects]]
-  from = "/evtx"
-  to = "/artifact/eventlogs"
-  status = 301
+from = "/evtx"
+to = "/artifact/eventlogs"
+status = 301
 
 # Filesystem
 [[redirects]]
-  from = "/mft"
-  to = "/artifact/-mft"
-  status = 301
+from = "/mft"
+to = "/artifact/-mft"
+status = 301
 
 [[redirects]]
-  from = "/usnjrnl"
-  to = "/artifact/-j"
-  status = 301
+from = "/usnjrnl"
+to = "/artifact/-j"
+status = 301
 
 [[redirects]]
-  from = "/recyclebin"
-  to = "/artifact/recyclebin"
-  status = 301
+from = "/recyclebin"
+to = "/artifact/recyclebin"
+status = 301
 
 # Persistence
 [[redirects]]
-  from = "/tasks"
-  to = "/artifact/scheduledtasks"
-  status = 301
+from = "/tasks"
+to = "/artifact/scheduledtasks"
+status = 301
 
 [[redirects]]
-  from = "/startup"
-  to = "/artifact/startupinfo"
-  status = 301
+from = "/startup"
+to = "/artifact/startupinfo"
+status = 301
 
 # Remote access
 [[redirects]]
-  from = "/rdp"
-  to = "/artifact/rdpcache"
-  status = 301
+from = "/rdp"
+to = "/artifact/rdpcache"
+status = 301
 
 # Triage collections
 [[redirects]]
-  from = "/triage"
-  to = "/artifact/kapetriage"
-  status = 301
+from = "/triage"
+to = "/artifact/kapetriage"
+status = 301
 
 [[redirects]]
-  from = "/sans"
-  to = "/artifact/sans-triage"
-  status = 301
+from = "/sans"
+to = "/artifact/sans-triage"
+status = 301
 
 # Sigma converter shortcut
 [[redirects]]
-  from = "/sigma"
-  to = "/converter"
-  status = 301
+from = "/sigma"
+to = "/converter"
+status = 301
 
 # Short URL scheme: /a/slug -> /artifact/slug
 [[redirects]]
-  from = "/a/*"
-  to = "/artifact/:splat"
-  status = 301
+from = "/a/*"
+to = "/artifact/:splat"
+status = 301
 
 # Category redirects (legacy URLs)
 [[redirects]]
-  from = "/category/windows"
-  to = "/artifacts?category=windows"
-  status = 301
+from = "/category/windows"
+to = "/artifacts?category=windows"
+status = 301
 
 [[redirects]]
-  from = "/category/browsers"
-  to = "/artifacts?category=browsers"
-  status = 301
+from = "/category/browsers"
+to = "/artifacts?category=browsers"
+status = 301
 
 [[redirects]]
-  from = "/category/apps"
-  to = "/artifacts?category=apps"
-  status = 301
+from = "/category/apps"
+to = "/artifacts?category=apps"
+status = 301
 
 [[redirects]]
-  from = "/category/antivirus"
-  to = "/artifacts?category=antivirus"
-  status = 301
+from = "/category/antivirus"
+to = "/artifacts?category=antivirus"
+status = 301
 
 [[redirects]]
-  from = "/category/logs"
-  to = "/artifacts?category=logs"
-  status = 301
+from = "/category/logs"
+to = "/artifacts?category=logs"
+status = 301
 
 [[redirects]]
-  from = "/category/p2p"
-  to = "/artifacts?category=p2p"
-  status = 301
+from = "/category/p2p"
+to = "/artifacts?category=p2p"
+status = 301
 
 [[redirects]]
-  from = "/category/compound"
-  to = "/artifacts?category=compound"
-  status = 301
+from = "/category/compound"
+to = "/artifacts?category=compound"
+status = 301
 
 # SPA fallback for client-side routing (if needed)
 [[redirects]]
-  from = "/*"
-  to = "/404.html"
-  status = 404
+from = "/*"
+to = "/404.html"
+status = 404

@@ -1,5 +1,7 @@
-import { getBackend } from "@/lib/sigma/backends";
 import type { ConversionResult } from "@/lib/sigma/types";
+
+import { getBackend } from "@/lib/sigma/backends";
+
 import { OutputPanel } from "./OutputPanel";
 
 interface DiffViewProps {
@@ -8,7 +10,7 @@ interface DiffViewProps {
 }
 
 export function DiffView({ results, isLoading }: DiffViewProps) {
-  const entries = Array.from(results.entries());
+  const entries = [...results.entries()];
 
   if (entries.length === 0 && !isLoading) {
     return (

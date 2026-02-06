@@ -1,10 +1,11 @@
-import { getBackend } from "./backends";
 import type { ConversionResult } from "./types";
 import type {
   ConvertParams,
   PipelineInfo,
   WorkerStatus,
 } from "./worker/workerApi";
+
+import { getBackend } from "./backends";
 import {
   addStatusListener,
   destroyWorker,

@@ -6,6 +6,7 @@ import {
   HiOutlineServerStack,
 } from "react-icons/hi2";
 import { TbWorldSearch } from "react-icons/tb";
+
 import { cn } from "@/lib/utils";
 
 interface Scenario {
@@ -22,44 +23,44 @@ interface ScenarioGridProps {
 }
 
 const iconMap = {
-  "lateral-movement": HiOutlineServerStack,
-  "browser-forensics": TbWorldSearch,
-  persistence: HiOutlineFingerPrint,
-  execution: HiOutlineCpuChip,
-  "user-activity": HiOutlineCursorArrowRays,
   "anti-forensics": HiOutlineCircleStack,
+  "browser-forensics": TbWorldSearch,
+  execution: HiOutlineCpuChip,
+  "lateral-movement": HiOutlineServerStack,
+  persistence: HiOutlineFingerPrint,
+  "user-activity": HiOutlineCursorArrowRays,
 };
 
 const colorMap = {
-  cyan: {
-    icon: "text-cyan-400",
-    iconBg: "bg-cyan-500/10",
-    glow: "bg-cyan-500/[0.07]",
-  },
-  blue: {
-    icon: "text-blue-400",
-    iconBg: "bg-blue-500/10",
-    glow: "bg-blue-500/[0.07]",
-  },
-  red: {
-    icon: "text-red-400",
-    iconBg: "bg-red-500/10",
-    glow: "bg-red-500/[0.07]",
-  },
-  green: {
-    icon: "text-green-400",
-    iconBg: "bg-green-500/10",
-    glow: "bg-green-500/[0.07]",
-  },
-  purple: {
-    icon: "text-purple-400",
-    iconBg: "bg-purple-500/10",
-    glow: "bg-purple-500/[0.07]",
-  },
   amber: {
+    glow: "bg-amber-500/[0.07]",
     icon: "text-amber-400",
     iconBg: "bg-amber-500/10",
-    glow: "bg-amber-500/[0.07]",
+  },
+  blue: {
+    glow: "bg-blue-500/[0.07]",
+    icon: "text-blue-400",
+    iconBg: "bg-blue-500/10",
+  },
+  cyan: {
+    glow: "bg-cyan-500/[0.07]",
+    icon: "text-cyan-400",
+    iconBg: "bg-cyan-500/10",
+  },
+  green: {
+    glow: "bg-green-500/[0.07]",
+    icon: "text-green-400",
+    iconBg: "bg-green-500/10",
+  },
+  purple: {
+    glow: "bg-purple-500/[0.07]",
+    icon: "text-purple-400",
+    iconBg: "bg-purple-500/10",
+  },
+  red: {
+    glow: "bg-red-500/[0.07]",
+    icon: "text-red-400",
+    iconBg: "bg-red-500/10",
   },
 };
 
