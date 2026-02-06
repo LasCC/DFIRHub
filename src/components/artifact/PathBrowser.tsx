@@ -209,17 +209,21 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   };
 
   const toggleExpanded = (name: string) => {
-    const next = new Set(expandedTargets);
-    if (next.has(name)) next.delete(name);
-    else next.add(name);
-    setExpandedTargets(next);
+    setExpandedTargets((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
   };
 
   const toggleCategory = (cat: string) => {
-    const next = new Set(activeCategories);
-    if (next.has(cat)) next.delete(cat);
-    else next.add(cat);
-    setActiveCategories(next);
+    setActiveCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
   };
 
   const showFilter = pathEntries.length > 5;

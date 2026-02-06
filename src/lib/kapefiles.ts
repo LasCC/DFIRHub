@@ -215,6 +215,18 @@ export function resolveCompoundReferences(target: KapeTarget): KapeTarget[] {
   const resolved: KapeTarget[] = [];
   const seen = new Set<string>();
 
+  // Build lookup maps for O(1) resolution instead of O(n) linear scans
+  const slugMap = new Map(allTargets.map((t) => [t.slug, t]));
+  const sourceMap = new Map(
+    allTargets.map((t) => [
+      t.sourceFile
+        .replace(/\.tkape$/, "")
+        .replace(/^!/, "")
+        .toLowerCase(),
+      t,
+    ])
+  );
+
   function resolve(refs: string[]) {
     for (const ref of refs) {
       // Normalize the reference
@@ -229,14 +241,8 @@ export function resolveCompoundReferences(target: KapeTarget): KapeTarget[] {
       }
       seen.add(refSlug);
 
-      const foundTarget = allTargets.find(
-        (t) =>
-          t.slug === refSlug ||
-          t.sourceFile
-            .replace(/\.tkape$/, "")
-            .replace(/^!/, "")
-            .toLowerCase() === refName.toLowerCase()
-      );
+      const foundTarget =
+        slugMap.get(refSlug) || sourceMap.get(refName.toLowerCase());
 
       if (foundTarget) {
         if (foundTarget.isCompound) {

@@ -20,9 +20,19 @@ const VALID_STATUSES = [
 ];
 const VALID_LEVELS = ["informational", "low", "medium", "high", "critical"];
 
-function findKeyLine(content: string, key: string): number {
-  const lines = content.split("\n");
-  const regex = new RegExp(`^${key}\\s*:`);
+const keyRegexCache = new Map<string, RegExp>();
+
+function getKeyRegex(key: string): RegExp {
+  let re = keyRegexCache.get(key);
+  if (!re) {
+    re = new RegExp(`^${key}\\s*:`);
+    keyRegexCache.set(key, re);
+  }
+  return re;
+}
+
+function findKeyLine(lines: string[], key: string): number {
+  const regex = getKeyRegex(key);
   const idx = lines.findIndex((l) => regex.test(l));
   return idx >= 0 ? idx + 1 : 1;
 }
@@ -94,13 +104,16 @@ export function validateSigmaRule(content: string): SigmaDiagnostic[] {
     }
   }
 
+  // Split lines once for all findKeyLine calls
+  const lines = content.split("\n");
+
   // 4. detection must have 'condition'
   if (
     doc.detection &&
     typeof doc.detection === "object" &&
     !("condition" in (doc.detection as Record<string, unknown>))
   ) {
-    const line = findKeyLine(content, "detection");
+    const line = findKeyLine(lines, "detection");
     diagnostics.push({
       message: "Detection section missing 'condition' field",
       startLine: line,
@@ -115,7 +128,7 @@ export function validateSigmaRule(content: string): SigmaDiagnostic[] {
   if (doc.logsource && typeof doc.logsource === "object") {
     const logsource = doc.logsource as Record<string, unknown>;
     if (!(logsource.category || logsource.product || logsource.service)) {
-      const line = findKeyLine(content, "logsource");
+      const line = findKeyLine(lines, "logsource");
       diagnostics.push({
         message:
           "Logsource should have at least one of: category, product, service",
@@ -134,7 +147,7 @@ export function validateSigmaRule(content: string): SigmaDiagnostic[] {
     typeof doc.status === "string" &&
     !VALID_STATUSES.includes(doc.status)
   ) {
-    const line = findKeyLine(content, "status");
+    const line = findKeyLine(lines, "status");
     diagnostics.push({
       message: `Invalid status: '${doc.status}'. Expected: ${VALID_STATUSES.join(", ")}`,
       startLine: line,
@@ -151,7 +164,7 @@ export function validateSigmaRule(content: string): SigmaDiagnostic[] {
     typeof doc.level === "string" &&
     !VALID_LEVELS.includes(doc.level)
   ) {
-    const line = findKeyLine(content, "level");
+    const line = findKeyLine(lines, "level");
     diagnostics.push({
       message: `Invalid level: '${doc.level}'. Expected: ${VALID_LEVELS.join(", ")}`,
       startLine: line,

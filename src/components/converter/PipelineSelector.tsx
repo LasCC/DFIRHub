@@ -98,7 +98,7 @@ export function PipelineSelector({
         <div className="mt-1 border-t border-white/[0.06] px-1 pb-1 pt-2">
           <button
             className="flex w-full items-center justify-between px-2 py-1 text-left text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => setShowCustom(!showCustom)}
+            onClick={() => setShowCustom((prev) => !prev)}
             type="button"
           >
             <span>Custom Pipeline YAML</span>

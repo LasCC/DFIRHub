@@ -10,7 +10,15 @@ import {
   Settings2,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Popover,
   PopoverContent,
@@ -30,7 +38,11 @@ import { LoadingOverlay } from "./LoadingOverlay";
 import { OutputPanel } from "./OutputPanel";
 import { PipelineSelector } from "./PipelineSelector";
 import { RelatedArtifacts } from "./RelatedArtifacts";
-import { SigmaEditor } from "./SigmaEditor";
+
+const SigmaEditor = lazy(() =>
+  import("./SigmaEditor").then((m) => ({ default: m.SigmaEditor }))
+);
+
 import { SigmaSearchDialog } from "./SigmaSearchDialog";
 import { TargetSelector } from "./TargetSelector";
 
@@ -83,7 +95,7 @@ function saveSettings(settings: ConverterSettings) {
 export function ConverterLayout() {
   const converterRef = useRef<SigmaConverter | null>(null);
   const mountedRef = useRef(true);
-  const initial = useRef(loadSettings()).current;
+  const [initial] = useState(() => loadSettings());
 
   const [rule, setRule] = useState(sigmaExamples[0].yaml);
   const [selectedBackend, setSelectedBackend] = useState(
@@ -125,6 +137,28 @@ export function ConverterLayout() {
   const [availablePipelines, setAvailablePipelines] = useState<PipelineInfo[]>(
     []
   );
+
+  // Scroll shadow for mobile toolbar
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const [mobileScrollEnd, setMobileScrollEnd] = useState(false);
+
+  const checkMobileScroll = useCallback(() => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    setMobileScrollEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    checkMobileScroll();
+    el.addEventListener("scroll", checkMobileScroll, { passive: true });
+    window.addEventListener("resize", checkMobileScroll);
+    return () => {
+      el.removeEventListener("scroll", checkMobileScroll);
+      window.removeEventListener("resize", checkMobileScroll);
+    };
+  }, [checkMobileScroll]);
 
   // Persist settings to localStorage
   useEffect(() => {
@@ -404,7 +438,7 @@ export function ConverterLayout() {
                   ? "border-primary/30 bg-primary/10 text-primary"
                   : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
               }`}
-              onClick={() => setMultiMode(!multiMode)}
+              onClick={() => setMultiMode((prev) => !prev)}
               title="Convert to multiple backends at once"
               type="button"
             >
@@ -418,7 +452,7 @@ export function ConverterLayout() {
                   ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
                   : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
               }`}
-              onClick={() => setAutoConvert(!autoConvert)}
+              onClick={() => setAutoConvert((prev) => !prev)}
               title="Automatically convert on every change (500ms debounce)"
               type="button"
             >
@@ -447,7 +481,7 @@ export function ConverterLayout() {
             <div className="h-5 w-px bg-background/20" />
             <button
               className="flex items-center self-stretch rounded-r-lg bg-primary px-2.5 text-background transition-colors hover:bg-primary/90"
-              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              onClick={() => setShowMoreMenu((prev) => !prev)}
               title="More actions"
               type="button"
             >
@@ -498,7 +532,7 @@ export function ConverterLayout() {
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                     onClick={() => {
-                      setShowAdvanced(!showAdvanced);
+                      setShowAdvanced((prev) => !prev);
                       setShowMoreMenu(false);
                     }}
                     type="button"
@@ -516,47 +550,54 @@ export function ConverterLayout() {
         </div>
 
         {/* Mobile row 2: Target, Pipeline, Multi, Auto — horizontal scroll */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide md:hidden">
-          <TargetSelector
-            multiSelect={multiMode}
-            onMultiSelect={setSelectedMulti}
-            onSelect={setSelectedBackend}
-            selected={selectedBackend}
-            selectedMulti={selectedMulti}
-          />
-          <PipelineSelector
-            availablePipelines={availablePipelines}
-            customPipelineYaml={customPipelineYaml}
-            onCustomPipelineChange={setCustomPipelineYaml}
-            onPipelineChange={setSelectedPipeline}
-            selectedPipeline={selectedPipeline}
-          />
-          <button
-            aria-pressed={multiMode}
-            className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-              multiMode
-                ? "border-primary/30 bg-primary/10 text-primary"
-                : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
-            }`}
-            onClick={() => setMultiMode(!multiMode)}
-            title="Convert to multiple backends at once"
-            type="button"
+        <div
+          className={`scroll-shadow-x md:hidden${mobileScrollEnd ? " scrolled-end" : ""}`}
+        >
+          <div
+            className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
+            ref={mobileScrollRef}
           >
-            <Columns aria-hidden="true" className="h-3.5 w-3.5" />
-          </button>
-          <button
-            aria-pressed={autoConvert}
-            className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-              autoConvert
-                ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
-                : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
-            }`}
-            onClick={() => setAutoConvert(!autoConvert)}
-            title="Automatically convert on every change (500ms debounce)"
-            type="button"
-          >
-            <Zap aria-hidden="true" className="h-3.5 w-3.5" />
-          </button>
+            <TargetSelector
+              multiSelect={multiMode}
+              onMultiSelect={setSelectedMulti}
+              onSelect={setSelectedBackend}
+              selected={selectedBackend}
+              selectedMulti={selectedMulti}
+            />
+            <PipelineSelector
+              availablePipelines={availablePipelines}
+              customPipelineYaml={customPipelineYaml}
+              onCustomPipelineChange={setCustomPipelineYaml}
+              onPipelineChange={setSelectedPipeline}
+              selectedPipeline={selectedPipeline}
+            />
+            <button
+              aria-pressed={multiMode}
+              className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                multiMode
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+              }`}
+              onClick={() => setMultiMode((prev) => !prev)}
+              title="Convert to multiple backends at once"
+              type="button"
+            >
+              <Columns aria-hidden="true" className="h-3.5 w-3.5" />
+            </button>
+            <button
+              aria-pressed={autoConvert}
+              className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                autoConvert
+                  ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
+                  : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+              }`}
+              onClick={() => setAutoConvert((prev) => !prev)}
+              title="Automatically convert on every change (500ms debounce)"
+              type="button"
+            >
+              <Zap aria-hidden="true" className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -575,11 +616,19 @@ export function ConverterLayout() {
       {/* Editor + Output */}
       <div className="grid min-h-[500px] grid-cols-1 gap-0 overflow-hidden rounded-lg border border-white/[0.06] lg:grid-cols-2">
         <div className="border-white/[0.06] border-b lg:border-r lg:border-b-0">
-          <SigmaEditor
-            onChange={setRule}
-            onConvert={handleConvert}
-            value={rule}
-          />
+          <Suspense
+            fallback={
+              <div className="flex h-full min-h-[400px] items-center justify-center text-muted-foreground text-sm">
+                Loading editor…
+              </div>
+            }
+          >
+            <SigmaEditor
+              onChange={setRule}
+              onConvert={handleConvert}
+              value={rule}
+            />
+          </Suspense>
         </div>
         <div>
           {multiMode ? (

@@ -795,10 +795,14 @@ export function getToolsForArtifact(artifact: {
   const sourceTypes = artifact.sources?.map((s) => s.type) || [];
   const supportedOS = artifact.supported_os || [];
 
+  // Pre-compute normalized sets for O(1) lookups
+  const osSet = new Set(supportedOS.map((os) => os.toLowerCase()));
+  const sourceTypeSet = new Set(sourceTypes);
+
   for (const tool of tools) {
     // Check platform compatibility
     const platformMatch = tool.platforms.some((p) =>
-      supportedOS.some((os) => os.toLowerCase() === p.toLowerCase())
+      osSet.has(p.toLowerCase())
     );
 
     if (!platformMatch) {
@@ -821,7 +825,7 @@ export function getToolsForArtifact(artifact: {
     // Only include generic "manual" category tools as fallback
     if (tool.category === "manual") {
       const sourceTypeMatch = tool.sourceTypes.some((st) =>
-        sourceTypes.includes(st)
+        sourceTypeSet.has(st)
       );
       if (sourceTypeMatch) {
         genericTools.push(tool);

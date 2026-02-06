@@ -1,7 +1,5 @@
-import * as yaml from "js-yaml";
 import { Download, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { DetectionPackageExporter } from "@/lib/sigma/export";
 
 interface ExportDialogProps {
   rule: string;
@@ -31,9 +29,14 @@ export function ExportDialog({
   const handleExport = useCallback(async () => {
     setExporting(true);
     try {
+      const [yaml, { DetectionPackageExporter }] = await Promise.all([
+        import("js-yaml"),
+        import("@/lib/sigma/export"),
+      ]);
+
       let parsed: any = {};
       try {
-        parsed = yaml.load(rule) ?? {};
+        parsed = yaml.default.load(rule) ?? {};
       } catch {
         // If parsing fails, use defaults
       }

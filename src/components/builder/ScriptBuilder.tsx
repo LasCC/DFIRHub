@@ -416,21 +416,22 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
   }, [selectedTargets, selectedTargetObjects, options]);
 
   const toggleTarget = (slug: string) => {
-    const newSelected = new Set(selectedTargets);
-    if (newSelected.has(slug)) {
-      newSelected.delete(slug);
-    } else {
-      newSelected.add(slug);
-    }
-    setSelectedTargets(newSelected);
+    setSelectedTargets((prev) => {
+      const next = new Set(prev);
+      if (next.has(slug)) next.delete(slug);
+      else next.add(slug);
+      return next;
+    });
   };
 
   const selectAll = () => {
-    const newSelected = new Set(selectedTargets);
-    for (const t of filteredTargets) {
-      newSelected.add(t.slug);
-    }
-    setSelectedTargets(newSelected);
+    setSelectedTargets((prev) => {
+      const next = new Set(prev);
+      for (const t of filteredTargets) {
+        next.add(t.slug);
+      }
+      return next;
+    });
   };
 
   const clearAll = () => {
@@ -599,10 +600,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
               <select
                 className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
                 onChange={(e) =>
-                  setOptions({
-                    ...options,
+                  setOptions((prev) => ({
+                    ...prev,
                     format: e.target.value as ExportFormat,
-                  })
+                  }))
                 }
                 value={options.format}
               >
@@ -621,7 +622,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
               <input
                 className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
                 onChange={(e) =>
-                  setOptions({ ...options, source: e.target.value })
+                  setOptions((prev) => ({ ...prev, source: e.target.value }))
                 }
                 type="text"
                 value={options.source}
@@ -636,7 +637,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
               <input
                 className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
                 onChange={(e) =>
-                  setOptions({ ...options, destination: e.target.value })
+                  setOptions((prev) => ({
+                    ...prev,
+                    destination: e.target.value,
+                  }))
                 }
                 type="text"
                 value={options.destination}
@@ -655,7 +659,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                       checked={options.useVss}
                       className="h-3 w-3 accent-primary"
                       onChange={(e) =>
-                        setOptions({ ...options, useVss: e.target.checked })
+                        setOptions((prev) => ({
+                          ...prev,
+                          useVss: e.target.checked,
+                        }))
                       }
                       type="checkbox"
                     />
@@ -666,7 +673,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                       checked={options.useVhdx}
                       className="h-3 w-3 accent-primary"
                       onChange={(e) =>
-                        setOptions({ ...options, useVhdx: e.target.checked })
+                        setOptions((prev) => ({
+                          ...prev,
+                          useVhdx: e.target.checked,
+                        }))
                       }
                       type="checkbox"
                     />

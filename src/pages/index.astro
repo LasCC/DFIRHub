@@ -318,7 +318,8 @@ const tools = [
                 <span class="text-[10px] uppercase tracking-widest text-muted-foreground">Investigate by scenario</span>
                 <div class="h-px w-4 bg-border/20" aria-hidden="true"></div>
               </div>
-              <div class="mt-2.5 flex gap-2 overflow-x-auto scrollbar-hide lg:flex-wrap lg:justify-start">
+              <div class="scroll-shadow-x" id="scenario-scroll-wrapper">
+              <div class="mt-2.5 flex gap-2 overflow-x-auto scrollbar-hide lg:flex-wrap lg:justify-start" id="scenario-scroll">
                 {scenariosWithCounts.map((scenario) => {
                   const colors = scenarioColorMap[scenario.color] || scenarioColorMap.cyan;
                   return (
@@ -344,6 +345,7 @@ const tools = [
                     </a>
                   );
                 })}
+              </div>
               </div>
 
               <!-- Quick stats row -->
@@ -973,3 +975,25 @@ const tools = [
     }
   }
 </style>
+
+<script>
+  function initScrollShadow(wrapperId: string, scrollId: string) {
+    const wrapper = document.getElementById(wrapperId);
+    const scroll = document.getElementById(scrollId);
+    if (!wrapper || !scroll) return;
+
+    const w = wrapper;
+    const s = scroll;
+
+    function check() {
+      const atEnd = s.scrollLeft + s.clientWidth >= s.scrollWidth - 2;
+      w.classList.toggle("scrolled-end", atEnd);
+    }
+
+    check();
+    s.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+  }
+
+  initScrollShadow("scenario-scroll-wrapper", "scenario-scroll");
+</script>
