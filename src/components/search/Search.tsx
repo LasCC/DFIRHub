@@ -208,7 +208,7 @@ export function Search({ showTrigger = true }: SearchProps) {
 
   const [isMac, setIsMac] = useState(false);
   useEffect(() => {
-    setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
+    setIsMac(navigator.userAgent.includes("Mac"));
   }, []);
 
   return (

@@ -55,15 +55,15 @@ function createSlug(filename: string): string {
   return filename
     .replace(/\.tkape$/, "")
     .replace(/^!/, "") // Remove leading ! from compound targets
-    .replace(/[^a-zA-Z0-9_-]+/g, "-")
-    .replace(/^-|-$/g, "")
+    .replaceAll(/[^a-zA-Z0-9_-]+/g, "-")
+    .replaceAll(/^-|-$/g, "")
     .toLowerCase();
 }
 
 // Parse a single .tkape file
 function parseKapeFile(filePath: string, category: string): KapeTarget | null {
   try {
-    const content = fs.readFileSync(filePath, "utf-8");
+    const content = fs.readFileSync(filePath, "utf8");
     const filename = path.basename(filePath);
 
     // Extract documentation comments (lines starting with #)
@@ -300,7 +300,7 @@ export function searchTargets(query: string): KapeTarget[] {
 // Get all unique categories
 export function getCategories(): string[] {
   const targets = loadAllTargets();
-  return [...new Set(targets.map((t) => t.category))].sort();
+  return [...new Set(targets.map((t) => t.category))].toSorted();
 }
 
 // Get statistics
@@ -335,11 +335,11 @@ export function getStats(): {
 }
 
 // Get all paths from a target (useful for display and commands)
-export function getTargetPaths(target: KapeTarget): Array<{
+export function getTargetPaths(target: KapeTarget): {
   name: string;
   path: string;
   fileMask?: string;
-}> {
+}[] {
   if (target.isCompound) {
     const resolved = resolveCompoundReferences(target);
     return resolved.flatMap((t) => getTargetPaths(t));
@@ -398,7 +398,7 @@ export function generatePowerShellScript(target: KapeTarget): string {
   ];
 
   for (const entry of paths) {
-    const safeName = entry.name.replace(/[^a-zA-Z0-9]/g, "_");
+    const safeName = entry.name.replaceAll(/[^a-zA-Z0-9]/g, "_");
     const destPath = `$destBase\\${safeName}`;
 
     lines.push(`# ${entry.name}`);

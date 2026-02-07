@@ -58,7 +58,9 @@ function buildSearch(entries: SigmaRuleEntry[]): MiniSearch<SigmaRuleEntry> {
 }
 
 export async function loadSigmaIndex(): Promise<void> {
-  if (searchInstance) return;
+  if (searchInstance) {
+    return;
+  }
 
   if (!indexPromise) {
     indexPromise = (async () => {
@@ -76,8 +78,12 @@ export async function loadSigmaIndex(): Promise<void> {
 }
 
 export function searchSigmaRules(query: string): SigmaRuleEntry[] {
-  if (!searchInstance) return [];
-  if (!query.trim()) return [];
+  if (!searchInstance) {
+    return [];
+  }
+  if (!query.trim()) {
+    return [];
+  }
 
   const results = searchInstance.search(query);
   return (results as unknown as SigmaRuleEntry[]).slice(0, 50);

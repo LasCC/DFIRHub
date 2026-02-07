@@ -1,9 +1,13 @@
 const CACHE_NAME = "dfirhub-converter-v1";
-const PYODIDE_CACHE = "dfirhub-pyodide-v2";
+const PYODIDE_CACHE = "dfirhub-pyodide-v3";
 
-const APP_SHELL_URLS = ["/converter"];
+const APP_SHELL_URLS = [
+  "/converter",
+  "/wheels/pyyaml-6.0.3-cp313-cp313-pyodide_2025_0_wasm32.whl",
+];
 
-const PYODIDE_CDN = "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/";
+const PYODIDE_CDN = "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/";
+const PYPI_CDN = "https://files.pythonhosted.org/";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -30,8 +34,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Cache-first for Pyodide CDN assets (large WASM files)
-  if (url.href.startsWith(PYODIDE_CDN)) {
+  // Cache-first for Pyodide CDN and PyPI assets (large WASM/wheel files)
+  if (url.href.startsWith(PYODIDE_CDN) || url.href.startsWith(PYPI_CDN)) {
     event.respondWith(
       caches.open(PYODIDE_CACHE).then((cache) =>
         cache.match(event.request).then(

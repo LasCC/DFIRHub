@@ -91,7 +91,7 @@ const jsonLd = {
 
 <Layout title={target.name} description={seoDescription}>
   <!-- Artifact-specific JSON-LD -->
-  <script
+  <script is:inline
     type="application/ld+json"
     set:html={JSON.stringify(jsonLd)}
     slot="head"

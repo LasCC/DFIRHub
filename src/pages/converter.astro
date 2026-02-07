@@ -32,4 +32,12 @@ import Layout from "../layouts/Layout.astro";
   </main>
 
   <Footer />
+
+  <script is:inline>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        // SW registration is best-effort; ignore failures
+      });
+    }
+  </script>
 </Layout>

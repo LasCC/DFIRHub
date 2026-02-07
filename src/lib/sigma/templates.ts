@@ -2,7 +2,7 @@ import type { ExportPackageOptions } from "./types";
 
 export function generateReadme(options: ExportPackageOptions): string {
   const { metadata, conversions } = options;
-  const backends = Array.from(conversions.keys());
+  const backends = [...conversions.keys()];
 
   let readme = `# ${metadata.title}\n\n`;
 

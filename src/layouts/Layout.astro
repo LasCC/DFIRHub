@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 import { KeyboardShortcuts } from "../components/layout/KeyboardShortcuts";
 
 interface Props {
@@ -84,7 +84,7 @@ const fullTitle =
     <link rel="manifest" href="/site.webmanifest">
 
     <!-- Structured Data (JSON-LD) -->
-    <script
+    <script is:inline
       type="application/ld+json"
       set:html={JSON.stringify({
                 "@context": "https://schema.org",
@@ -108,7 +108,7 @@ const fullTitle =
     <slot name="head" />
 
     <!-- View Transitions for smooth page navigation -->
-    <ViewTransitions />
+    <ClientRouter />
   </head>
   <body
     class="min-h-screen bg-background text-foreground antialiased scrollbar-thin overflow-x-hidden"
@@ -183,7 +183,7 @@ const fullTitle =
         // "?" - Show keyboard shortcuts help
         if (e.key === "?" && e.shiftKey) {
           e.preventDefault();
-          const helpTrigger = document.querySelector("#keyboard-help-trigger");
+          const helpTrigger = document.querySelector<HTMLElement>("#keyboard-help-trigger");
           if (helpTrigger) {
             helpTrigger.click();
           }
@@ -272,7 +272,7 @@ const fullTitle =
       // Focus management for SPA-like navigation
       document.addEventListener("astro:page-load", () => {
         // Focus main content after navigation
-        const mainContent = document.querySelector("#main-content");
+        const mainContent = document.querySelector<HTMLElement>("#main-content");
         if (mainContent && isKeyboardUser) {
           mainContent.focus();
         }

@@ -34,13 +34,15 @@ function getKeyRegex(key: string): RegExp {
 function findKeyLine(lines: string[], key: string): number {
   const regex = getKeyRegex(key);
   const idx = lines.findIndex((l) => regex.test(l));
-  return idx >= 0 ? idx + 1 : 1;
+  return idx !== -1 ? idx + 1 : 1;
 }
 
 export function validateSigmaRule(content: string): SigmaDiagnostic[] {
   const diagnostics: SigmaDiagnostic[] = [];
 
-  if (!content.trim()) return diagnostics;
+  if (!content.trim()) {
+    return diagnostics;
+  }
 
   // 1. Parse YAML
   let doc: Record<string, unknown>;
@@ -58,8 +60,8 @@ export function validateSigmaRule(content: string): SigmaDiagnostic[] {
       return diagnostics;
     }
     doc = parsed as Record<string, unknown>;
-  } catch (e: unknown) {
-    const yamlError = e as {
+  } catch (error: unknown) {
+    const yamlError = error as {
       mark?: { line?: number };
       reason?: string;
       message?: string;

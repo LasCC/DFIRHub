@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   getRelatedKapeTargets,
@@ -17,9 +17,9 @@ detection:
     condition: selection
 level: medium`;
 
-describe("SigmaMapping", () => {
-  describe("getRelatedKapeTargets", () => {
-    test("should map process_creation logsource to Prefetch, Amcache, etc.", () => {
+describe("sigmaMapping", () => {
+  describe("get related kape targets", () => {
+    it("should map process_creation logsource to Prefetch, Amcache, etc.", () => {
       const targets = getRelatedKapeTargets({
         category: "process_creation",
         product: "windows",
@@ -28,23 +28,23 @@ describe("SigmaMapping", () => {
       expect(targets.map((t) => t.name)).toContain("Amcache");
     });
 
-    test("should map registry_event to Registry Hives", () => {
+    it("should map registry_event to Registry Hives", () => {
       const targets = getRelatedKapeTargets({
         category: "registry_event",
         product: "windows",
       });
-      expect(targets.some((t) => t.name.includes("Registry"))).toBe(true);
+      expect(targets.some((t) => t.name.includes("Registry"))).toBeTruthy();
     });
 
-    test("should return empty array for unknown logsource", () => {
+    it("should return empty array for unknown logsource", () => {
       const targets = getRelatedKapeTargets({
         category: "unknown_category",
         product: "unknown",
       });
-      expect(targets).toEqual([]);
+      expect(targets).toStrictEqual([]);
     });
 
-    test("should map file_event to filesystem artifacts", () => {
+    it("should map file_event to filesystem artifacts", () => {
       const targets = getRelatedKapeTargets({
         category: "file_event",
         product: "windows",
@@ -53,7 +53,7 @@ describe("SigmaMapping", () => {
       expect(targets.map((t) => t.name)).toContain("$UsnJrnl");
     });
 
-    test("should map network_connection to SRUM and EventLogs", () => {
+    it("should map network_connection to SRUM and EventLogs", () => {
       const targets = getRelatedKapeTargets({
         category: "network_connection",
         product: "windows",
@@ -63,36 +63,36 @@ describe("SigmaMapping", () => {
     });
   });
 
-  describe("getRelatedSigmaCategories", () => {
-    test("should map Prefetch artifact to process_creation", () => {
+  describe("get related sigma categories", () => {
+    it("should map Prefetch artifact to process_creation", () => {
       const categories = getRelatedSigmaCategories("Prefetch");
       expect(categories).toContain("process_creation");
     });
 
-    test("should map EventLogs to multiple categories", () => {
+    it("should map EventLogs to multiple categories", () => {
       const categories = getRelatedSigmaCategories("EventLogs");
       expect(categories.length).toBeGreaterThan(1);
     });
 
-    test("should return empty array for unknown artifact", () => {
+    it("should return empty array for unknown artifact", () => {
       const categories = getRelatedSigmaCategories("nonexistent");
-      expect(categories).toEqual([]);
+      expect(categories).toStrictEqual([]);
     });
   });
 
-  describe("parseLogsourceFromYaml", () => {
-    test("should extract logsource from valid Sigma YAML", () => {
+  describe("parse logsource from yaml", () => {
+    it("should extract logsource from valid Sigma YAML", () => {
       const logsource = parseLogsourceFromYaml(VALID_SIGMA_RULE);
       expect(logsource?.category).toBe("process_creation");
       expect(logsource?.product).toBe("windows");
     });
 
-    test("should return null for invalid YAML", () => {
+    it("should return null for invalid YAML", () => {
       const logsource = parseLogsourceFromYaml("not valid yaml: [: bad");
       expect(logsource).toBeNull();
     });
 
-    test("should return null for YAML without logsource", () => {
+    it("should return null for YAML without logsource", () => {
       const logsource = parseLogsourceFromYaml(
         "title: No logsource\nlevel: high"
       );

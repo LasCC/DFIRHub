@@ -1,11 +1,11 @@
 import "fake-indexeddb/auto";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { RuleStorage } from "../rule-storage";
 
 let testCounter = 0;
 
-describe("RuleStorage (IndexedDB)", () => {
+describe("ruleStorage (IndexedDB)", () => {
   let storage: RuleStorage;
 
   beforeEach(() => {
@@ -13,7 +13,7 @@ describe("RuleStorage (IndexedDB)", () => {
     storage = new RuleStorage(`test-db-${testCounter}`);
   });
 
-  test("should save and retrieve a rule", async () => {
+  it("should save and retrieve a rule", async () => {
     await storage.saveRule({
       id: "test-1",
       name: "Test Rule",
@@ -26,7 +26,7 @@ describe("RuleStorage (IndexedDB)", () => {
     expect(rule?.yaml).toBe("title: Test");
   });
 
-  test("should list all saved rules", async () => {
+  it("should list all saved rules", async () => {
     await storage.saveRule({
       id: "1",
       name: "Rule 1",
@@ -42,10 +42,10 @@ describe("RuleStorage (IndexedDB)", () => {
       conversions: [],
     });
     const rules = await storage.listRules();
-    expect(rules.length).toBe(2);
+    expect(rules).toHaveLength(2);
   });
 
-  test("should delete a rule", async () => {
+  it("should delete a rule", async () => {
     await storage.saveRule({
       id: "1",
       name: "Rule 1",
@@ -58,12 +58,12 @@ describe("RuleStorage (IndexedDB)", () => {
     expect(rule).toBeNull();
   });
 
-  test("should return null for non-existent rule", async () => {
+  it("should return null for non-existent rule", async () => {
     const rule = await storage.loadRule("nonexistent");
     expect(rule).toBeNull();
   });
 
-  test("should update an existing rule", async () => {
+  it("should update an existing rule", async () => {
     await storage.saveRule({
       id: "1",
       name: "Original",

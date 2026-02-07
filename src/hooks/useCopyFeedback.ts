@@ -6,7 +6,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export function useCopyFeedback(duration = 2000): [boolean, () => void] {
   const [copied, setCopied] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>();
+  // eslint-disable-next-line unicorn/no-useless-undefined -- React 19 requires explicit initial value
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   const triggerCopied = useCallback(() => {
     setCopied(true);
@@ -27,7 +30,10 @@ export function useCopyFeedbackKeyed<T>(
   duration = 2000
 ): [T | null, (key: T) => void] {
   const [copiedKey, setCopiedKey] = useState<T | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>();
+  // eslint-disable-next-line unicorn/no-useless-undefined -- React 19 requires explicit initial value
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   const triggerCopied = useCallback(
     (key: T) => {

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { SigmaRuleEntry } from "./sigma-search";
+
 import {
   getSigmaRuleCount,
   loadSigmaIndex,
-  type SigmaRuleEntry,
   searchSigmaRules,
 } from "./sigma-search";
 
@@ -12,6 +13,7 @@ export function useSigmaSearch() {
   const [results, setResults] = useState<SigmaRuleEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [indexReady, setIndexReady] = useState(false);
+  // eslint-disable-next-line unicorn/no-useless-undefined -- React 19 requires explicit initial value
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -49,7 +51,9 @@ export function useSigmaSearch() {
         return;
       }
 
-      if (!indexReady) return;
+      if (!indexReady) {
+        return;
+      }
 
       debounceRef.current = setTimeout(() => {
         const found = searchSigmaRules(value);

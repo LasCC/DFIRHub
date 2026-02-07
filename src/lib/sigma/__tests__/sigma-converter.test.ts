@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the worker API module
 const mockConvert = vi.fn();
@@ -11,7 +11,7 @@ vi.mock("../worker/workerApi", () => ({
       cb: (status: { stage: string; progress: number; ready: boolean }) => void
     ) => {
       // Simulate immediate ready
-      setTimeout(() => cb({ stage: "Ready", progress: 1.0, ready: true }), 0);
+      setTimeout(() => cb({ stage: "Ready", progress: 1, ready: true }), 0);
       return () => {
         // unsubscribe no-op
       };
@@ -39,29 +39,52 @@ detection:
 level: medium
 `;
 
-describe("SigmaConverter", () => {
+describe("sigmaConverter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("initialize", () => {
-    test("should initialize and report ready state", async () => {
+    it("should initialize and report ready state", async () => {
       const converter = new SigmaConverter();
-      expect(converter.isReady()).toBe(false);
+      expect(converter.isReady()).toBeFalsy();
       await converter.initialize();
-      expect(converter.isReady()).toBe(true);
+      expect(converter.isReady()).toBeTruthy();
     });
 
-    test("should not fail on double initialize", async () => {
+    it("should not fail on double initialize", async () => {
       const converter = new SigmaConverter();
       await converter.initialize();
       await converter.initialize();
-      expect(converter.isReady()).toBe(true);
+      expect(converter.isReady()).toBeTruthy();
+    });
+
+    it("should reject with timeout if worker never responds", async () => {
+      vi.useFakeTimers();
+
+      // Override the mock to never call the callback (worker hangs)
+      const workerApi = await import("../worker/workerApi");
+      const addStatusSpy = vi.spyOn(workerApi, "addStatusListener");
+      addStatusSpy.mockImplementationOnce(() => () => {
+        // unsubscribe no-op
+      });
+
+      const converter = new SigmaConverter();
+      const initPromise = converter.initialize();
+
+      // Fast-forward past the 60s timeout
+      vi.advanceTimersByTime(61_000);
+
+      await expect(initPromise).rejects.toThrow("Initialization timed out");
+      converter.destroy();
+      addStatusSpy.mockRestore();
+
+      vi.useRealTimers();
     });
   });
 
   describe("convert", () => {
-    test("should convert a valid Sigma rule via worker", async () => {
+    it("should convert a valid Sigma rule via worker", async () => {
       mockConvert.mockResolvedValue({
         success: true,
         query: 'CommandLine="*powershell -enc*"',
@@ -70,12 +93,12 @@ describe("SigmaConverter", () => {
       const converter = new SigmaConverter();
       await converter.initialize();
       const result = await converter.convert(VALID_SIGMA_RULE, "splunk");
-      expect(result.success).toBe(true);
+      expect(result.success).toBeTruthy();
       expect(result.query).toContain("powershell -enc");
       expect(result.backend).toBe("splunk");
     });
 
-    test("should pass pipeline params to worker", async () => {
+    it("should pass pipeline params to worker", async () => {
       mockConvert.mockResolvedValue({ success: true, query: "test output" });
 
       const converter = new SigmaConverter();
@@ -95,34 +118,34 @@ describe("SigmaConverter", () => {
       );
     });
 
-    test("should return error for unknown backend", async () => {
+    it("should return error for unknown backend", async () => {
       const converter = new SigmaConverter();
       await converter.initialize();
       const result = await converter.convert(VALID_SIGMA_RULE, "nonexistent");
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalsy();
       expect(result.error).toContain("nonexistent");
     });
 
-    test("should return error if not initialized", async () => {
+    it("should return error if not initialized", async () => {
       const converter = new SigmaConverter();
       const result = await converter.convert(VALID_SIGMA_RULE, "splunk");
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalsy();
       expect(result.error).toContain("not initialized");
     });
 
-    test("should handle worker errors gracefully", async () => {
+    it("should handle worker errors gracefully", async () => {
       mockConvert.mockRejectedValue(new Error("Worker crashed"));
 
       const converter = new SigmaConverter();
       await converter.initialize();
       const result = await converter.convert(VALID_SIGMA_RULE, "splunk");
-      expect(result.success).toBe(false);
+      expect(result.success).toBeFalsy();
       expect(result.error).toContain("Worker crashed");
     });
   });
 
   describe("convertMulti", () => {
-    test("should convert to multiple backends", async () => {
+    it("should convert to multiple backends", async () => {
       mockConvert
         .mockResolvedValueOnce({ success: true, query: "splunk query" })
         .mockResolvedValueOnce({ success: true, query: "kusto query" });
@@ -134,41 +157,41 @@ describe("SigmaConverter", () => {
         "kusto",
       ]);
       expect(results.size).toBe(2);
-      expect(results.get("splunk")?.success).toBe(true);
-      expect(results.get("kusto")?.success).toBe(true);
+      expect(results.get("splunk")?.success).toBeTruthy();
+      expect(results.get("kusto")?.success).toBeTruthy();
     });
   });
 
   describe("destroy", () => {
-    test("should reset ready state after destroy", async () => {
+    it("should reset ready state after destroy", async () => {
       const converter = new SigmaConverter();
       await converter.initialize();
-      expect(converter.isReady()).toBe(true);
+      expect(converter.isReady()).toBeTruthy();
       converter.destroy();
-      expect(converter.isReady()).toBe(false);
-      expect(mockDestroyWorker).toHaveBeenCalled();
+      expect(converter.isReady()).toBeFalsy();
+      expect(mockDestroyWorker).toHaveBeenCalledWith();
     });
   });
 
   describe("onProgress", () => {
-    test("should call progress callback during initialization", async () => {
+    it("should call progress callback during initialization", async () => {
       const progressFn = vi.fn();
       const converter = new SigmaConverter();
       converter.onProgress(progressFn);
       await converter.initialize();
-      expect(progressFn).toHaveBeenCalledWith(1.0);
+      expect(progressFn).toHaveBeenCalledWith(1);
     });
   });
 
   describe("getAvailablePipelines", () => {
-    test("should delegate to worker API", async () => {
+    it("should delegate to worker API", async () => {
       const pipelines = [{ name: "windows", description: "Windows" }];
       mockGetPipelines.mockResolvedValue(pipelines);
 
       const converter = new SigmaConverter();
       await converter.initialize();
       const result = await converter.getAvailablePipelines();
-      expect(result).toEqual(pipelines);
+      expect(result).toStrictEqual(pipelines);
     });
   });
 });

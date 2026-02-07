@@ -36,10 +36,12 @@ let promiseWorker: PromiseWorker | null = null;
 const statusListeners = new Set<StatusListener>();
 
 function getWorker(): Worker {
-  if (worker) return worker;
+  if (worker) {
+    return worker;
+  }
 
   if (typeof Worker === "undefined") {
-    throw new Error("Web Workers are not supported in this environment");
+    throw new TypeError("Web Workers are not supported in this environment");
   }
 
   worker = new Worker(new URL("./webWorker.ts", import.meta.url), {

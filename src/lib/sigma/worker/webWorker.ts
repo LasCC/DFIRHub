@@ -2,6 +2,9 @@ import registerPromiseWorker from "promise-worker/register";
 
 import sigmaConverterPy from "../python/sigma_converter.py?raw";
 
+const PYODIDE_VERSION = "0.29.3";
+const PYODIDE_CDN_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full`;
+
 interface PyodideInterface {
   loadPackage: (pkg: string | string[]) => Promise<void>;
   runPythonAsync: (code: string) => Promise<unknown>;
@@ -39,16 +42,17 @@ function sendStatus(stage: string, progress: number, ready = false) {
 }
 
 async function initPyodide(): Promise<void> {
-  if (pyodide) return;
+  if (pyodide) {
+    return;
+  }
 
   sendStatus("Loading Pyodide runtime", 0.1);
 
   const { loadPyodide } = await import(
-    // @ts-expect-error -- Pyodide loaded from CDN at runtime
-    /* @vite-ignore */ "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/pyodide.mjs"
+    /* @vite-ignore */ `${PYODIDE_CDN_BASE}/pyodide.mjs`
   );
   pyodide = (await loadPyodide({
-    indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.0/full/",
+    indexURL: `${PYODIDE_CDN_BASE}/`,
   })) as PyodideInterface;
 
   sendStatus("Installing micropip", 0.25);
@@ -77,11 +81,13 @@ async function initPyodide(): Promise<void> {
   sendStatus("Loading converter module", 0.8);
   await pyodide.runPythonAsync(sigmaConverterPy);
 
-  sendStatus("Ready", 1.0, true);
+  sendStatus("Ready", 1, true);
 }
 
 async function installBackendPackage(packageName: string): Promise<void> {
-  if (!pyodide || installedBackends.has(packageName)) return;
+  if (!pyodide || installedBackends.has(packageName)) {
+    return;
+  }
 
   const micropip = pyodide.pyimport("micropip") as {
     install: (pkg: string) => Promise<void>;
@@ -93,34 +99,19 @@ async function installBackendPackage(packageName: string): Promise<void> {
   await pyodide.runPythonAsync(sigmaConverterPy);
 }
 
-function buildConvertCall(payload: Record<string, unknown>): string {
-  const ruleYaml = JSON.stringify(payload.ruleYaml ?? "");
-  const target = JSON.stringify(payload.target ?? "");
-  const pipelineNames = JSON.stringify(payload.pipelineNames ?? []);
-  const pipelineYmls = JSON.stringify(payload.pipelineYmls ?? []);
-  const filterYml = payload.filterYml
-    ? JSON.stringify(payload.filterYml)
-    : "None";
-  const outputFormat = JSON.stringify(payload.outputFormat ?? "default");
-  const correlationMethod = payload.correlationMethod
-    ? JSON.stringify(payload.correlationMethod)
-    : "None";
-  const backendOpts = JSON.stringify(
-    JSON.stringify(payload.backendOptions ?? {})
-  );
-
-  return `
+const CONVERT_PYTHON = `
 import json as _json
+_params = _json.loads(_params_json)
 try:
     _output = convert_rule(
-        rule_yaml=${ruleYaml},
-        target=${target},
-        pipeline_names=${pipelineNames},
-        pipeline_ymls=${pipelineYmls},
-        filter_yml=${filterYml},
-        output_format=${outputFormat},
-        correlation_method=${correlationMethod},
-        backend_options=_json.loads(${backendOpts}),
+        rule_yaml=_params["ruleYaml"],
+        target=_params["target"],
+        pipeline_names=_params.get("pipelineNames") or [],
+        pipeline_ymls=_params.get("pipelineYmls") or [],
+        filter_yml=_params.get("filterYml"),
+        output_format=_params.get("outputFormat", "default"),
+        correlation_method=_params.get("correlationMethod"),
+        backend_options=_params.get("backendOptions") or {},
     )
     if isinstance(_output, bytes):
         _output = _output.decode("utf-8")
@@ -133,47 +124,58 @@ except Exception as _e:
     _conv_result = _json.dumps({"success": False, "error": str(_e)})
 _conv_result
 `;
-}
 
 async function convert(
   payload: Record<string, unknown>
 ): Promise<Record<string, unknown>> {
-  if (!pyodide) throw new Error("Pyodide not initialized");
+  if (!pyodide) {
+    throw new Error("Pyodide not initialized");
+  }
 
   const packageName = payload.packageName;
   if (packageName && typeof packageName === "string") {
     await installBackendPackage(packageName);
   }
 
-  const pyCode = buildConvertCall(payload);
-  const resultJson = (await pyodide.runPythonAsync(pyCode)) as string;
+  pyodide.globals.set("_params_json", JSON.stringify(payload));
+  const resultJson = (await pyodide.runPythonAsync(CONVERT_PYTHON)) as string;
   return JSON.parse(resultJson) as Record<string, unknown>;
 }
+
+const GET_PIPELINES_PYTHON = `
+import json as _json
+_json.dumps(get_available_pipelines(_pipeline_backend or ""))
+`;
 
 async function getPipelines(
   payload: Record<string, unknown>
 ): Promise<unknown> {
-  if (!pyodide) throw new Error("Pyodide not initialized");
+  if (!pyodide) {
+    throw new Error("Pyodide not initialized");
+  }
 
-  const backend = payload.backend ? JSON.stringify(payload.backend) : "None";
-  const resultJson = (await pyodide.runPythonAsync(`
-import json
-json.dumps(get_available_pipelines(${backend}))
-`)) as string;
+  pyodide.globals.set(
+    "_pipeline_backend",
+    typeof payload.backend === "string" ? payload.backend : ""
+  );
+  const resultJson = (await pyodide.runPythonAsync(
+    GET_PIPELINES_PYTHON
+  )) as string;
   return JSON.parse(resultJson);
 }
 
-const initPromise = initPyodide().catch((err: Error) => {
-  sendStatus(`Error: ${err.message}`, 0);
-  throw err;
+const initPromise = initPyodide().catch((error: Error) => {
+  sendStatus(`Error: ${error.message}`, 0);
+  throw error;
 });
 
 registerPromiseWorker(async (msg: WorkerMessage) => {
   await initPromise;
 
   switch (msg.type) {
-    case "convert":
+    case "convert": {
       return convert(msg.payload ?? {});
+    }
     case "install": {
       const pkg = msg.payload?.packageName;
       if (typeof pkg === "string") {
@@ -181,11 +183,14 @@ registerPromiseWorker(async (msg: WorkerMessage) => {
       }
       return { success: true };
     }
-    case "get_pipelines":
+    case "get_pipelines": {
       return getPipelines(msg.payload ?? {});
-    case "status":
+    }
+    case "status": {
       return { ready: pyodide !== null };
-    default:
+    }
+    default: {
       throw new Error(`Unknown message type: ${msg.type}`);
+    }
   }
 });

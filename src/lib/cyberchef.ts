@@ -146,7 +146,7 @@ export function generateCyberChefUrl(
 
 // Generate CyberChef URL for a specific operation
 export function generateCustomRecipeUrl(
-  operations: Array<{ op: string; args: unknown[] }>,
+  operations: { op: string; args: unknown[] }[],
   input?: string
 ): string {
   const params = new URLSearchParams();

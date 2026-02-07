@@ -105,8 +105,7 @@ export function Header({ showSearch = true }: HeaderProps) {
       );
 
     const firstElement = focusableElements[0];
-    // biome-ignore lint/style/useAtIndex: NodeList.at() not supported in all browsers
-    const lastElement = focusableElements.at(-1);
+    const lastElement = [...focusableElements].at(-1);
 
     const handleTabKey = (e: KeyboardEvent) => {
       if (e.key !== "Tab") {

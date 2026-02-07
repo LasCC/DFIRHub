@@ -19,6 +19,7 @@ export class SigmaConverter {
   private ready = false;
   private progressCallbacks: ProgressCallback[] = [];
   private unsubscribeStatus: (() => void) | null = null;
+  private initTimeout: number | undefined;
 
   onProgress(callback: ProgressCallback): void {
     this.progressCallbacks.push(callback);
@@ -29,9 +30,13 @@ export class SigmaConverter {
   }
 
   async initialize(): Promise<void> {
-    if (this.ready) return;
+    if (this.ready) {
+      return;
+    }
 
-    return new Promise<void>((resolve, reject) => {
+    const INIT_TIMEOUT_MS = 60_000;
+
+    const initPromise = new Promise<void>((resolve, reject) => {
       this.unsubscribeStatus = addStatusListener((status: WorkerStatus) => {
         for (const cb of this.progressCallbacks) {
           cb(status.progress);
@@ -47,6 +52,23 @@ export class SigmaConverter {
         }
       });
     });
+
+    const timeoutPromise = new Promise<never>((_resolve, reject) => {
+      this.initTimeout = globalThis.setTimeout(() => {
+        reject(
+          new Error(
+            "Initialization timed out after 60 seconds. Check your network connection and try again."
+          )
+        );
+      }, INIT_TIMEOUT_MS) as unknown as number;
+    });
+
+    try {
+      await Promise.race([initPromise, timeoutPromise]);
+    } finally {
+      clearTimeout(this.initTimeout);
+      this.initTimeout = undefined;
+    }
   }
 
   async convert(
@@ -93,10 +115,10 @@ export class SigmaConverter {
         error: result.error,
         backend,
       };
-    } catch (err: unknown) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : String(err),
+        error: error instanceof Error ? error.message : String(error),
         backend,
       };
     }
@@ -130,6 +152,8 @@ export class SigmaConverter {
   destroy(): void {
     this.ready = false;
     this.progressCallbacks = [];
+    clearTimeout(this.initTimeout);
+    this.initTimeout = undefined;
     if (this.unsubscribeStatus) {
       this.unsubscribeStatus();
       this.unsubscribeStatus = null;

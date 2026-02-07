@@ -15,7 +15,9 @@ export function encodeShareState(state: ShareState): string {
 export function decodeShareState(hash: string): ShareState | null {
   try {
     const json = LZString.decompressFromEncodedURIComponent(hash);
-    if (!json) return null;
+    if (!json) {
+      return null;
+    }
     return JSON.parse(json) as ShareState;
   } catch {
     return null;

@@ -85,10 +85,14 @@ export function getRelatedSigmaCategories(artifactName: string): string[] {
 export function parseLogsourceFromYaml(yamlString: string): Logsource | null {
   try {
     const parsed = yaml.load(yamlString) as any;
-    if (!parsed?.logsource) return null;
+    if (!parsed?.logsource) {
+      return null;
+    }
 
     const { category, product, service } = parsed.logsource;
-    if (!(category && product)) return null;
+    if (!(category && product)) {
+      return null;
+    }
 
     return { category, product, service };
   } catch {

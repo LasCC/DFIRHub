@@ -117,6 +117,7 @@ export function ConverterLayout() {
   const [showExport, setShowExport] = useState(false);
   const [showSigmaSearch, setShowSigmaSearch] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [initError, setInitError] = useState<string | null>(null);
   const [autoConvert, setAutoConvert] = useState(initial.autoConvert);
   const [shareCopied, triggerShareCopied] = useCopyFeedback();
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -231,28 +232,53 @@ export function ConverterLayout() {
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
+  const initializeConverter = useCallback(() => {
     const converter = new SigmaConverter();
     converterRef.current = converter;
+    setInitError(null);
+    setLoadingProgress(0);
+    setIsReady(false);
     converter.onProgress(setLoadingProgress);
-    converter.initialize().then(async () => {
-      if (cancelled) {
-        return;
-      }
-      setIsReady(true);
-      const pipelines = await converter.getAvailablePipelines();
-      if (cancelled) {
-        return;
-      }
-      setAvailablePipelines(pipelines);
-    });
+    converter
+      .initialize()
+      .then(async () => {
+        if (!mountedRef.current) {
+          return;
+        }
+        setIsReady(true);
+        const pipelines = await converter.getAvailablePipelines();
+        if (!mountedRef.current) {
+          return;
+        }
+        setAvailablePipelines(pipelines);
+      })
+      .catch((error: unknown) => {
+        if (!mountedRef.current) {
+          return;
+        }
+        setInitError(
+          error instanceof Error ? error.message : "Failed to initialize"
+        );
+      });
+    return converter;
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    const converter = initializeConverter();
     return () => {
-      cancelled = true;
       mountedRef.current = false;
       converter.destroy();
     };
-  }, []);
+  }, [initializeConverter]);
+
+  const handleRetry = useCallback(() => {
+    const prev = converterRef.current;
+    if (prev) {
+      prev.destroy();
+    }
+    initializeConverter();
+  }, [initializeConverter]);
 
   // Keyboard shortcut: Cmd+Shift+K to open Sigma search
   useEffect(() => {
@@ -268,7 +294,7 @@ export function ConverterLayout() {
 
   const handleConvert = useCallback(async () => {
     const converter = converterRef.current;
-    if (!(converter && converter.isReady() && rule.trim())) {
+    if (!(converter?.isReady() && rule.trim())) {
       return;
     }
 
@@ -326,7 +352,16 @@ export function ConverterLayout() {
     backendOptions,
   ]);
 
-  // Auto-convert with debounce
+  // Auto-convert on first load (one-shot: run immediately when Pyodide is ready)
+  const hasAutoConverted = useRef(false);
+  useEffect(() => {
+    if (isReady && !hasAutoConverted.current && rule.trim()) {
+      hasAutoConverted.current = true;
+      handleConvert();
+    }
+  }, [isReady, rule, handleConvert]);
+
+  // Auto-convert with debounce (when toggle is on)
   useEffect(() => {
     if (!(autoConvert && isReady)) {
       return;
@@ -394,7 +429,12 @@ export function ConverterLayout() {
   return (
     <div className="relative space-y-6">
       {/* Loading Overlay */}
-      <LoadingOverlay isVisible={!isReady} progress={loadingProgress} />
+      <LoadingOverlay
+        error={initError ?? undefined}
+        isVisible={!isReady}
+        onRetry={handleRetry}
+        progress={loadingProgress}
+      />
 
       {/* Toolbar — single row on desktop, two rows on mobile */}
       <div className="space-y-2 md:space-y-0">

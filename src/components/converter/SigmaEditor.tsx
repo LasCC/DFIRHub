@@ -141,7 +141,6 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
       editor.addAction({
         id: "convert-sigma-rule",
         label: "Convert Sigma Rule",
-        // biome-ignore lint/suspicious/noBitwiseOperators: Monaco keybinding API requires bitwise OR
         keybindings: [2048 | 3],
         run: () => {
           onConvertRef.current?.();
