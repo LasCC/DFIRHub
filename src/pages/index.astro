@@ -4,6 +4,7 @@ import { CategoryFilters } from "../components/artifacts/CategoryFilters";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import { AnimatedSearch } from "../components/search/AnimatedSearch";
+import { GradientBars } from "../components/ui/gradient-bars";
 import Layout from "../layouts/Layout.astro";
 import { getStats, loadAllTargets } from "../lib/kapefiles";
 
@@ -108,12 +109,34 @@ const scenarios = [
   },
 ];
 
+const targetSlugSet = new Set(allTargets.map((target) => target.slug.toLowerCase()));
+
+function resolveScenarioSlugs(candidates: string[]): string[] {
+  const resolved = new Set<string>();
+
+  for (const candidate of candidates) {
+    const normalized = candidate.toLowerCase();
+    const options = [
+      normalized,
+      normalized.replaceAll("$", ""),
+      normalized.startsWith("$") ? `-${normalized.slice(1)}` : normalized,
+    ];
+
+    for (const option of options) {
+      if (targetSlugSet.has(option)) {
+        resolved.add(option);
+      }
+    }
+  }
+
+  return [...resolved];
+}
+
 // Count matching artifacts for each scenario
 const scenariosWithCounts = scenarios.map((scenario) => {
-  const count = allTargets.filter((t) =>
-    scenario.artifacts.some((a) =>
-      t.slug.toLowerCase().includes(a.toLowerCase())
-    )
+  const scenarioSlugs = resolveScenarioSlugs(scenario.artifacts);
+  const count = allTargets.filter((target) =>
+    scenarioSlugs.includes(target.slug.toLowerCase())
   ).length;
   return {
     id: scenario.id,
@@ -239,7 +262,7 @@ const tools = [
   <div class="min-h-screen w-full overflow-x-hidden">
     <Header client:load />
 
-    <main>
+    <main id="main-content" tabindex="-1">
       <!-- Hero -->
       <div class="hero-section relative overflow-visible">
         <!-- Background atmosphere -->
@@ -247,6 +270,7 @@ const tools = [
           class="pointer-events-none absolute inset-0 overflow-hidden"
           aria-hidden="true"
         >
+          <GradientBars client:load bars={28} className="opacity-75" />
           <div class="hero-dots absolute inset-0 opacity-[0.035]"></div>
           <!-- Aurora gradient blobs -->
           <div

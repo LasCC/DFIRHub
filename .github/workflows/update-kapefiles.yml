@@ -8,10 +8,38 @@ on:
     # Allow manual triggering
 
 jobs:
-  trigger-build:
+  update-kapefiles-submodule:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Update KapeFiles submodule
+        run: |
+          git submodule update --remote --recursive src/content/kapefiles
+
+      - name: Check for submodule changes
+        id: changes
+        run: |
+          if git diff --quiet src/content/kapefiles; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push submodule update
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/content/kapefiles
+          git commit -m "Update KapeFiles submodule"
+          git push
+
       - name: Trigger Netlify Build
+        if: steps.changes.outputs.changed == 'true'
         run: |
           curl -X POST -d {} ${{ secrets.NETLIFY_BUILD_HOOK }}
-          echo "Netlify build triggered. KapeFiles will be updated during build."
+          echo "Netlify build triggered with updated KapeFiles submodule."

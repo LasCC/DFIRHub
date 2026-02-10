@@ -10,8 +10,8 @@ const targets = loadAllTargets();
 const categories = getCategories();
 const stats = getStats();
 
-// Scenario artifact mappings
-const scenarioArtifacts: Record<string, string[]> = {
+// Scenario artifact mappings (resolved to exact slugs)
+const scenarioArtifactAliases: Record<string, string[]> = {
   "anti-forensics": [
     "$mft",
     "$j",
@@ -71,6 +71,36 @@ const scenarioArtifacts: Record<string, string[]> = {
     "mru",
   ],
 };
+
+const slugSet = new Set(targets.map((target) => target.slug.toLowerCase()));
+
+function resolveScenarioSlugs(candidates: string[]): string[] {
+  const resolved = new Set<string>();
+
+  for (const candidate of candidates) {
+    const normalized = candidate.toLowerCase();
+    const options = [
+      normalized,
+      normalized.replaceAll("$", ""),
+      normalized.startsWith("$") ? `-${normalized.slice(1)}` : normalized,
+    ];
+
+    for (const option of options) {
+      if (slugSet.has(option)) {
+        resolved.add(option);
+      }
+    }
+  }
+
+  return [...resolved];
+}
+
+const scenarioArtifacts = Object.fromEntries(
+  Object.entries(scenarioArtifactAliases).map(([scenario, aliases]) => [
+    scenario,
+    resolveScenarioSlugs(aliases),
+  ])
+);
 
 // Group targets by category
 const targetsByCategory = categories.reduce(
@@ -454,10 +484,10 @@ const filterCategories = [
     } else if (scenarioParam && scenarioArtifacts[scenarioParam]) {
       isFiltered = true;
       label = scenarioLabels[scenarioParam] || scenarioParam;
-      const patterns = scenarioArtifacts[scenarioParam];
+      const scenarioSlugs = scenarioArtifacts[scenarioParam];
       allTargets.forEach((t) => {
         const slugLower = t.slug.toLowerCase();
-        if (patterns.some((p) => slugLower.includes(p.toLowerCase()))) {
+        if (scenarioSlugs.includes(slugLower)) {
           matchingSlugs.add(slugLower);
         }
       });

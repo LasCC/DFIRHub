@@ -90,7 +90,7 @@ export function SigmaSearchDialog({
   onSelect,
 }: SigmaSearchDialogProps) {
   const { query, setQuery, results, loading, indexReady, ruleCount } =
-    useSigmaSearch();
+    useSigmaSearch(open);
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const handleSelect = useCallback(

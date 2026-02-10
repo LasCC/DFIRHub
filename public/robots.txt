@@ -8,7 +8,7 @@ Allow: /
 Sitemap: https://dfirhub.com/sitemap-index.xml
 
 # Block search result pages with filters (duplicate content)
-Disallow: /artefacts?*
+Disallow: /artifacts?*
 
 # Allow all crawlers to access assets
 User-agent: *

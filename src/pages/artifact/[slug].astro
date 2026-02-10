@@ -21,6 +21,15 @@ import type { KapeTarget } from '../../lib/kapefiles';
 
 export async function getStaticPaths() {
   const targets = loadAllTargets();
+  const seen = new Set<string>();
+
+  for (const target of targets) {
+    if (seen.has(target.slug)) {
+      throw new Error(`Duplicate artifact slug in static paths: ${target.slug}`);
+    }
+    seen.add(target.slug);
+  }
+
   return targets.map((target) => ({
     params: { slug: target.slug },
     props: { target },

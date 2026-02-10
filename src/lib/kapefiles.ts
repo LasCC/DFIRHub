@@ -49,6 +49,11 @@ interface RawKapeTargetEntry {
 
 // Cache for loaded targets
 let targetCache: KapeTarget[] | null = null;
+let targetIndexesCache: {
+  slugMap: Map<string, KapeTarget>;
+  sourceMap: Map<string, KapeTarget[]>;
+} | null = null;
+let collectionLookupCache: Map<string, KapeTarget[]> | null = null;
 
 // Create URL-safe slug from filename
 function createSlug(filename: string): string {
@@ -58,6 +63,108 @@ function createSlug(filename: string): string {
     .replaceAll(/[^a-zA-Z0-9_-]+/g, "-")
     .replaceAll(/^-|-$/g, "")
     .toLowerCase();
+}
+
+function stableHash(input: string): string {
+  let hash = 0;
+  for (let index = 0; index < input.length; index++) {
+    hash = Math.trunc(
+      (hash * 31 + (input.codePointAt(index) ?? 0)) % 4_294_967_296
+    );
+    if (hash < 0) {
+      hash += 4_294_967_296;
+    }
+  }
+  return hash.toString(36).slice(0, 6);
+}
+
+function assignUniqueSlugs(targets: KapeTarget[]): void {
+  const groupedBySlug = new Map<string, KapeTarget[]>();
+
+  for (const target of targets) {
+    const existing = groupedBySlug.get(target.slug) ?? [];
+    existing.push(target);
+    groupedBySlug.set(target.slug, existing);
+  }
+
+  const usedSlugs = new Set<string>();
+
+  for (const [slug, grouped] of groupedBySlug) {
+    if (grouped.length === 1) {
+      usedSlugs.add(slug);
+      continue;
+    }
+
+    const sortedTargets = grouped.toSorted((left, right) => {
+      const leftKey = `${left.category}/${left.sourceFile}`.toLowerCase();
+      const rightKey = `${right.category}/${right.sourceFile}`.toLowerCase();
+      return leftKey.localeCompare(rightKey);
+    });
+
+    // Keep one canonical route unchanged to preserve existing links.
+    const [canonical, ...duplicates] = sortedTargets;
+    canonical.slug = slug;
+    usedSlugs.add(slug);
+
+    for (const duplicate of duplicates) {
+      const sourceBase = duplicate.sourceFile.replace(/\.tkape$/, "");
+      const categorySuffix = createSlug(duplicate.category) || "category";
+      const sourceSuffix = createSlug(sourceBase) || "target";
+      const discriminator = stableHash(
+        `${duplicate.category}/${duplicate.sourceFile}`.toLowerCase()
+      );
+
+      const candidates = [
+        `${slug}-${categorySuffix}`,
+        `${slug}-${sourceSuffix}`,
+        `${slug}-${categorySuffix}-${discriminator}`,
+      ];
+
+      let uniqueSlug = candidates.find(
+        (candidate) => !usedSlugs.has(candidate)
+      );
+      if (!uniqueSlug) {
+        uniqueSlug = `${slug}-${categorySuffix}-${sourceSuffix}-${discriminator}`;
+      }
+
+      duplicate.slug = uniqueSlug;
+      usedSlugs.add(uniqueSlug);
+    }
+  }
+
+  const duplicateSlugs = targets
+    .map((target) => target.slug)
+    .filter((slug, index, all) => all.indexOf(slug) !== index);
+  if (duplicateSlugs.length > 0) {
+    const values = [...new Set(duplicateSlugs)].join(", ");
+    throw new Error(`Duplicate artifact slugs detected: ${values}`);
+  }
+}
+
+function getTargetIndexes(): {
+  slugMap: Map<string, KapeTarget>;
+  sourceMap: Map<string, KapeTarget[]>;
+} {
+  if (targetIndexesCache) {
+    return targetIndexesCache;
+  }
+
+  const allTargets = loadAllTargets();
+  const slugMap = new Map(allTargets.map((target) => [target.slug, target]));
+  const sourceMap = new Map<string, KapeTarget[]>();
+
+  for (const target of allTargets) {
+    const sourceKey = target.sourceFile
+      .replace(/\.tkape$/, "")
+      .replace(/^!/, "")
+      .toLowerCase();
+    const existing = sourceMap.get(sourceKey) ?? [];
+    existing.push(target);
+    sourceMap.set(sourceKey, existing);
+  }
+
+  targetIndexesCache = { slugMap, sourceMap };
+  return targetIndexesCache;
 }
 
 // Parse a single .tkape file
@@ -152,7 +259,8 @@ export function loadAllTargets(): KapeTarget[] {
   const categories = fs
     .readdirSync(targetsDir, { withFileTypes: true })
     .filter((d) => d.isDirectory() && !d.name.startsWith("."))
-    .map((d) => d.name);
+    .map((d) => d.name)
+    .toSorted();
 
   for (const category of categories) {
     // Skip disabled targets
@@ -163,7 +271,8 @@ export function loadAllTargets(): KapeTarget[] {
     const categoryDir = path.join(targetsDir, category);
     const files = fs
       .readdirSync(categoryDir)
-      .filter((f) => f.endsWith(".tkape"));
+      .filter((f) => f.endsWith(".tkape"))
+      .toSorted();
 
     for (const file of files) {
       const filePath = path.join(categoryDir, file);
@@ -174,6 +283,8 @@ export function loadAllTargets(): KapeTarget[] {
       }
     }
   }
+
+  assignUniqueSlugs(targets);
 
   targetCache = targets;
   return targets;
@@ -211,21 +322,9 @@ export function resolveCompoundReferences(target: KapeTarget): KapeTarget[] {
     return [target];
   }
 
-  const allTargets = loadAllTargets();
+  const { slugMap, sourceMap } = getTargetIndexes();
   const resolved: KapeTarget[] = [];
   const seen = new Set<string>();
-
-  // Build lookup maps for O(1) resolution instead of O(n) linear scans
-  const slugMap = new Map(allTargets.map((t) => [t.slug, t]));
-  const sourceMap = new Map(
-    allTargets.map((t) => [
-      t.sourceFile
-        .replace(/\.tkape$/, "")
-        .replace(/^!/, "")
-        .toLowerCase(),
-      t,
-    ])
-  );
 
   function resolve(refs: string[]) {
     for (const ref of refs) {
@@ -241,8 +340,14 @@ export function resolveCompoundReferences(target: KapeTarget): KapeTarget[] {
       }
       seen.add(refSlug);
 
+      const sourceCandidates = sourceMap.get(refName.toLowerCase()) ?? [];
       const foundTarget =
-        slugMap.get(refSlug) || sourceMap.get(refName.toLowerCase());
+        slugMap.get(refSlug) ||
+        sourceCandidates.toSorted((left, right) =>
+          `${left.category}/${left.sourceFile}`.localeCompare(
+            `${right.category}/${right.sourceFile}`
+          )
+        )[0];
 
       if (foundTarget) {
         if (foundTarget.isCompound) {
@@ -260,17 +365,23 @@ export function resolveCompoundReferences(target: KapeTarget): KapeTarget[] {
 
 // Find collections that include a specific target
 export function findCollectionsContaining(targetSlug: string): KapeTarget[] {
-  const compounds = getCompoundTargets();
-  const target = getTargetBySlug(targetSlug);
+  if (!collectionLookupCache) {
+    const lookup = new Map<string, KapeTarget[]>();
+    const compounds = getCompoundTargets();
 
-  if (!target) {
-    return [];
+    for (const compound of compounds) {
+      const resolved = resolveCompoundReferences(compound);
+      for (const target of resolved) {
+        const existing = lookup.get(target.slug) ?? [];
+        existing.push(compound);
+        lookup.set(target.slug, existing);
+      }
+    }
+
+    collectionLookupCache = lookup;
   }
 
-  return compounds.filter((compound) => {
-    const resolved = resolveCompoundReferences(compound);
-    return resolved.some((t) => t.slug === targetSlug);
-  });
+  return collectionLookupCache.get(targetSlug) ?? [];
 }
 
 // Search targets
@@ -425,4 +536,6 @@ export function generatePowerShellScript(target: KapeTarget): string {
 // Clear the cache (useful for development)
 export function clearCache(): void {
   targetCache = null;
+  targetIndexesCache = null;
+  collectionLookupCache = null;
 }

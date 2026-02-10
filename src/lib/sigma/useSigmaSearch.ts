@@ -8,7 +8,7 @@ import {
   searchSigmaRules,
 } from "./sigma-search";
 
-export function useSigmaSearch() {
+export function useSigmaSearch(enabled = false) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SigmaRuleEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -17,6 +17,10 @@ export function useSigmaSearch() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
+    if (!enabled || indexReady) {
+      return;
+    }
+
     let cancelled = false;
 
     setLoading(true);
@@ -35,8 +39,9 @@ export function useSigmaSearch() {
 
     return () => {
       cancelled = true;
+      setLoading(false);
     };
-  }, []);
+  }, [enabled, indexReady]);
 
   const handleSearch = useCallback(
     (value: string) => {

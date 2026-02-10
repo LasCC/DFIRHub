@@ -400,7 +400,7 @@ export function Search({ showTrigger = true }: SearchProps) {
                 <span>converter</span>
                 <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
                   <kbd className="kbd text-[9px]">g</kbd>
-                  <kbd className="kbd text-[9px]">v</kbd>
+                  <kbd className="kbd text-[9px]">s</kbd>
                 </span>
               </CommandItem>
             </CommandGroup>
