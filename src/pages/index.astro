@@ -270,15 +270,8 @@ const tools = [
           class="pointer-events-none absolute inset-0 overflow-hidden"
           aria-hidden="true"
         >
-          <GradientBars client:load bars={28} className="opacity-75" />
+          <GradientBars client:load bars={28} className="opacity-55" />
           <div class="hero-dots absolute inset-0 opacity-[0.035]"></div>
-          <!-- Aurora gradient blobs -->
-          <div
-            class="animate-aurora-1 absolute -left-32 -top-24 h-[500px] w-[600px] rounded-full bg-primary/[0.06] blur-[100px]"
-          ></div>
-          <div
-            class="animate-aurora-2 absolute -right-32 top-12 h-[400px] w-[500px] rounded-full bg-emerald-500/[0.04] blur-[120px]"
-          ></div>
           <!-- Bottom fade -->
           <div
             class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent"
@@ -987,10 +980,6 @@ const tools = [
       animation: none;
     }
     :global(.animate-blink) {
-      animation: none;
-    }
-    :global(.animate-aurora-1),
-    :global(.animate-aurora-2) {
       animation: none;
     }
   }
