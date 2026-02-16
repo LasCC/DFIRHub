@@ -4,7 +4,6 @@ import { CategoryFilters } from "../components/artifacts/CategoryFilters";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import { AnimatedSearch } from "../components/search/AnimatedSearch";
-import { GradientBars } from "../components/ui/gradient-bars";
 import Layout from "../layouts/Layout.astro";
 import { getStats, loadAllTargets } from "../lib/kapefiles";
 
@@ -209,12 +208,12 @@ const categories = [
 
 // Scenario color classes for hero grid
 const scenarioColorMap = {
-  cyan: { icon: "text-cyan-400", iconBg: "bg-cyan-500/10", glow: "bg-cyan-500/[0.07]" },
-  blue: { icon: "text-blue-400", iconBg: "bg-blue-500/10", glow: "bg-blue-500/[0.07]" },
-  red: { icon: "text-red-400", iconBg: "bg-red-500/10", glow: "bg-red-500/[0.07]" },
-  green: { icon: "text-green-400", iconBg: "bg-green-500/10", glow: "bg-green-500/[0.07]" },
-  purple: { icon: "text-purple-400", iconBg: "bg-purple-500/10", glow: "bg-purple-500/[0.07]" },
-  amber: { icon: "text-amber-400", iconBg: "bg-amber-500/10", glow: "bg-amber-500/[0.07]" },
+  cyan: { icon: "text-cyan-400", iconBg: "bg-cyan-500/10" },
+  blue: { icon: "text-blue-400", iconBg: "bg-blue-500/10" },
+  red: { icon: "text-red-400", iconBg: "bg-red-500/10" },
+  green: { icon: "text-green-400", iconBg: "bg-green-500/10" },
+  purple: { icon: "text-purple-400", iconBg: "bg-purple-500/10" },
+  amber: { icon: "text-amber-400", iconBg: "bg-amber-500/10" },
 };
 
 // Tool cards
@@ -265,40 +264,11 @@ const tools = [
     <main id="main-content" tabindex="-1">
       <!-- Hero -->
       <div class="hero-section relative overflow-visible">
-        <!-- Background atmosphere -->
-        <div
-          class="pointer-events-none absolute inset-0 overflow-hidden"
-          aria-hidden="true"
-        >
-          <GradientBars client:load bars={28} className="opacity-55" />
-          <div class="hero-dots absolute inset-0 opacity-[0.035]"></div>
-          <!-- Bottom fade -->
-          <div
-            class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent"
-          ></div>
-        </div>
-
         <div
           class="relative mx-auto max-w-6xl px-4 pb-12 pt-16 sm:pb-20 sm:pt-24"
         >
           <div>
             <div class="text-center lg:text-left">
-              <!-- Eyebrow -->
-              <div class="mb-6 flex justify-center lg:justify-start">
-                <div
-                  class="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/[0.06] px-3 py-1"
-                >
-                  <span
-                    class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"
-                  ></span>
-                  <span
-                    class="text-[11px] text-primary/80 font-medium tracking-wide"
-                    ><span class="font-mono">{stats.total}</span> artifacts
-                    indexed</span
-                  >
-                </div>
-              </div>
-
               <!-- Heading -->
               <h1
                 class="mx-auto max-w-2xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:mx-0"
@@ -314,7 +284,7 @@ const tools = [
               </h1>
 
               <p
-                class="mx-auto mt-4 max-w-lg text-sm text-muted-foreground sm:mt-5 sm:text-base lg:mx-0"
+                class="mx-auto mt-4 max-w-lg text-sm text-foreground/75 sm:mt-5 sm:text-base lg:mx-0"
               >
                 Search artifact paths, build collection scripts, and convert
                 Sigma rules. All in one place.
@@ -344,7 +314,7 @@ const tools = [
                       href={`/artifacts?scenario=${scenario.id}`}
                       class:list={[
                         "group inline-flex shrink-0 items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] pl-1.5 pr-3 py-1",
-                        "text-xs text-muted-foreground transition-all duration-200",
+                        "text-xs text-foreground/70 transition-all duration-200",
                         "hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-foreground",
                       ]}
                     >
@@ -365,34 +335,6 @@ const tools = [
               </div>
               </div>
 
-              <!-- Quick stats row -->
-              <div
-                class="mx-auto mt-10 flex max-w-md items-center justify-center gap-6 text-xs text-muted-foreground/50 sm:mt-14 sm:gap-10 lg:mx-0 lg:justify-start"
-              >
-                <div class="flex flex-col items-center gap-1 lg:items-start">
-                  <span
-                    class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
-                    >{stats.total}</span
-                  >
-                  <span>Artifacts</span>
-                </div>
-                <div class="h-6 w-px bg-border/30" aria-hidden="true"></div>
-                <div class="flex flex-col items-center gap-1 lg:items-start">
-                  <span
-                    class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
-                    >{Object.keys(stats.byCategory).length}</span
-                  >
-                  <span>Categories</span>
-                </div>
-                <div class="h-6 w-px bg-border/30" aria-hidden="true"></div>
-                <div class="flex flex-col items-center gap-1 lg:items-start">
-                  <span
-                    class="text-lg font-semibold text-foreground/80 font-mono tabular-nums"
-                    >15+</span
-                  >
-                  <span>SIEM backends</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -403,7 +345,7 @@ const tools = [
         <ScrollReveal client:visible>
           <section class="py-10 sm:py-16">
             <div class="mb-6 flex items-center gap-4 sm:mb-8">
-              <h2 class="text-xs text-muted-foreground sm:text-sm">
+              <h2 class="text-xs text-muted-foreground/90 sm:text-sm">
                 <span class="text-primary font-mono">//</span> TOOLS
               </h2>
               <div
@@ -443,11 +385,6 @@ const tools = [
                           <path d="m21 21-4.3-4.3"></path>
                         </svg>
                       </div>
-                      <span
-                        class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-400/70"
-                      >
-                        {tools[0].stat}
-                      </span>
                     </div>
                     <h3
                       class="mb-2 text-base font-medium text-foreground transition-colors group-hover:text-foreground sm:text-lg"
@@ -455,12 +392,12 @@ const tools = [
                       {tools[0].title}
                     </h3>
                     <p
-                      class="max-w-lg text-xs leading-relaxed text-muted-foreground/70 sm:text-sm"
+                      class="max-w-lg text-xs leading-relaxed text-muted-foreground/90 sm:text-sm"
                     >
                       {tools[0].description}
                     </p>
                     <div
-                      class="mt-4 flex items-center gap-1 text-xs text-muted-foreground/40 transition-colors group-hover:text-primary/60"
+                      class="mt-4 flex items-center gap-1 text-xs text-muted-foreground/70 transition-colors group-hover:text-primary/70"
                     >
                       <span>Explore</span>
                       <svg
@@ -587,11 +524,11 @@ const tools = [
                     <h3 class="mb-1.5 text-sm font-medium text-foreground transition-colors group-hover:text-foreground sm:text-base">
                       {tool.title}
                     </h3>
-                    <p class="text-xs leading-relaxed text-muted-foreground/70 sm:text-sm">
+                    <p class="text-xs leading-relaxed text-muted-foreground/90 sm:text-sm">
                       {tool.description}
                     </p>
 
-                    <div class="mt-4 flex items-center gap-1 text-xs text-muted-foreground/40 transition-colors group-hover:text-primary/60">
+                    <div class="mt-4 flex items-center gap-1 text-xs text-muted-foreground/70 transition-colors group-hover:text-primary/70">
                       <span>Explore</span>
                       <svg
                         aria-hidden="true"
@@ -630,7 +567,7 @@ const tools = [
         <ScrollReveal client:visible>
           <section class="border-t border-border/20 py-10 sm:py-16">
             <div class="mb-6 flex items-center gap-4 sm:mb-8">
-              <h2 class="text-xs text-muted-foreground sm:text-sm">
+              <h2 class="text-xs text-muted-foreground/90 sm:text-sm">
                 <span class="text-primary font-mono">//</span> WHY DFIRHUB
               </h2>
               <div
@@ -670,7 +607,7 @@ const tools = [
                   Always Current
                 </h3>
                 <p
-                  class="text-xs leading-relaxed text-muted-foreground/70 sm:text-sm"
+                  class="text-xs leading-relaxed text-muted-foreground/90 sm:text-sm"
                 >
                   Artifacts synced weekly from KapeFiles. Always up to date with
                   the latest forensic targets.
@@ -706,7 +643,7 @@ const tools = [
                   Browser-Native
                 </h3>
                 <p
-                  class="text-xs leading-relaxed text-muted-foreground/70 sm:text-sm"
+                  class="text-xs leading-relaxed text-muted-foreground/90 sm:text-sm"
                 >
                   Everything runs in your browser. No server, no telemetry, no
                   data leaves your machine.
@@ -741,7 +678,7 @@ const tools = [
                   Investigation-Ready
                 </h3>
                 <p
-                  class="text-xs leading-relaxed text-muted-foreground/70 sm:text-sm"
+                  class="text-xs leading-relaxed text-muted-foreground/90 sm:text-sm"
                 >
                   From artifact lookup to collection script in seconds. Built
                   for DFIR practitioners.
@@ -757,7 +694,7 @@ const tools = [
         <ScrollReveal client:visible delay={0.1}>
           <section class="border-t border-border/20 py-10 sm:py-16">
             <div class="mb-6 flex items-center gap-4 sm:mb-8">
-              <h2 class="text-xs text-muted-foreground sm:text-sm">
+              <h2 class="text-xs text-muted-foreground/90 sm:text-sm">
                 <span class="text-primary font-mono">//</span> POPULAR ARTIFACTS
               </h2>
               <div
@@ -805,14 +742,14 @@ const tools = [
                             <span class="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/60" aria-hidden="true"></span>
                             {artifact.name}
                           </h3>
-                          <p class="mb-2 truncate text-[10px] text-muted-foreground sm:text-xs">
+                          <p class="mb-2 truncate text-[10px] text-muted-foreground/90 sm:text-xs">
                             {artifact.description || "Forensic artifact"}
                           </p>
                           <div class="flex items-center gap-1.5 text-[9px] sm:gap-2 sm:text-[10px]">
-                            <span class="rounded bg-white/[0.04] px-1.5 py-0.5 uppercase text-muted-foreground/50">
+                            <span class="rounded bg-white/[0.06] px-1.5 py-0.5 uppercase text-muted-foreground/80">
                               {artifact.category}
                             </span>
-                            <span class="font-mono tabular-nums text-muted-foreground/50">
+                            <span class="font-mono tabular-nums text-muted-foreground/80">
                               {pathCount}
                             </span>
                           </div>
@@ -845,14 +782,14 @@ const tools = [
                             <span class="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/60" aria-hidden="true"></span>
                             {artifact.name}
                           </h3>
-                          <p class="mb-2 truncate text-[10px] text-muted-foreground sm:text-xs">
+                          <p class="mb-2 truncate text-[10px] text-muted-foreground/90 sm:text-xs">
                             {artifact.description || "Forensic artifact"}
                           </p>
                           <div class="flex items-center gap-1.5 text-[9px] sm:gap-2 sm:text-[10px]">
-                            <span class="rounded bg-white/[0.04] px-1.5 py-0.5 uppercase text-muted-foreground/50">
+                            <span class="rounded bg-white/[0.06] px-1.5 py-0.5 uppercase text-muted-foreground/80">
                               {artifact.category}
                             </span>
-                            <span class="font-mono tabular-nums text-muted-foreground/50">
+                            <span class="font-mono tabular-nums text-muted-foreground/80">
                               {pathCount}
                             </span>
                           </div>
@@ -889,20 +826,6 @@ const tools = [
   /* ---- Hero background effects ---- */
   .hero-section {
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  }
-
-  .hero-dots {
-    background-image: radial-gradient(
-      circle,
-      rgba(255, 255, 255, 0.5) 1px,
-      transparent 1px
-    );
-    background-size: 32px 32px;
-    mask-image: radial-gradient(
-      ellipse 70% 60% at 50% 40%,
-      black 20%,
-      transparent 100%
-    );
   }
 
   /* ---- Tool featured card ---- */
