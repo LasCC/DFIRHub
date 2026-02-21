@@ -435,17 +435,20 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
       type="button"
     >
       <div className="min-w-0 flex-1">
-        <div className="mb-1.5 flex items-center gap-2">
+        <div className="mb-1.5 flex flex-wrap items-start gap-1.5 sm:items-center sm:gap-2">
           <span
-            className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider ${colorClasses}`}
+            className={`inline-flex max-w-[11.5rem] items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wider sm:text-[9px] ${colorClasses}`}
+            title={entry.category || "file"}
           >
             {entry.category || "file"}
           </span>
           {entry.name && (
-            <span className="text-muted-foreground text-xs">{entry.name}</span>
+            <span className="text-muted-foreground text-[11px] leading-4 sm:text-xs">
+              {entry.name}
+            </span>
           )}
         </div>
-        <code className="block break-all font-mono text-xs leading-relaxed">
+        <code className="block break-all font-mono text-[11px] leading-relaxed sm:text-xs">
           {segments.map((seg, i) => {
             switch (seg.type) {
               case "drive": {
@@ -496,10 +499,10 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
         )}
       </div>
       <span
-        className={`relative ml-4 shrink-0 rounded-md p-1.5 transition-all ${
+        className={`relative ml-2 shrink-0 rounded-md p-1.5 transition-all sm:ml-4 ${
           isCopied
             ? "text-primary"
-            : "text-muted-foreground/50 opacity-0 hover:text-foreground group-hover:opacity-100 group-focus-visible:opacity-100"
+            : "text-muted-foreground/50 opacity-100 sm:opacity-0 hover:text-foreground sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100"
         }`}
         title={isCopied ? "Copied!" : "Copy path"}
       >

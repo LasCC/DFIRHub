@@ -237,8 +237,8 @@ export function Search({ showTrigger = true }: SearchProps) {
           />
           <span className="ml-2 hidden sm:inline">search</span>
           <span className="ml-2 hidden items-center gap-1 sm:flex">
-            <kbd className="kbd text-[9px]">{isMac ? "⌘" : "ctrl"}</kbd>
-            <kbd className="kbd text-[9px]">K</kbd>
+            <kbd className="kbd kbd-compact">{isMac ? "⌘" : "ctrl"}</kbd>
+            <kbd className="kbd kbd-compact">K</kbd>
           </span>
         </button>
       )}

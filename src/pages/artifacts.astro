@@ -431,14 +431,25 @@ const filterCategories = [
 
   function updateFilterButtons(activeId) {
     const buttons = document.querySelectorAll(".category-filter-btn");
+    let activeButton = null;
+
     buttons.forEach((btn) => {
       const filterId = btn.getAttribute("data-filter-id");
       if (filterId === activeId) {
         btn.setAttribute("data-active", "true");
+        activeButton = btn;
       } else {
         btn.removeAttribute("data-active");
       }
     });
+
+    if (activeButton) {
+      activeButton.scrollIntoView({
+        behavior: "auto",
+        block: "nearest",
+        inline: "center",
+      });
+    }
   }
 
   function applyFilter() {
