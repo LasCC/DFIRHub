@@ -273,14 +273,7 @@ const tools = [
               <h1
                 class="mx-auto max-w-2xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:mx-0"
               >
-                Find forensic artifacts,
-                <span class="hero-accent relative">
-                  <span class="relative z-10 text-gradient-primary">fast</span>
-                  <span
-                    class="absolute -inset-x-2 bottom-0 h-[0.35em] bg-primary/10 rounded-sm"
-                    aria-hidden="true"
-                  ></span>
-                </span>
+                Find forensic artifacts,&nbsp;<span class="text-primary whitespace-nowrap">fast</span>
               </h1>
 
               <p
@@ -305,7 +298,7 @@ const tools = [
                 <span class="text-[10px] uppercase tracking-widest text-muted-foreground">Investigate by scenario</span>
                 <div class="h-px w-4 bg-border/20" aria-hidden="true"></div>
               </div>
-              <div class="scroll-shadow-x" id="scenario-scroll-wrapper">
+              <div class="scroll-shadow-x scrolled-start" id="scenario-scroll-wrapper">
               <div class="mt-2.5 flex gap-2 overflow-x-auto scrollbar-hide lg:flex-wrap lg:justify-start" id="scenario-scroll">
                 {scenariosWithCounts.map((scenario) => {
                   const colors = scenarioColorMap[scenario.color] || scenarioColorMap.cyan;
@@ -918,7 +911,9 @@ const tools = [
     const s = scroll;
 
     function check() {
+      const atStart = s.scrollLeft <= 1;
       const atEnd = s.scrollLeft + s.clientWidth >= s.scrollWidth - 2;
+      w.classList.toggle("scrolled-start", atStart);
       w.classList.toggle("scrolled-end", atEnd);
     }
 

@@ -49,7 +49,6 @@
     "shiki": "^3.22.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
-    "tailwindcss-corner-shape": "^1.4.6",
     "typescript": "^5.9.3"
   },
   "devDependencies": {

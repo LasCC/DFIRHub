@@ -144,6 +144,7 @@ export function ConverterLayout() {
 
   // Scroll shadow for mobile toolbar
   const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const [mobileScrollStart, setMobileScrollStart] = useState(true);
   const [mobileScrollEnd, setMobileScrollEnd] = useState(false);
 
   const checkMobileScroll = useCallback(() => {
@@ -151,7 +152,8 @@ export function ConverterLayout() {
     if (!el) {
       return;
     }
-    setMobileScrollEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+    setMobileScrollStart(el.scrollLeft <= 1);
+    setMobileScrollEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
   }, []);
 
   useEffect(() => {
@@ -616,7 +618,7 @@ export function ConverterLayout() {
 
         {/* Mobile row 2: Target, Pipeline, Multi, Auto — horizontal scroll */}
         <div
-          className={`scroll-shadow-x md:hidden${mobileScrollEnd ? " scrolled-end" : ""}`}
+          className={`scroll-shadow-x md:hidden${mobileScrollStart ? " scrolled-start" : ""}${mobileScrollEnd ? " scrolled-end" : ""}`}
         >
           <div
             className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
