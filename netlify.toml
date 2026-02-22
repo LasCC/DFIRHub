@@ -1,5 +1,5 @@
 [build]
-command = "rm -rf .astro/content-cache && git submodule update --init --recursive && bun install --frozen-lockfile && bun run build"
+command = "rm -rf .astro/content-cache && git submodule sync --recursive && git submodule update --init --recursive --remote src/content/kapefiles && bun install --frozen-lockfile && bun run build"
 publish = "dist"
 
 [build.environment]
