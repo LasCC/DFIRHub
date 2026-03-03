@@ -49,7 +49,8 @@
     "shiki": "^3.22.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "web-haptics": "^0.0.6"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

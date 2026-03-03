@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { useHaptics } from "@/hooks/useHaptics";
+
 import { Search } from "../search/Search";
 
 // Real GitHub mark icon (filled octocat)
@@ -78,6 +80,7 @@ const navItems: NavItem[] = [
 export function Header({ showSearch = true }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const { toggleHaptic } = useHaptics();
   const mobileNavRef = useRef<HTMLDivElement>(null);
 
   // Close mobile menu on escape
@@ -165,7 +168,10 @@ export function Header({ showSearch = true }: HeaderProps) {
               mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"
             }
             className="glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-muted-foreground transition-all duration-200 hover:border-white/[0.1] hover:text-foreground md:hidden"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            onClick={() => {
+              toggleHaptic();
+              setMobileMenuOpen((prev) => !prev);
+            }}
             ref={menuButtonRef}
             type="button"
           >

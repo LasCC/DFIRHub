@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { KapeTarget } from "../../lib/kapefiles";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
+import { useHaptics } from "../../hooks/useHaptics";
 import { CodeBlock } from "../ui/CodeBlock";
 
 type CommandFormat = "kape" | "powershell" | "batch" | "wsl";
@@ -24,6 +25,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
   const [useVss, setUseVss] = useState(false);
   const [useVhdx, setUseVhdx] = useState(false);
   const [copiedId, triggerCopied] = useCopyFeedbackKeyed<string>();
+  const { tapHaptic, toggleHaptic } = useHaptics();
 
   // Get all paths from the target (for PowerShell/batch generation)
   const targetPaths = useMemo(() => {
@@ -420,7 +422,10 @@ echo "For compound targets, use KAPE directly for best results."
                 : "text-muted-foreground hover:text-foreground"
             }`}
             key={tab.id}
-            onClick={() => setFormat(tab.id as CommandFormat)}
+            onClick={() => {
+              tapHaptic();
+              setFormat(tab.id as CommandFormat);
+            }}
             role="tab"
             type="button"
           >
@@ -469,7 +474,10 @@ echo "For compound targets, use KAPE directly for best results."
                 <input
                   checked={useVss}
                   className="h-3 w-3 accent-primary"
-                  onChange={(e) => setUseVss(e.target.checked)}
+                  onChange={(e) => {
+                    toggleHaptic();
+                    setUseVss(e.target.checked);
+                  }}
                   type="checkbox"
                 />
                 <span className="text-muted-foreground">--vss</span>
@@ -478,7 +486,10 @@ echo "For compound targets, use KAPE directly for best results."
                 <input
                   checked={useVhdx}
                   className="h-3 w-3 accent-primary"
-                  onChange={(e) => setUseVhdx(e.target.checked)}
+                  onChange={(e) => {
+                    toggleHaptic();
+                    setUseVhdx(e.target.checked);
+                  }}
                   type="checkbox"
                 />
                 <span className="text-muted-foreground">--vhdx</span>

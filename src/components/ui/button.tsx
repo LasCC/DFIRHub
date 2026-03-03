@@ -4,6 +4,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import * as React from "react";
 
+import { useHaptics } from "@/hooks/useHaptics";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -84,6 +85,8 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
+  /** Set to false to disable haptic feedback on this button. Defaults to true. */
+  haptic?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -94,19 +97,33 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       size,
       asChild = false,
       loading = false,
+      haptic = true,
       disabled,
       children,
+      onClick,
       ...props
     },
     ref
   ) => {
     const Comp = asChild ? Slot : "button";
+    const { tapHaptic } = useHaptics();
+
+    const handleClick = React.useCallback(
+      (e: React.MouseEvent<HTMLButtonElement>) => {
+        if (haptic) {
+          tapHaptic();
+        }
+        onClick?.(e);
+      },
+      [haptic, tapHaptic, onClick]
+    );
 
     return (
       <Comp
         aria-busy={loading}
         className={cn(buttonVariants({ className, size, variant }))}
         disabled={disabled || loading}
+        onClick={handleClick}
         ref={ref}
         {...props}
       >

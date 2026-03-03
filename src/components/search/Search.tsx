@@ -17,6 +17,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useHaptics } from "@/hooks/useHaptics";
 
 interface SearchResult {
   id: string;
@@ -64,6 +65,7 @@ export function Search({ showTrigger = true }: SearchProps) {
   const [loading, setLoading] = useState(false);
   const pagefindRef = useRef<PagefindAPI | null>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
+  const { dialogHaptic } = useHaptics();
 
   // Announce to screen readers
   const announce = useCallback((message: string) => {
@@ -111,6 +113,7 @@ export function Search({ showTrigger = true }: SearchProps) {
       // Ctrl/Cmd+K or / to open
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
+        dialogHaptic();
         setOpen((open) => !open);
       }
       if (e.key === "/" && !open) {
@@ -120,6 +123,7 @@ export function Search({ showTrigger = true }: SearchProps) {
           activeEl instanceof HTMLTextAreaElement;
         if (!isInput) {
           e.preventDefault();
+          dialogHaptic();
           setOpen(true);
           announce("Search dialog opened");
         }
@@ -228,7 +232,10 @@ export function Search({ showTrigger = true }: SearchProps) {
           aria-label="Open search dialog"
           className="group glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-muted-foreground text-xs transition-all duration-200 hover:border-primary/30 hover:bg-white/[0.04] sm:h-8 sm:w-auto sm:px-3"
           data-search-trigger
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            dialogHaptic();
+            setOpen(true);
+          }}
           type="button"
         >
           <SearchIcon

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useHaptics } from "./useHaptics";
+
 /**
  * Hook for copy-to-clipboard feedback with proper cleanup.
  * Returns [copied, triggerCopied] — `copied` is true for `duration` ms after calling `triggerCopied`.
@@ -10,12 +12,14 @@ export function useCopyFeedback(duration = 2000): [boolean, () => void] {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
+  const { successHaptic } = useHaptics();
 
   const triggerCopied = useCallback(() => {
     setCopied(true);
+    successHaptic();
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => setCopied(false), duration);
-  }, [duration]);
+  }, [duration, successHaptic]);
 
   useEffect(() => () => clearTimeout(timeoutRef.current), []);
 
@@ -34,14 +38,16 @@ export function useCopyFeedbackKeyed<T>(
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined
   );
+  const { successHaptic } = useHaptics();
 
   const triggerCopied = useCallback(
     (key: T) => {
       setCopiedKey(key);
+      successHaptic();
       clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => setCopiedKey(null), duration);
     },
-    [duration]
+    [duration, successHaptic]
   );
 
   useEffect(() => () => clearTimeout(timeoutRef.current), []);

@@ -10,6 +10,8 @@ import {
   HiOutlineSquares2X2,
 } from "react-icons/hi2";
 
+import { useHaptics } from "@/hooks/useHaptics";
+
 interface Category {
   id: string;
   label: string;
@@ -101,6 +103,7 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolledStart, setScrolledStart] = useState(true);
   const [scrolledEnd, setScrolledEnd] = useState(false);
+  const { tapHaptic } = useHaptics();
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -153,6 +156,7 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
                     : `/artifacts?category=${cat.id}`
               }
               key={cat.id}
+              onClick={() => tapHaptic()}
             >
               <Icon
                 className={`h-3.5 w-3.5 transition-colors ${config.icon} group-data-[active=true]:text-current`}

@@ -10,6 +10,7 @@ import {
 } from "react-icons/hi2";
 
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
+import { useHaptics } from "@/hooks/useHaptics";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 
@@ -111,6 +112,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
     useVss: false,
   });
   const [copied, triggerCopied] = useCopyFeedback();
+  const { tapHaptic, toggleHaptic } = useHaptics();
 
   // Filter targets by category and search
   const filteredTargets = useMemo(() => {
@@ -513,7 +515,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                     : "border border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:border-white/10 hover:bg-white/[0.04] hover:text-zinc-200"
                 }`}
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
+                onClick={() => {
+                  tapHaptic();
+                  setActiveCategory(cat);
+                }}
                 type="button"
               >
                 {Icon && (
@@ -568,7 +573,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                   <input
                     checked={selectedTargets.has(target.slug)}
                     className="h-3.5 w-3.5 accent-primary"
-                    onChange={() => toggleTarget(target.slug)}
+                    onChange={() => {
+                      toggleHaptic();
+                      toggleTarget(target.slug);
+                    }}
                     type="checkbox"
                   />
                   <div className="min-w-0 flex-1">
@@ -665,12 +673,13 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                     <input
                       checked={options.useVss}
                       className="h-3 w-3 accent-primary"
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        toggleHaptic();
                         setOptions((prev) => ({
                           ...prev,
                           useVss: e.target.checked,
-                        }))
-                      }
+                        }));
+                      }}
                       type="checkbox"
                     />
                     <span className="text-muted-foreground text-xs">--vss</span>
@@ -679,12 +688,13 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                     <input
                       checked={options.useVhdx}
                       className="h-3 w-3 accent-primary"
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        toggleHaptic();
                         setOptions((prev) => ({
                           ...prev,
                           useVhdx: e.target.checked,
-                        }))
-                      }
+                        }));
+                      }}
                       type="checkbox"
                     />
                     <span className="text-muted-foreground text-xs">
