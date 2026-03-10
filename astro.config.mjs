@@ -13,6 +13,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   experimental: {
     svgo: true,
+    rustCompiler: true,
+    queuedRendering: {
+      enabled: true,
+    },
   },
   integrations: [
     react(),
