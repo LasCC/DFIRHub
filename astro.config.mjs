@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   experimental: {
     svgo: true,
-    rustCompiler: true,
+    // rustCompiler: true, // TODO: re-enable once <script is:inline define:vars> is supported (https://github.com/withastro/compiler-rs)
     queuedRendering: {
       enabled: true,
     },
