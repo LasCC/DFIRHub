@@ -334,6 +334,7 @@ const filterCategories = [
                                         .map((target) => (
                                             <a
                                                 href={"/artifact/" + target.slug}
+                                                data-haptic="tap"
                                                 class={`artifact-card group rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.05]`}
                                             >
                                                 <div class="p-4">
@@ -388,12 +389,13 @@ const filterCategories = [
           {targets.map((target) => {
                             const style = getStyle(target.category);
                             return (
-                                <a
-                                    href={"/artifact/" + target.slug}
-                                    data-slug={target.slug.toLowerCase()}
-                                    data-category={target.category.toLowerCase()}
-                                    class={`filtered-card artifact-card group rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.05]`}
-                                >
+                                    <a
+                                        href={"/artifact/" + target.slug}
+                                        data-slug={target.slug.toLowerCase()}
+                                        data-category={target.category.toLowerCase()}
+                                        data-haptic="tap"
+                                        class={`filtered-card artifact-card group rounded-xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.05]`}
+                                    >
                                     <div class="p-4">
                                         <div class="flex items-start justify-between gap-2 mb-2">
                                             <h3 class="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors truncate">

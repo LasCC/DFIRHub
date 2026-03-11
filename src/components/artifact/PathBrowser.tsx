@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
+import { useHaptics } from "../../hooks/useHaptics";
 
 interface PathBrowserProps {
   target: KapeTarget;
@@ -107,6 +108,7 @@ function parsePathSegments(pathStr: string, fileMask?: string): PathSegment[] {
 // ─── Main component ───
 export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   const [copiedPath, triggerCopied] = useCopyFeedbackKeyed<string>();
+  const { tapHaptic } = useHaptics();
   const [expandedTargets, setExpandedTargets] = useState<Set<string>>(
     new Set()
   );
@@ -371,6 +373,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                         entry={entry}
                         key={`${group.name}-${entry.path}-${i}`}
                         onCopy={handleCopyPath}
+                        onTap={tapHaptic}
                       />
                     ))}
                   </div>
@@ -387,6 +390,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                 entry={entry}
                 key={`${entry.name}-${entry.path}-${i}`}
                 onCopy={handleCopyPath}
+                onTap={tapHaptic}
               />
             ))}
           </div>
@@ -414,9 +418,10 @@ interface PathEntryProps {
   entry: KapeTargetEntry;
   copiedPath: string | null;
   onCopy: (path: string, fileMask?: string) => void;
+  onTap: () => void;
 }
 
-function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
+function PathEntry({ entry, copiedPath, onCopy, onTap }: PathEntryProps) {
   const fullPath = entry.fileMask
     ? `${entry.path}${entry.fileMask}`
     : entry.path;
@@ -431,7 +436,10 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
     <button
       aria-label={`Copy path: ${fullPath}`}
       className="group relative flex w-full cursor-pointer items-start justify-between px-4 py-3 text-left transition-colors hover:z-10 hover:bg-primary/5"
-      onClick={() => onCopy(entry.path, entry.fileMask)}
+      onClick={() => {
+        onTap();
+        onCopy(entry.path, entry.fileMask);
+      }}
       type="button"
     >
       <div className="min-w-0 flex-1">

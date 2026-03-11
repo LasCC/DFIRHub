@@ -279,6 +279,26 @@ const fullTitle =
       });
     </script>
 
+    <!-- Global haptic feedback for data-haptic elements -->
+    <script>
+      import { WebHaptics } from "web-haptics";
+
+      if (WebHaptics.isSupported) {
+        const haptics = new WebHaptics();
+
+        document.addEventListener(
+          "pointerdown",
+          (e) => {
+            if (!(e.target instanceof Element)) return;
+            const el = e.target.closest("[data-haptic]");
+            if (!el) return;
+            haptics.trigger("light");
+          },
+          { passive: true }
+        );
+      }
+    </script>
+
     <!-- Keyboard navigation styles -->
     <style is:global>
       /* Only show focus rings for keyboard users */
