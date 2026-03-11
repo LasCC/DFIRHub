@@ -11,6 +11,7 @@ import {
 
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 import { useHaptics } from "@/hooks/useHaptics";
+import { trackBuilderCopy, trackBuilderDownload } from "@/lib/analytics";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 
@@ -450,6 +451,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(generatedScript);
+      trackBuilderCopy(options.format, selectedTargets.size);
       triggerCopied();
     } catch (error) {
       console.error("Failed to copy:", error);
@@ -482,6 +484,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    trackBuilderDownload(options.format, selectedTargets.size);
   };
 
   return (

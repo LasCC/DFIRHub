@@ -4,6 +4,7 @@ import type { KapeTarget } from "../../lib/kapefiles";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import { useHaptics } from "../../hooks/useHaptics";
+import { trackCopyCommand } from "../../lib/analytics";
 import { CodeBlock } from "../ui/CodeBlock";
 
 type CommandFormat = "kape" | "powershell" | "batch" | "wsl";
@@ -381,6 +382,7 @@ echo "For compound targets, use KAPE directly for best results."
   const handleCopy = async (command: string, id: string) => {
     try {
       await navigator.clipboard.writeText(command);
+      trackCopyCommand(id, target.name);
       triggerCopied(id);
       // Announce to screen readers
       const announcer = document.querySelector("#live-announcer");

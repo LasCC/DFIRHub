@@ -30,6 +30,13 @@ import {
 } from "@/components/ui/popover";
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 import { useHaptics } from "@/hooks/useHaptics";
+import {
+  trackConverterBackendChanged,
+  trackConverterConvert,
+  trackConverterExport,
+  trackConverterShareLink,
+  trackSigmaRuleImported,
+} from "@/lib/analytics";
 import { getBackend } from "@/lib/sigma/backends";
 import { decodeShareState, encodeShareState } from "@/lib/sigma/share";
 import { SigmaConverter } from "@/lib/sigma/sigma-converter";
@@ -304,6 +311,7 @@ export function ConverterLayout() {
     }
 
     setIsConverting(true);
+    trackConverterConvert(selectedBackend, multiMode);
 
     const pipelineNames = selectedPipeline ? [selectedPipeline] : undefined;
     const pipelineYmls = customPipelineYaml.trim()
@@ -398,6 +406,7 @@ export function ConverterLayout() {
     });
     const url = `${window.location.origin}${window.location.pathname}#s=${encoded}`;
     await navigator.clipboard.writeText(url);
+    trackConverterShareLink();
     triggerShareCopied();
   }, [
     rule,
@@ -411,6 +420,7 @@ export function ConverterLayout() {
     setRule(yaml);
     setResult(null);
     setMultiResults(new Map());
+    trackSigmaRuleImported("example");
   }, []);
 
   const handleExportClose = useCallback(() => {
@@ -422,6 +432,7 @@ export function ConverterLayout() {
     setShowSigmaSearch(false);
     setResult(null);
     setMultiResults(new Map());
+    trackSigmaRuleImported("sigmahq");
   }, []);
 
   const backendConfig = getBackend(selectedBackend);
@@ -511,7 +522,10 @@ export function ConverterLayout() {
             <TargetSelector
               multiSelect={multiMode}
               onMultiSelect={setSelectedMulti}
-              onSelect={setSelectedBackend}
+              onSelect={(backend) => {
+                setSelectedBackend(backend);
+                trackConverterBackendChanged(backend);
+              }}
               selected={selectedBackend}
               selectedMulti={selectedMulti}
             />

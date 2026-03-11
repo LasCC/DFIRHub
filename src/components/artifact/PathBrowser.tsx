@@ -4,6 +4,7 @@ import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import { useHaptics } from "../../hooks/useHaptics";
+import { trackCopyPath } from "../../lib/analytics";
 
 interface PathBrowserProps {
   target: KapeTarget;
@@ -215,6 +216,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   const handleCopyPath = async (path: string, fileMask?: string) => {
     const fullPath = fileMask ? `${path}${fileMask}` : path;
     await copyToClipboard(fullPath, "Path");
+    trackCopyPath(fullPath, target.name);
     triggerCopied(fullPath);
   };
 

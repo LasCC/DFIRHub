@@ -18,6 +18,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useHaptics } from "@/hooks/useHaptics";
+import { trackSearchQuery, trackSearchResultSelected } from "@/lib/analytics";
 
 interface SearchResult {
   id: string;
@@ -183,6 +184,7 @@ export function Search({ showTrigger = true }: SearchProps) {
         );
 
         setResults(searchResults);
+        trackSearchQuery(searchQuery, searchResults.length);
         announce(`${searchResults.length} results found`);
       } catch (error) {
         console.error("Search error:", error);
@@ -198,10 +200,11 @@ export function Search({ showTrigger = true }: SearchProps) {
   const handleSelect = useCallback(
     (url: string) => {
       setOpen(false);
+      trackSearchResultSelected(query, url);
       announce("Navigating to result");
       window.location.href = url;
     },
-    [announce]
+    [announce, query]
   );
 
   // Extract artifact name from URL

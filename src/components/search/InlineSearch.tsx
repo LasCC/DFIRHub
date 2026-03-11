@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { trackSearchQuery, trackSearchResultSelected } from "@/lib/analytics";
+
 interface SearchResult {
   id: string;
   url: string;
@@ -176,6 +178,7 @@ export function InlineSearch() {
         );
 
         setResults(searchResults);
+        trackSearchQuery(searchQuery, searchResults.length);
         announce(`${searchResults.length} results found`);
       } catch (error) {
         console.error("Search error:", error);
@@ -218,6 +221,7 @@ export function InlineSearch() {
               : quickAccessItems[selectedIndex];
             if (item) {
               const url = "url" in item ? item.url : item.href;
+              trackSearchResultSelected(query, url);
               window.location.href = url;
             }
           }

@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from "react";
 
 import type { SigmaDiagnostic } from "@/lib/sigma/validate";
 
+import { trackSigmaRuleImported } from "@/lib/analytics";
 import { validateSigmaRule } from "@/lib/sigma/validate";
 
 const EDITOR_OPTIONS = {
@@ -100,6 +101,7 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
       reader.onload = () => {
         if (typeof reader.result === "string") {
           onChange(reader.result);
+          trackSigmaRuleImported("file");
         }
       };
       reader.readAsText(file);

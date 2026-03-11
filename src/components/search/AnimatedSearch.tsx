@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, ArrowUp, ChevronRight, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { trackSearchQuery, trackSearchResultSelected } from "@/lib/analytics";
+
 interface SearchResult {
   id: string;
   url: string;
@@ -237,6 +239,7 @@ export function AnimatedSearch() {
           .slice(0, 8);
 
         setResults(searchResults);
+        trackSearchQuery(searchQuery, searchResults.length);
       } catch {
         setResults([]);
       } finally {
@@ -265,6 +268,7 @@ export function AnimatedSearch() {
         case "Enter": {
           e.preventDefault();
           if (selectedIndex >= 0 && results[selectedIndex]) {
+            trackSearchResultSelected(query, results[selectedIndex].url);
             window.location.href = results[selectedIndex].url;
           }
           break;

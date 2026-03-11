@@ -1,6 +1,8 @@
 import { Download, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+import { trackConverterExport } from "@/lib/analytics";
+
 interface ExportDialogProps {
   rule: string;
   conversions: Map<string, string>;
@@ -62,6 +64,7 @@ export function ExportDialog({
       a.download = `${(parsed.title ?? "sigma-rule").toLowerCase().replaceAll(/\s+/g, "-")}.zip`;
       a.click();
       URL.revokeObjectURL(url);
+      trackConverterExport("zip", conversions.size);
       onClose();
     } finally {
       setExporting(false);

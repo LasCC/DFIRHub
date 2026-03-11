@@ -11,6 +11,7 @@ import {
 } from "react-icons/hi2";
 
 import { useHaptics } from "@/hooks/useHaptics";
+import { trackCategoryFilterUsed } from "@/lib/analytics";
 
 interface Category {
   id: string;
@@ -156,7 +157,10 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
                     : `/artifacts?category=${cat.id}`
               }
               key={cat.id}
-              onClick={() => tapHaptic()}
+              onClick={() => {
+                tapHaptic();
+                trackCategoryFilterUsed(cat.id);
+              }}
             >
               <Icon
                 className={`h-3.5 w-3.5 transition-colors ${config.icon} group-data-[active=true]:text-current`}
