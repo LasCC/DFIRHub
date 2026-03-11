@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import { KeyboardShortcuts } from "../components/layout/KeyboardShortcuts";
+import PostHog from "../components/PostHog.astro";
 
 interface Props {
   title: string;
@@ -103,6 +104,9 @@ const fullTitle =
                 },
             })}
     />
+
+    <!-- Analytics -->
+    <PostHog />
 
     <!-- Page-specific head content -->
     <slot name="head" />
