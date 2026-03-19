@@ -3,14 +3,11 @@
 
 User-agent: *
 Allow: /
-
-# Sitemaps
-Sitemap: https://dfirhub.com/sitemap-index.xml
+Allow: /pagefind/
+Allow: /_astro/
 
 # Block search result pages with filters (duplicate content)
 Disallow: /artifacts?*
 
-# Allow all crawlers to access assets
-User-agent: *
-Allow: /pagefind/
-Allow: /_astro/
+# Sitemaps
+Sitemap: https://dfirhub.com/sitemap-index.xml

@@ -32,6 +32,8 @@ export default defineConfig({
 
   site: "https://dfirhub.com",
 
+  trailingSlash: "never",
+
   vite: {
     build: {
       rollupOptions: {

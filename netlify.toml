@@ -5,6 +5,37 @@ publish = "dist"
 [build.environment]
 NODE_VERSION = "20"
 
+# Trailing slash normalization (must come before other redirects)
+[[redirects]]
+from = "/artifact/*/"
+to = "/artifact/:splat"
+status = 301
+force = true
+
+[[redirects]]
+from = "/artifacts/"
+to = "/artifacts"
+status = 301
+force = true
+
+[[redirects]]
+from = "/collections/"
+to = "/collections"
+status = 301
+force = true
+
+[[redirects]]
+from = "/builder/"
+to = "/builder"
+status = 301
+force = true
+
+[[redirects]]
+from = "/converter/"
+to = "/converter"
+status = 301
+force = true
+
 # Quick access redirects for popular artifacts
 # Popular shortcuts below, or use /a/<slug> for any artifact dynamically
 
