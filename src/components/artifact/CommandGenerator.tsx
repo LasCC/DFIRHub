@@ -1,19 +1,19 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { KapeTarget } from "../../lib/kapefiles";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import { useHaptics } from "../../hooks/useHaptics";
 import { trackCopyCommand } from "../../lib/analytics";
+import {
+  generateBatch,
+  generateKapeCommand,
+  generatePowerShell,
+  generateWsl,
+} from "../../lib/generators";
 import { CodeBlock } from "../ui/CodeBlock";
 
 type CommandFormat = "kape" | "powershell" | "batch" | "wsl";
-
-// Top-level regex patterns for performance
-const NON_ALPHANUMERIC_REGEX = /[^a-zA-Z0-9]/g;
-const DRIVE_LETTER_REGEX = /^([A-Za-z]):(.*)/;
-const STARTS_WITH_DRIVE_REGEX = /^[A-Za-z]:/;
-const LEADING_SLASHES_REGEX = /^[\\/]+/;
 
 interface CommandGeneratorProps {
   target: KapeTarget;
@@ -28,356 +28,30 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
   const [copiedId, triggerCopied] = useCopyFeedbackKeyed<string>();
   const { tapHaptic, toggleHaptic } = useHaptics();
 
-  // Get all paths from the target (for PowerShell/batch generation)
-  const targetPaths = useMemo(() => {
-    if (target.isCompound) {
-      // For compound targets, we just use the target name
-      return [];
-    }
-    return target.targets
-      .filter((entry) => !entry.path.endsWith(".tkape"))
-      .map((entry) => ({
-        fileMask: entry.fileMask,
-        name: entry.name,
-        path: entry.path,
-      }));
-  }, [target]);
+  const opts = useMemo(
+    () => ({ destination, source, useVhdx, useVss }),
+    [destination, source, useVss, useVhdx]
+  );
 
-  // Generate KAPE command
-  const kapeCommand = useMemo(() => {
-    let cmd = `kape.exe --tsource ${source} --tdest ${destination} --target ${target.name}`;
-    if (useVss) {
-      cmd += " --vss";
-    }
-    if (useVhdx) {
-      cmd += " --vhdx evidence";
-    }
-    return cmd;
-  }, [source, destination, target.name, useVss, useVhdx]);
-
-  // Generate PowerShell script
-  const powershellScript = useMemo(() => {
-    if (target.isCompound) {
-      return `# PowerShell Collection Script
-# Target: ${target.name} (Compound Target)
-# Use KAPE for compound target collection:
-# ${kapeCommand}
-
-Write-Host "For compound targets, use KAPE directly for best results." -ForegroundColor Yellow
-`;
-    }
-
-    const lines = [
-      "# PowerShell Artifact Collection Script",
-      `# Target: ${target.name}`,
-      "# Run as Administrator",
-      "",
-      "#Requires -RunAsAdministrator",
-      "",
-      '$ErrorActionPreference = "SilentlyContinue"',
-      `$DestBase = "${destination}"`,
-      "",
-      "# Function to handle artifact collection with robocopy",
-      "function Collect-Artifact {",
-      "    param (",
-      "        [string]$SourceDir,",
-      "        [string]$FolderName,",
-      '        [string]$FileMask = "*"',
-      "    )",
-      "    $FullDest = Join-Path -Path $DestBase -ChildPath $FolderName",
-      '    robocopy "$SourceDir" "$FullDest" "$FileMask" /E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS | Out-Null',
-      "}",
-      "",
-    ];
-
-    let entryNum = 1;
-    for (const entry of targetPaths) {
-      const safeName = entry.name.replace(NON_ALPHANUMERIC_REGEX, "_");
-      // Convert %user% to PowerShell variable
-      let sourcePath = entry.path.replace("C:", source);
-      const hasUserVar = sourcePath.includes("%user%");
-
-      if (hasUserVar) {
-        sourcePath = sourcePath.replaceAll("%user%", "$env:USERNAME");
-      }
-
-      lines.push(`# ${entryNum}. ${entry.name}`);
-
-      // Check for legacy XP paths
-      if (sourcePath.includes("Documents And Settings")) {
-        lines.push('if (Test-Path "C:\\Documents And Settings") {');
-        if (entry.fileMask) {
-          lines.push(
-            `    Collect-Artifact -SourceDir "${sourcePath}" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
-          );
-        } else {
-          lines.push(
-            `    Collect-Artifact -SourceDir "${sourcePath}" -FolderName "${safeName}"`
-          );
-        }
-        lines.push("}");
-      } else if (hasUserVar) {
-        // Use Join-Path for user variable paths
-        const pathParts = sourcePath.split("$env:USERNAME");
-        lines.push(
-          `$UserPath = Join-Path $env:USERPROFILE "${pathParts[1]?.replace(LEADING_SLASHES_REGEX, "") || ""}"`
-        );
-        if (entry.fileMask) {
-          lines.push(
-            `Collect-Artifact -SourceDir "$UserPath" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
-          );
-        } else {
-          lines.push(
-            `Collect-Artifact -SourceDir "$UserPath" -FolderName "${safeName}"`
-          );
-        }
-      } else if (entry.fileMask) {
-        lines.push(
-          `Collect-Artifact -SourceDir "${sourcePath}" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
-        );
-      } else {
-        lines.push(
-          `Collect-Artifact -SourceDir "${sourcePath}" -FolderName "${safeName}"`
-        );
-      }
-      lines.push("");
-      entryNum++;
-    }
-
-    lines.push('Write-Host "Collection complete!" -ForegroundColor Green');
-
-    return lines.join("\n");
-  }, [target, targetPaths, destination, source, kapeCommand]);
-
-  // Generate Batch script
-  const batchScript = useMemo(() => {
-    if (target.isCompound) {
-      return `@echo off
-REM Batch Collection Script
-REM Target: ${target.name} (Compound Target)
-REM Use KAPE for compound target collection:
-REM ${kapeCommand}
-
-echo For compound targets, use KAPE directly for best results.
-pause
-`;
-    }
-
-    const lines = [
-      "@echo off",
-      "setlocal EnableDelayedExpansion",
-      "",
-      "REM Batch Artifact Collection Script",
-      `REM Target: ${target.name}`,
-      "REM Generated by DFIRHub",
-      "REM Run as Administrator",
-      "",
-      `set "DEST=${destination}"`,
-      "",
-      "REM Create destination directory",
-      `if not exist "%DEST%" mkdir "%DEST%"`,
-      "",
-    ];
-
-    for (const entry of targetPaths) {
-      const safeName = entry.name.replace(NON_ALPHANUMERIC_REGEX, "_");
-      let sourcePath = entry.path.replace("C:", source);
-      const hasUserVar = sourcePath.includes("%user%");
-
-      // Convert %user% to %USERNAME%
-      if (hasUserVar) {
-        sourcePath = sourcePath.replaceAll("%user%", "%USERNAME%");
-      }
-
-      lines.push(`REM ${entry.name}`);
-      lines.push(`set "DESTFOLDER=%DEST%\\${safeName}"`);
-
-      const robocopyFlags = "/E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS";
-
-      // Handle legacy XP paths with existence check
-      if (sourcePath.includes("Documents And Settings")) {
-        lines.push(`if exist "C:\\Documents And Settings" (`);
-        if (entry.fileMask) {
-          lines.push(
-            `    robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
-          );
-        } else {
-          lines.push(
-            `    robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
-          );
-        }
-        lines.push(")");
-      } else if (hasUserVar) {
-        // For paths with %USERNAME%, use the Users folder with current user
-        if (entry.fileMask) {
-          lines.push(
-            `robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
-          );
-        } else {
-          lines.push(
-            `robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
-          );
-        }
-      } else if (entry.fileMask) {
-        lines.push(
-          `robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
-        );
-      } else {
-        lines.push(
-          `robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
-        );
-      }
-      lines.push("");
-    }
-
-    lines.push("echo Collection complete!");
-    lines.push("endlocal");
-    lines.push("pause");
-
-    return lines.join("\r\n");
-  }, [target, targetPaths, destination, source, kapeCommand]);
-
-  // Helper to convert Windows path to WSL path
-  const toWslPath = useCallback((windowsPath: string): string => {
-    // Handle drive letters: C:\path -> /mnt/c/path
-    const match = windowsPath.match(DRIVE_LETTER_REGEX);
-    if (match) {
-      const drive = match[1].toLowerCase();
-      const rest = match[2].replaceAll("\\", "/");
-      return `/mnt/${drive}${rest}`;
-    }
-    // Handle UNC paths or relative paths
-    return windowsPath.replaceAll("\\", "/");
-  }, []);
-
-  // Generate WSL (Bash) script
-  const wslScript = useMemo(() => {
-    if (target.isCompound) {
-      return `#!/bin/bash
-# WSL Artifact Collection Script
-# Target: ${target.name} (Compound Target)
-# For compound targets, use KAPE on Windows directly:
-# ${kapeCommand}
-
-echo "For compound targets, use KAPE directly for best results."
-`;
-    }
-
-    const wslDest = toWslPath(destination);
-    const wslSource = toWslPath(source);
-
-    // Check if any path contains %user% variable
-    const hasUserPaths = targetPaths.some((entry) =>
-      entry.path.toLowerCase().includes("%user%")
-    );
-
-    const lines = [
-      "#!/bin/bash",
-      "# WSL Artifact Collection Script",
-      `# Target: ${target.name}`,
-      "# Generated by DFIRHub",
-      "# Run from WSL with sudo for best results",
-      "",
-      `DEST="${wslDest}"`,
-      "",
-      "# Create destination directory",
-      'mkdir -p "$DEST"',
-      "",
-    ];
-
-    // Add Windows username detection if needed
-    if (hasUserPaths) {
-      lines.push("# Detect Windows username");
-      lines.push(
-        "WIN_USER=$(cmd.exe /c \"echo %USERNAME%\" 2>/dev/null | tr -d '\\r')"
-      );
-      lines.push("");
-      lines.push('if [ -z "$WIN_USER" ]; then');
-      lines.push(
-        '    echo "Could not detect Windows username. Please set WIN_USER manually."'
-      );
-      lines.push("    exit 1");
-      lines.push("fi");
-      lines.push("");
-    }
-
-    for (const entry of targetPaths) {
-      const safeName = entry.name.replace(NON_ALPHANUMERIC_REGEX, "_");
-      const destPath = `$DEST/${safeName}`;
-
-      // Convert the source path
-      let sourcePath = entry.path;
-
-      // Replace drive letter with WSL mount path
-      if (STARTS_WITH_DRIVE_REGEX.test(sourcePath)) {
-        sourcePath = sourcePath.replace(STARTS_WITH_DRIVE_REGEX, wslSource);
-      }
-
-      // Convert backslashes to forward slashes
-      sourcePath = sourcePath.replaceAll("\\", "/");
-
-      // Replace %user% with $WIN_USER for Bash
-      const hasUserVar = sourcePath.toLowerCase().includes("%user%");
-      if (hasUserVar) {
-        sourcePath = sourcePath.replaceAll("%user%", "$WIN_USER");
-      }
-
-      // Clean up any double slashes (except after protocol)
-      sourcePath = sourcePath.replaceAll(/([^:])\/\//g, "$1/");
-      // Strip trailing slash for clean path joining
-      sourcePath = sourcePath.replace(/\/+$/, "");
-
-      lines.push(`# ${entry.name}`);
-      lines.push(`mkdir -p "${destPath}"`);
-
-      // Add directory existence check
-      lines.push(`if [ -d "${sourcePath}" ]; then`);
-
-      if (entry.fileMask) {
-        // Use find for file mask patterns - more efficient and reliable
-        if (entry.fileMask.includes("*")) {
-          lines.push(
-            `    find "${sourcePath}" -maxdepth 1 -name "${entry.fileMask}" -exec cp {} "${destPath}/" \\; 2>/dev/null`
-          );
-        } else {
-          lines.push(
-            `    cp -r "${sourcePath}/${entry.fileMask}" "${destPath}/" 2>/dev/null`
-          );
-        }
-      } else {
-        lines.push(`    cp -r "${sourcePath}/"* "${destPath}/" 2>/dev/null`);
-      }
-
-      lines.push("else");
-      lines.push(`    echo "Source not found: ${sourcePath}"`);
-      lines.push("fi");
-      lines.push("");
-    }
-
-    lines.push('echo -e "\\033[32mCollection complete!\\033[0m"');
-
-    return lines.join("\n");
-  }, [target, targetPaths, destination, source, kapeCommand, toWslPath]);
+  const kapeCommand = useMemo(
+    () => generateKapeCommand(target, opts),
+    [target, opts]
+  );
 
   const currentCommand = useMemo(() => {
     switch (format) {
-      case "kape": {
+      case "kape":
         return kapeCommand;
-      }
-      case "powershell": {
-        return powershellScript;
-      }
-      case "batch": {
-        return batchScript;
-      }
-      case "wsl": {
-        return wslScript;
-      }
-      default: {
+      case "powershell":
+        return generatePowerShell(target, opts);
+      case "batch":
+        return generateBatch(target, opts);
+      case "wsl":
+        return generateWsl(target, opts);
+      default:
         return kapeCommand;
-      }
     }
-  }, [format, kapeCommand, powershellScript, batchScript, wslScript]);
+  }, [format, kapeCommand, target, opts]);
 
   const handleCopy = async (command: string, id: string) => {
     try {
@@ -572,7 +246,7 @@ echo "For compound targets, use KAPE directly for best results."
       {/* Target Info */}
       {target.isCompound && (
         <div className="px-4 pb-4">
-          <div className="border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
             <span className="text-amber-400">Note:</span>{" "}
             <span className="text-muted-foreground">
               This is a compound target that references{" "}
