@@ -50,6 +50,31 @@ const resolvedTargets = target.isCompound
 // Find collections that include this target
 const includedInCollections = findCollectionsContaining(target.slug);
 
+// Split documentation entries into URL references and free-text notes
+const isUrl = (value: string) => /^https?:\/\//i.test(value);
+const docReferences = target.documentation.filter(isUrl);
+const docNotes = target.documentation.filter((entry) => !isUrl(entry));
+
+// Group consecutive tab-separated log-like lines into code blocks,
+// keeping prose lines as their own paragraphs. Tabs in .tkape comments
+// are preserved by the parser, so their presence reliably marks samples.
+type NoteBlock =
+  | { type: "text"; value: string }
+  | { type: "code"; lines: string[] };
+
+const noteBlocks: NoteBlock[] = [];
+for (const entry of docNotes) {
+  const isLog = entry.includes("\t");
+  const last = noteBlocks.at(-1);
+  if (isLog && last?.type === "code") {
+    last.lines.push(entry);
+  } else if (isLog) {
+    noteBlocks.push({ type: "code", lines: [entry] });
+  } else {
+    noteBlocks.push({ type: "text", value: entry });
+  }
+}
+
 // SEO description with context
 const pathCount = target.isCompound
   ? `${target.referencedTargets.length} targets`
@@ -309,8 +334,8 @@ const jsonLd = {
           <CyberChefLinks client:idle target={target} />
         </ArtifactSection>
 
-        <!-- Documentation / References -->
-        {target.documentation.length > 0 && (
+        <!-- References (URLs only) -->
+        {docReferences.length > 0 && (
                         <ArtifactSection
                             className="mb-8"
                             ariaLabel="references-heading"
@@ -327,29 +352,77 @@ const jsonLd = {
                                 </span>
                                 references
                             </h2>
-                            <ArtifactList className="space-y-2">
-                                {target.documentation.map((url) => (
-                                    <ArtifactListItem>
-                                        <a
-                                            href={url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="group flex items-center gap-2 text-xs text-primary hover:text-primary/80 transition-colors focus-ring rounded-sm py-1"
-                                        >
-                                            <span
-                                                class="text-muted-foreground group-hover:text-primary transition-colors"
-                                                aria-hidden="true"
+                            <ArtifactList className="space-y-1">
+                                {docReferences.map((url) => {
+                                    let host = url;
+                                    try {
+                                        host = new URL(url).hostname.replace(/^www\./, "");
+                                    } catch { /* keep original */ }
+                                    return (
+                                        <ArtifactListItem>
+                                            <a
+                                                href={url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="group flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-white/[0.03] focus-ring"
                                             >
-                                                →
-                                            </span>
-                                            <span class="truncate">{url}</span>
-                                            <span class="sr-only">
-                                                (opens in new tab)
-                                            </span>
-                                        </a>
-                                    </ArtifactListItem>
-                                ))}
+                                                <span class="shrink-0 rounded bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/90 group-hover:text-foreground/90 transition-colors">
+                                                    {host}
+                                                </span>
+                                                <span class="truncate text-primary/90 group-hover:text-primary transition-colors">
+                                                    {url}
+                                                </span>
+                                                <svg
+                                                    aria-hidden="true"
+                                                    class="ml-auto h-3 w-3 shrink-0 text-muted-foreground/50 transition-colors group-hover:text-primary"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
+                                                    <path d="M7 17L17 7" />
+                                                    <path d="M8 7h9v9" />
+                                                </svg>
+                                                <span class="sr-only">
+                                                    (opens in new tab)
+                                                </span>
+                                            </a>
+                                        </ArtifactListItem>
+                                    );
+                                })}
                             </ArtifactList>
+                        </ArtifactSection>
+                    )}
+
+        <!-- Notes (free-text documentation) -->
+        {docNotes.length > 0 && (
+                        <ArtifactSection
+                            className="mb-8"
+                            ariaLabel="notes-heading"
+                        >
+                            <h2
+                                id="notes-heading"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                            >
+                                <span
+                                    class="text-primary/50"
+                                    aria-hidden="true"
+                                >
+                                    //
+                                </span>
+                                notes
+                            </h2>
+                            <div class="glass-subtle rounded-xl p-5 space-y-4 text-sm leading-relaxed text-foreground/80">
+                                {noteBlocks.map((block) => (
+                                    block.type === "text" ? (
+                                        <p class="break-words">{block.value}</p>
+                                    ) : (
+                                        <pre class="scrollbar-thin overflow-x-auto rounded-lg border border-white/[0.06] bg-black/30 px-3 py-2.5 text-[11px] leading-5 text-foreground/75"><code class="font-mono">{block.lines.join("\n")}</code></pre>
+                                    )
+                                ))}
+                            </div>
                         </ArtifactSection>
                     )}
 

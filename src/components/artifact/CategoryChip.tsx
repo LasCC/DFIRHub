@@ -84,7 +84,7 @@ export function CategoryChip({
         <span>{category}</span>
       </a>
 
-      {isCompound && (
+      {isCompound && categoryLower !== "compound" && (
         <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/50 bg-cyan-500/10 px-4 py-2 font-medium text-cyan-400 text-xs backdrop-blur-sm">
           <HiOutlineRectangleStack className="h-3.5 w-3.5" />
           <span>Compound</span>

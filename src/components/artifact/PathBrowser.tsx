@@ -80,6 +80,21 @@ interface PathSegment {
   type: "drive" | "separator" | "envvar" | "dir" | "mask";
 }
 
+// Joins a KAPE `Path` and `FileMask` with an inferred separator.
+// .tkape authors may or may not include a trailing `\`; without this,
+// a path like `...\AnyDesk` + mask `file_transfer_trace.txt` collapses
+// into `...\AnyDeskfile_transfer_trace.txt`.
+function joinPathAndMask(pathStr: string, fileMask?: string): string {
+  if (!fileMask) {
+    return pathStr;
+  }
+  if (pathStr.endsWith("\\") || pathStr.endsWith("/")) {
+    return `${pathStr}${fileMask}`;
+  }
+  const sep = pathStr.includes("/") && !pathStr.includes("\\") ? "/" : "\\";
+  return `${pathStr}${sep}${fileMask}`;
+}
+
 function parsePathSegments(pathStr: string, fileMask?: string): PathSegment[] {
   const segments: PathSegment[] = [];
   // Match: drive letter, env vars (%...%), separators (\), and directory names
@@ -100,6 +115,11 @@ function parsePathSegments(pathStr: string, fileMask?: string): PathSegment[] {
   }
 
   if (fileMask) {
+    const lastSeg = segments.at(-1);
+    if (lastSeg && lastSeg.type !== "separator") {
+      const sep = pathStr.includes("/") && !pathStr.includes("\\") ? "/" : "\\";
+      segments.push({ text: sep, type: "separator" });
+    }
     segments.push({ text: fileMask, type: "mask" });
   }
 
@@ -214,7 +234,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   }, [groupedPaths, filter, activeCategories]);
 
   const handleCopyPath = async (path: string, fileMask?: string) => {
-    const fullPath = fileMask ? `${path}${fileMask}` : path;
+    const fullPath = joinPathAndMask(path, fileMask);
     await copyToClipboard(fullPath, "Path");
     trackCopyPath(fullPath, target.name);
     triggerCopied(fullPath);
@@ -222,7 +242,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 
   const handleCopyAll = async () => {
     const allPaths = pathEntries
-      .map((e) => (e.fileMask ? `${e.path}${e.fileMask}` : e.path))
+      .map((e) => joinPathAndMask(e.path, e.fileMask))
       .join("\n");
     await copyToClipboard(allPaths, "All paths");
     triggerCopied("all");
@@ -424,9 +444,7 @@ interface PathEntryProps {
 }
 
 function PathEntry({ entry, copiedPath, onCopy, onTap }: PathEntryProps) {
-  const fullPath = entry.fileMask
-    ? `${entry.path}${entry.fileMask}`
-    : entry.path;
+  const fullPath = joinPathAndMask(entry.path, entry.fileMask);
   const isCopied = copiedPath === fullPath;
   const segments = useMemo(
     () => parsePathSegments(entry.path, entry.fileMask),
