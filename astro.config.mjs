@@ -11,6 +11,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://astro.build/config
 export default defineConfig({
+  // Emit flat .html files (e.g. dist/converter.html) rather than directory
+  // indices (dist/converter/index.html). Combined with trailingSlash: "never"
+  // this avoids a Netlify edge canonicalization loop: directory indices
+  // canonicalize to the trailing-slash form, which the netlify.toml rules
+  // force back to no-slash, producing ERR_TOO_MANY_REDIRECTS on /converter,
+  // /artifacts, /builder, and /collections.
+  build: {
+    format: "file",
+  },
+
   experimental: {
     svgo: true,
     // rustCompiler: true, // TODO: re-enable once <script is:inline define:vars> is supported (https://github.com/withastro/compiler-rs)
