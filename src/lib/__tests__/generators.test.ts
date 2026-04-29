@@ -11,7 +11,7 @@ import {
   generatePowerShell,
   generateWsl,
 } from "../generators";
-import type { KapeTarget } from "../kapefiles";
+import { getResolvedEntries, type KapeTarget } from "../kapefiles";
 
 // Fixture mirroring the real AnyDesk.tkape — covers:
 //   * %user% expansion (multi-user iteration)
@@ -148,10 +148,95 @@ describe("generatePowerShell — AnyDesk", () => {
     expect(script).toMatch(/AppData\\Roaming\\AnyDesk/);
   });
 
-  it("renders a compound target as a KAPE-deferral note", () => {
-    const out = generatePowerShell(compound, defaultOpts);
-    expect(out).toContain("Compound Target");
-    expect(out).toContain("kape.exe");
+  it("flattens a compound target into copy commands for resolved paths", () => {
+    // Mirrors what [slug].astro does: server-side flatten via
+    // `getResolvedEntries`, then hand the flat target to the generator.
+    const flat: KapeTarget = {
+      ...compound,
+      targets: getResolvedEntries(compound),
+    };
+    const out = generatePowerShell(flat, defaultOpts);
+    expect(out).not.toContain("use KAPE directly");
+    expect(out).toContain("Collect-Artifact");
+    // PackageManagers references Chocolatey.tkape, whose Path lives under
+    // C:\ProgramData\chocolatey — confirms transitive resolution worked.
+    expect(out).toContain("chocolatey");
+  });
+});
+
+// Mirrors the real ScreenConnect.tkape — exercises wildcard expansion in
+// mid-path segments ("Program Files*") and at the leaf ("ScreenConnect Client*").
+const wildcardTarget: KapeTarget = {
+  ...anyDesk,
+  isCompound: false,
+  name: "ScreenConnect",
+  referencedTargets: [],
+  slug: "screenconnect",
+  sourceFile: "ScreenConnect.tkape",
+  targets: [
+    {
+      category: "ApplicationLogs",
+      fileMask: "Session.db",
+      name: "ScreenConnect Session Database",
+      path: "C:\\Program Files*\\ScreenConnect\\App_Data\\",
+    },
+    {
+      category: "ApplicationLogs",
+      fileMask: "user.config",
+      name: "ScreenConnect User Config",
+      path: "C:\\ProgramData\\ScreenConnect Client*\\",
+    },
+  ],
+};
+
+describe("wildcard expansion in path segments", () => {
+  it("PowerShell uses Get-Item to glob and iterates matching directories", () => {
+    const out = generatePowerShell(wildcardTarget, defaultOpts);
+    // robocopy itself can't expand wildcards, so the script must enumerate
+    // matches first via Get-Item and loop with foreach.
+    expect(out).toContain("Get-Item -Path $SourceDir");
+    expect(out).toContain("foreach ($src in $sources)");
+    // robocopy receives the resolved FullName, never the raw wildcarded path.
+    expect(out).toContain("robocopy $src.FullName");
+    expect(out).not.toContain("Test-Path -LiteralPath");
+  });
+
+  it("Batch shells out to PowerShell for wildcarded source paths", () => {
+    const out = generateBatch(wildcardTarget, defaultOpts);
+    // Wildcarded entry uses for /F + powershell Get-Item enumeration.
+    expect(out).toContain('for /F "usebackq delims="');
+    expect(out).toContain("powershell -NoProfile");
+    expect(out).toContain("Get-Item -Path");
+    // robocopy operates on the per-iteration variable, not the raw pattern.
+    expect(out).toMatch(/robocopy "%%D\\"/);
+  });
+
+  it("Batch keeps simple if-exist + robocopy for non-wildcarded paths", () => {
+    const out = generateBatch(anyDesk, defaultOpts);
+    // AnyDesk has no wildcards in non-user paths, so the original form stays.
+    expect(out).not.toContain("powershell -NoProfile");
+    expect(out).toContain('if exist "C:\\ProgramData\\AnyDesk\\"');
+  });
+
+  it("WSL uses compgen -G to expand wildcards safely", () => {
+    const out = generateWsl(wildcardTarget, defaultOpts);
+    expect(out).toContain('compgen -G "$src_pattern"');
+    expect(out).toContain("mapfile -t matches");
+    expect(out).toContain('for src in "${matches[@]}"');
+    // The raw `find "$src_dir"` form is gone — find now runs on each match.
+    expect(out).not.toContain('find "$src_dir"');
+  });
+
+  it("WSL passes bash syntax check with wildcarded paths", () => {
+    const out = generateWsl(wildcardTarget, defaultOpts);
+    const dir = mkdtempSync(join(tmpdir(), "dfirhub-wsl-wc-"));
+    const file = join(dir, "collect.sh");
+    writeFileSync(file, out, "utf8");
+    try {
+      execFileSync("bash", ["-n", file], { stdio: "pipe" });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

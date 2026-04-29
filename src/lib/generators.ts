@@ -69,6 +69,10 @@ function normalizeEntry(
   };
 }
 
+// Generators run client-side, so they cannot resolve compound references
+// themselves (resolution requires the on-disk KapeFiles index). Callers
+// pass a target whose `targets` already contain the flat entry list —
+// `getResolvedEntries` in lib/kapefiles.ts is the server-side helper.
 function getEntries(target: KapeTarget): KapeTargetEntry[] {
   return target.targets.filter((e) => !e.path.endsWith(".tkape"));
 }
@@ -91,20 +95,6 @@ export function generatePowerShell(
   target: KapeTarget,
   opts: GeneratorOptions
 ): string {
-  const kapeCmd = generateKapeCommand(target, opts);
-
-  if (target.isCompound) {
-    return [
-      "# PowerShell Collection Script",
-      `# Target: ${target.name} (Compound Target)`,
-      "# Use KAPE directly for best results:",
-      `# ${kapeCmd}`,
-      "",
-      'Write-Host "For compound targets, use KAPE directly for best results." -ForegroundColor Yellow',
-      "",
-    ].join("\n");
-  }
-
   const entries = getEntries(target).map((e) => normalizeEntry(e, opts.source));
   const lines: string[] = [
     "# PowerShell Artifact Collection Script",
@@ -124,14 +114,20 @@ export function generatePowerShell(
     "        [Parameter(Mandatory)][string]$FolderName,",
     '        [string]$FileMask = "*"',
     "    )",
-    "    if (-not (Test-Path -LiteralPath $SourceDir)) {",
+    "    # Expand wildcards in any path segment (e.g. 'Program Files*',",
+    "    # 'ScreenConnect Client*'). robocopy itself does not glob the source.",
+    "    $sources = @(Get-Item -Path $SourceDir -ErrorAction SilentlyContinue |",
+    "        Where-Object { $_.PSIsContainer })",
+    "    if ($sources.Count -eq 0) {",
     "        $Summary.Missed++",
     "        return",
     "    }",
     "    $FullDest = Join-Path -Path $DestBase -ChildPath $FolderName",
     "    $null = New-Item -ItemType Directory -Force -Path $FullDest -ErrorAction SilentlyContinue",
-    '    robocopy "$SourceDir" "$FullDest" "$FileMask" /E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS 2>$null | Out-Null',
-    "    if ($LASTEXITCODE -le 7) { $Summary.Copied++ } else { $Summary.Errors++ }",
+    "    foreach ($src in $sources) {",
+    '        robocopy $src.FullName "$FullDest" "$FileMask" /E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS 2>$null | Out-Null',
+    "        if ($LASTEXITCODE -le 7) { $Summary.Copied++ } else { $Summary.Errors++ }",
+    "    }",
     "}",
     "",
   ];
@@ -195,22 +191,6 @@ export function generateBatch(
   target: KapeTarget,
   opts: GeneratorOptions
 ): string {
-  const kapeCmd = generateKapeCommand(target, opts);
-
-  if (target.isCompound) {
-    return [
-      "@echo off",
-      "REM Batch Collection Script",
-      `REM Target: ${target.name} (Compound Target)`,
-      "REM Use KAPE directly for best results:",
-      `REM ${kapeCmd}`,
-      "",
-      "echo For compound targets, use KAPE directly for best results.",
-      "pause",
-      "",
-    ].join("\r\n");
-  }
-
   const entries = getEntries(target).map((e) => normalizeEntry(e, opts.source));
   const userEntries = entries.filter((e) => e.hasUserVar);
   const nonUserEntries = entries.filter((e) => !e.hasUserVar);
@@ -233,17 +213,37 @@ export function generateBatch(
   for (const entry of nonUserEntries) {
     const src = stripTrailingBackslash(entry.path);
     lines.push(`REM ${entry.name}`);
-    lines.push(`if exist "${src}\\" (`);
-    if (entry.fileMask) {
+    if (src.includes("*") || src.includes("?")) {
+      // robocopy and `if exist` don't expand wildcards in mid-path segments
+      // (e.g. "Program Files*"). Shell out to PowerShell to enumerate the
+      // matching directories first, then robocopy each result.
+      const psLiteral = src.replace(/'/g, "''");
       lines.push(
-        `    robocopy "${src}\\" "%DEST%\\${entry.safeName}" "${entry.fileMask}" ${roboFlags} >nul 2>&1`
+        `for /F "usebackq delims=" %%D in (\`powershell -NoProfile -Command "Get-Item -Path '${psLiteral}' -ErrorAction SilentlyContinue | Where-Object PSIsContainer | ForEach-Object FullName"\`) do (`
       );
+      if (entry.fileMask) {
+        lines.push(
+          `    robocopy "%%D\\" "%DEST%\\${entry.safeName}" "${entry.fileMask}" ${roboFlags} >nul 2>&1`
+        );
+      } else {
+        lines.push(
+          `    robocopy "%%D\\" "%DEST%\\${entry.safeName}" ${roboFlags} >nul 2>&1`
+        );
+      }
+      lines.push(")");
     } else {
-      lines.push(
-        `    robocopy "${src}\\" "%DEST%\\${entry.safeName}" ${roboFlags} >nul 2>&1`
-      );
+      lines.push(`if exist "${src}\\" (`);
+      if (entry.fileMask) {
+        lines.push(
+          `    robocopy "${src}\\" "%DEST%\\${entry.safeName}" "${entry.fileMask}" ${roboFlags} >nul 2>&1`
+        );
+      } else {
+        lines.push(
+          `    robocopy "${src}\\" "%DEST%\\${entry.safeName}" ${roboFlags} >nul 2>&1`
+        );
+      }
+      lines.push(")");
     }
-    lines.push(")");
     lines.push("");
   }
 
@@ -299,21 +299,6 @@ export function generateWsl(
   target: KapeTarget,
   opts: GeneratorOptions
 ): string {
-  const kapeCmd = generateKapeCommand(target, opts);
-
-  if (target.isCompound) {
-    return [
-      "#!/bin/bash",
-      "# WSL Artifact Collection Script",
-      `# Target: ${target.name} (Compound Target)`,
-      "# For compound targets, run KAPE on Windows directly:",
-      `# ${kapeCmd}`,
-      "",
-      'echo "For compound targets, use KAPE directly for best results."',
-      "",
-    ].join("\n");
-  }
-
   const entries = getEntries(target).map((e) => normalizeEntry(e, opts.source));
   const userEntries = entries.filter((e) => e.hasUserVar);
   const nonUserEntries = entries.filter((e) => !e.hasUserVar);
@@ -335,19 +320,26 @@ export function generateWsl(
     'mkdir -p "$DEST"',
     "",
     "copy_artifact() {",
-    "    local src_dir=$1",
+    "    local src_pattern=$1",
     "    local dest_name=$2",
     "    local mask=${3:-}",
-    '    if [ ! -d "$src_dir" ]; then',
+    "    # Expand wildcards (e.g. 'Program Files*'). compgen -G handles",
+    "    # patterns containing spaces without word-splitting issues.",
+    "    local matches",
+    '    mapfile -t matches < <(compgen -G "$src_pattern" 2>/dev/null)',
+    '    if [ "${#matches[@]}" -eq 0 ]; then',
     "        MISSED=$((MISSED + 1))",
     "        return",
     "    fi",
     '    mkdir -p "$DEST/$dest_name"',
-    '    if [ -n "$mask" ]; then',
-    '        find "$src_dir" -maxdepth 1 -type f -name "$mask" -exec cp -p {} "$DEST/$dest_name/" \\; 2>/dev/null',
-    "    else",
-    '        cp -rp "$src_dir"/. "$DEST/$dest_name/" 2>/dev/null',
-    "    fi",
+    '    for src in "${matches[@]}"; do',
+    '        [ -d "$src" ] || continue',
+    '        if [ -n "$mask" ]; then',
+    '            find "$src" -maxdepth 1 -type f -name "$mask" -exec cp -p {} "$DEST/$dest_name/" \\; 2>/dev/null',
+    "        else",
+    '            cp -rp "$src"/. "$DEST/$dest_name/" 2>/dev/null',
+    "        fi",
+    "    done",
     "    COPIED=$((COPIED + 1))",
     "}",
     "",

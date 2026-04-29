@@ -250,8 +250,10 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
             <span className="text-amber-400">Note:</span>{" "}
             <span className="text-muted-foreground">
               This is a compound target that references{" "}
-              {target.referencedTargets.length} other targets. KAPE will
-              automatically collect all referenced artifacts.
+              {target.referencedTargets.length} other target
+              {target.referencedTargets.length === 1 ? "" : "s"}. The KAPE
+              command resolves them natively; the PowerShell/Batch/WSL scripts
+              flatten every referenced path into explicit copy commands.
             </span>
           </div>
         </div>

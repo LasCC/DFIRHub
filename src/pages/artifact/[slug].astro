@@ -16,7 +16,7 @@ import { PathBrowser } from "../../components/artifact/PathBrowser";
 import Footer from "../../components/layout/Footer.astro";
 import { Header } from "../../components/layout/Header";
 import Layout from "../../layouts/Layout.astro";
-import { findCollectionsContaining, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
+import { findCollectionsContaining, getResolvedEntries, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
 import type { KapeTarget } from '../../lib/kapefiles';
 
 export async function getStaticPaths() {
@@ -42,10 +42,27 @@ interface Props {
 
 const { target } = Astro.props;
 
-// Resolve compound targets to their individual targets
-const resolvedTargets = target.isCompound
+// Resolve compound targets to their individual targets. Hybrid targets
+// (compounds that also declare their own direct paths) need the host
+// itself prepended so its paths appear alongside the resolved references.
+const referencedResolved = target.isCompound
   ? resolveCompoundReferences(target)
+  : [];
+const hostHasDirectPaths = target.targets.some(
+  (entry) => !entry.path.endsWith(".tkape")
+);
+const resolvedTargets = target.isCompound
+  ? hostHasDirectPaths
+    ? [target, ...referencedResolved]
+    : referencedResolved
   : undefined;
+
+// CommandGenerator runs in the browser and can't reach the on-disk index.
+// Pre-flatten compound targets server-side so the script generators only
+// have to iterate `target.targets`.
+const commandTarget: KapeTarget = target.isCompound
+  ? { ...target, targets: getResolvedEntries(target) }
+  : target;
 
 // Find collections that include this target
 const includedInCollections = findCollectionsContaining(target.slug);
@@ -237,7 +254,7 @@ const jsonLd = {
                                 </span>
                                 includes
                                 <span class="text-primary">
-                                    ({resolvedTargets.length})
+                                    ({referencedResolved.length})
                                 </span>
                             </h2>
                             <ArtifactList className="glass-subtle rounded-xl divide-y divide-white/[0.04]">
@@ -249,7 +266,7 @@ const jsonLd = {
                                             "",
                                         );
                                         const foundTarget =
-                                            resolvedTargets.find(
+                                            referencedResolved.find(
                                                 (t) =>
                                                     t.sourceFile
                                                         .replace(/\.tkape$/, "")
@@ -326,7 +343,7 @@ const jsonLd = {
             <span class="text-primary/50" aria-hidden="true">//</span>
             collection commands
           </h2>
-          <CommandGenerator client:idle target={target} />
+          <CommandGenerator client:idle target={commandTarget} />
         </ArtifactSection>
 
         <!-- CyberChef Links -->

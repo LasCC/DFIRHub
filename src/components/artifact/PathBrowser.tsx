@@ -130,8 +130,14 @@ function parsePathSegments(pathStr: string, fileMask?: string): PathSegment[] {
 export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   const [copiedPath, triggerCopied] = useCopyFeedbackKeyed<string>();
   const { tapHaptic } = useHaptics();
+  // For compound targets, default-expand the first group so visitors land on
+  // visible content instead of a row of collapsed accordions.
+  const firstGroupName =
+    target.isCompound && resolvedTargets?.[0]
+      ? resolvedTargets[0].name
+      : undefined;
   const [expandedTargets, setExpandedTargets] = useState<Set<string>>(
-    new Set()
+    () => new Set(firstGroupName ? [firstGroupName] : [])
   );
   const [filter, setFilter] = useState("");
   const [activeCategories, setActiveCategories] = useState<Set<string>>(
@@ -379,13 +385,15 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                       {group.entries.length !== 1 ? "s" : ""})
                     </span>
                   </span>
-                  <a
-                    className="text-[10px] text-primary transition-colors hover:text-primary/80"
-                    href={`/artifact/${group.slug}`}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    [view]
-                  </a>
+                  {group.slug !== target.slug && (
+                    <a
+                      className="text-[10px] text-primary transition-colors hover:text-primary/80"
+                      href={`/artifact/${group.slug}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      [view]
+                    </a>
+                  )}
                 </button>
                 {expandedTargets.has(group.name) && (
                   <div className="bg-black/20">
