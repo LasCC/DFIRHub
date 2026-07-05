@@ -233,7 +233,7 @@ export function Search({ showTrigger = true }: SearchProps) {
         <button
           aria-keyshortcuts="Control+K"
           aria-label="Open search dialog"
-          className="group glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-muted-foreground text-xs transition-all duration-200 hover:border-primary/30 hover:bg-white/[0.04] sm:h-8 sm:w-auto sm:px-3"
+          className="group glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-overlay/[0.06] text-muted-foreground text-xs transition-all duration-200 hover:border-primary/30 hover:bg-overlay/[0.04] sm:h-8 sm:w-auto sm:px-3"
           data-search-trigger
           onClick={() => {
             dialogHaptic();
@@ -463,7 +463,7 @@ export function Search({ showTrigger = true }: SearchProps) {
         </CommandList>
 
         {/* Footer with keyboard hints */}
-        <div className="flex items-center justify-between border-white/[0.06] border-t bg-white/[0.02] px-4 py-2.5 text-[10px] text-muted-foreground/50">
+        <div className="flex items-center justify-between border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5 text-[10px] text-muted-foreground/50">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <div className="flex items-center gap-0.5">

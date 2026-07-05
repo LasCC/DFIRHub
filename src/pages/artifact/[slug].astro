@@ -258,7 +258,7 @@ const jsonLd = {
                                     ({referencedResolved.length})
                                 </span>
                             </h2>
-                            <ArtifactList className="glass-subtle rounded-xl divide-y divide-white/[0.04]">
+                            <ArtifactList className="glass-subtle rounded-xl divide-y divide-overlay/[0.04]">
                                 {target.referencedTargets
                                     .slice(0, 20)
                                     .map((ref) => {
@@ -386,9 +386,9 @@ const jsonLd = {
                                                 href={url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                class="group flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-white/[0.03] focus-ring"
+                                                class="group flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-overlay/[0.03] focus-ring"
                                             >
-                                                <span class="shrink-0 rounded bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/90 group-hover:text-foreground/90 transition-colors">
+                                                <span class="shrink-0 rounded bg-overlay/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/90 group-hover:text-foreground/90 transition-colors">
                                                     {host}
                                                 </span>
                                                 <span class="truncate text-primary/90 group-hover:text-primary transition-colors">
@@ -441,7 +441,7 @@ const jsonLd = {
                                     block.type === "text" ? (
                                         <p class="break-words">{block.value}</p>
                                     ) : (
-                                        <pre class="scrollbar-thin overflow-x-auto rounded-lg border border-white/[0.06] bg-black/30 px-3 py-2.5 text-[11px] leading-5 text-foreground/75"><code class="font-mono">{block.lines.join("\n")}</code></pre>
+                                        <pre class="scrollbar-thin overflow-x-auto rounded-lg border border-overlay/[0.06] bg-sunken px-3 py-2.5 text-[11px] leading-5 text-foreground/75"><code class="font-mono">{block.lines.join("\n")}</code></pre>
                                     )
                                 ))}
                             </div>

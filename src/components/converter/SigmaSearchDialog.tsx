@@ -54,7 +54,7 @@ function LogsourceBadge({
   }
 
   return (
-    <span className="rounded border border-white/[0.08] bg-white/[0.04] px-1.5 py-0.5 text-[10px] leading-none text-muted-foreground">
+    <span className="rounded border border-overlay/[0.08] bg-overlay/[0.04] px-1.5 py-0.5 text-[10px] leading-none text-muted-foreground">
       {parts.join("/")}
     </span>
   );
@@ -197,7 +197,7 @@ export function SigmaSearchDialog({
         )}
       </CommandList>
 
-      <div className="flex items-center justify-between border-white/[0.06] border-t bg-white/[0.02] px-4 py-2.5 text-[10px] text-muted-foreground/50">
+      <div className="flex items-center justify-between border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5 text-[10px] text-muted-foreground/50">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">

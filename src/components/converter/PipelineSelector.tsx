@@ -39,7 +39,7 @@ export function PipelineSelector({
           className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
             hasSelection
               ? "border-primary/40 bg-primary/10 text-primary"
-              : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+              : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
           }`}
           title="Select a processing pipeline to transform field names and values"
           type="button"
@@ -69,7 +69,7 @@ export function PipelineSelector({
 
         {/* None option */}
         <button
-          className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.04] ${
+          className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.04] ${
             selectedPipeline === "" ? "text-primary" : "text-foreground"
           }`}
           onClick={() => onPipelineChange("")}
@@ -82,9 +82,9 @@ export function PipelineSelector({
           <div className="max-h-48 space-y-0.5 overflow-y-auto">
             {availablePipelines.map((pipeline) => (
               <button
-                className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.04] ${
+                className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.04] ${
                   selectedPipeline === pipeline.name
-                    ? "bg-white/[0.04] text-primary"
+                    ? "bg-overlay/[0.04] text-primary"
                     : "text-foreground"
                 }`}
                 key={pipeline.name}
@@ -97,7 +97,7 @@ export function PipelineSelector({
           </div>
         )}
 
-        <div className="mt-1 border-t border-white/[0.06] px-1 pb-1 pt-2">
+        <div className="mt-1 border-t border-overlay/[0.06] px-1 pb-1 pt-2">
           <button
             className="flex w-full items-center justify-between px-2 py-1 text-left text-xs text-muted-foreground hover:text-foreground"
             onClick={() => setShowCustom((prev) => !prev)}
@@ -111,7 +111,7 @@ export function PipelineSelector({
           {showCustom && (
             <textarea
               aria-label="Custom pipeline YAML"
-              className="mt-2 w-full rounded-md border border-white/[0.06] bg-white/[0.02] p-2 font-mono text-xs text-foreground placeholder:text-muted-foreground/40"
+              className="mt-2 w-full rounded-md border border-overlay/[0.06] bg-overlay/[0.02] p-2 font-mono text-xs text-foreground placeholder:text-muted-foreground/40"
               onChange={(e) => onCustomPipelineChange(e.target.value)}
               placeholder={
                 "name: Custom Pipeline\npriority: 10\ntransformations:\n  - id: field_mapping\n    type: field_name_mapping\n    mapping:\n      EventID: event_id"

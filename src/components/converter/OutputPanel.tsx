@@ -83,8 +83,8 @@ export function OutputPanel({
   }, [query, language, error, isLoading]);
 
   return (
-    <div className="flex h-full flex-col bg-[#101010]">
-      <div className="flex items-center justify-between border-white/[0.06] border-b px-4 py-2">
+    <div className="flex h-full flex-col bg-editor">
+      <div className="flex items-center justify-between border-overlay/[0.06] border-b px-4 py-2">
         <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
           {backend}{" "}
           <span className="text-muted-foreground/50">({language})</span>
@@ -92,7 +92,7 @@ export function OutputPanel({
         {query && (
           <button
             aria-label={copied ? "Copied" : "Copy query to clipboard"}
-            className="flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.04] px-2 py-1 text-muted-foreground text-xs transition-all hover:border-white/[0.1] hover:text-foreground"
+            className="flex items-center gap-1.5 rounded-md border border-overlay/[0.06] bg-overlay/[0.04] px-2 py-1 text-muted-foreground text-xs transition-all hover:border-overlay/[0.1] hover:text-foreground"
             onClick={handleCopy}
             type="button"
           >

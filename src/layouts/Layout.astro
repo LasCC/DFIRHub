@@ -29,11 +29,79 @@ const fullTitle =
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content={Astro.generator}>
+
+    <!-- Theme bootstrap: resolve light/dark/auto and apply before first paint
+         so there is no flash. "auto" follows the browser's color-scheme
+         preference (matchMedia), which the user can set independently of the OS. -->
+    <script is:inline>
+      (() => {
+        const KEY = "dfirhub-theme";
+        const read = () => {
+          try {
+            const v = localStorage.getItem(KEY);
+            if (v === "light" || v === "dark" || v === "auto") return v;
+          } catch {
+            // localStorage may be unavailable (private mode / SSR-like envs)
+          }
+          return "auto";
+        };
+        const prefersDark = () =>
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const resolve = (t) =>
+          t === "dark" || (t === "auto" && prefersDark()) ? "dark" : "light";
+        const apply = () => {
+          const mode = resolve(read());
+          const root = document.documentElement;
+          root.classList.toggle("dark", mode === "dark");
+          root.classList.toggle("light", mode === "light");
+          root.style.colorScheme = mode;
+          const meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) {
+            meta.setAttribute("content", mode === "dark" ? "#09090b" : "#ffffff");
+          }
+        };
+        apply();
+        window.__dfirTheme = {
+          get: read,
+          apply,
+          set(t) {
+            try {
+              localStorage.setItem(KEY, t);
+            } catch {
+              // ignore persistence failures
+            }
+            apply();
+            window.dispatchEvent(
+              new CustomEvent("dfir-theme-change", { detail: t })
+            );
+          },
+        };
+        if (!window.__dfirThemeBound) {
+          window.__dfirThemeBound = true;
+          if (window.matchMedia) {
+            window
+              .matchMedia("(prefers-color-scheme: dark)")
+              .addEventListener("change", apply);
+          }
+          window.addEventListener("storage", (e) => {
+            if (e.key === KEY) {
+              apply();
+              window.dispatchEvent(
+                new CustomEvent("dfir-theme-change", { detail: read() })
+              );
+            }
+          });
+          // Re-apply after client-side navigations (ClientRouter swaps <html>)
+          document.addEventListener("astro:after-swap", apply);
+        }
+      })();
+    </script>
 
     <!-- Primary Meta Tags -->
     <title>{fullTitle}</title>
@@ -49,9 +117,9 @@ const fullTitle =
     <!-- Canonical URL -->
     <link rel="canonical" href={canonicalUrl}>
 
-    <!-- Theme -->
+    <!-- Theme (theme-color is kept in sync by the bootstrap script above) -->
     <meta name="theme-color" content="#09090b">
-    <meta name="color-scheme" content="dark">
+    <meta name="color-scheme" content="light dark">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={type}>
@@ -311,7 +379,7 @@ const fullTitle =
       }
 
       body.keyboard-navigation *:focus-visible {
-        outline: 2px solid var(--color-primary);
+        outline: 2px solid var(--primary);
         outline-offset: 2px;
       }
 
@@ -319,7 +387,7 @@ const fullTitle =
       body.keyboard-navigation a:focus,
       body.keyboard-navigation button:focus,
       body.keyboard-navigation [role="button"]:focus {
-        outline: 2px solid var(--color-primary);
+        outline: 2px solid var(--primary);
         outline-offset: 2px;
       }
 

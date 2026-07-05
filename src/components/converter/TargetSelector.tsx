@@ -34,7 +34,7 @@ function BackendButton({
       className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
         isSelected
           ? "border-primary/40 bg-primary/10 text-foreground"
-          : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+          : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
       }`}
       onClick={onClick}
       type="button"
@@ -45,7 +45,7 @@ function BackendButton({
           className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
             isSelected
               ? "border-primary bg-primary text-background"
-              : "border-white/20"
+              : "border-overlay/20"
           }`}
         >
           {isSelected && "\u2713"}

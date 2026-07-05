@@ -146,7 +146,7 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
 
           return (
             <a
-              className={`group category-filter-btn inline-flex shrink-0 items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] px-4 py-2 font-medium text-xs text-muted-foreground transition-all duration-300 hover:border-white/10 hover:bg-white/[0.04] hover:text-foreground ${config.active} backdrop-blur-sm`}
+              className={`group category-filter-btn inline-flex shrink-0 items-center gap-2 rounded-full border border-overlay/[0.06] bg-overlay/[0.02] px-4 py-2 font-medium text-xs text-muted-foreground transition-all duration-300 hover:border-overlay/10 hover:bg-overlay/[0.04] hover:text-foreground ${config.active} backdrop-blur-sm`}
               data-filter-id={cat.id}
               data-special={cat.special ? "true" : undefined}
               href={
@@ -167,7 +167,7 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
               />
               <span>{cat.label}</span>
               <span
-                className={`rounded-full border border-transparent bg-white/[0.06] px-1.5 py-0.5 font-mono text-[10px] tabular-nums ${config.badgeActive}`}
+                className={`rounded-full border border-transparent bg-overlay/[0.06] px-1.5 py-0.5 font-mono text-[10px] tabular-nums ${config.badgeActive}`}
               >
                 {cat.count}
               </span>

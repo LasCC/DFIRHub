@@ -21,7 +21,7 @@ export function DiffView({ results, isLoading }: DiffViewProps) {
   }
 
   return (
-    <div className="flex h-full flex-col divide-y divide-white/[0.06]">
+    <div className="flex h-full flex-col divide-y divide-overlay/[0.06]">
       {entries.map(([backendId, result]) => {
         const config = getBackend(backendId);
         return (

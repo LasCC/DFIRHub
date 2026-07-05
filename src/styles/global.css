@@ -40,9 +40,18 @@
    A sophisticated, accessible dark theme for digital forensics professionals
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@theme {
-  /* ─── Surface Layers (for depth) ─── */
-  /* Each level increases lightness by ~0.02-0.03 for subtle layering */
+/* ─────────────────────────────────────────────────────────────────────────
+   Theme palettes
+   Raw design tokens live here as plain custom properties so they can flip
+   between themes via the cascade. `:root` holds the dark (default) palette;
+   `.light` overrides it. Tailwind color utilities are wired to these vars in
+   the `@theme inline` block below, so `bg-background`, `text-primary`, etc.
+   follow the active theme automatically.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  /* ─── Surface Layers (dark: elevated = lighter) ─── */
   --surface-0: #09090b; /* Deepest - page background */
   --surface-1: #0c0c0f; /* Base cards/sections */
   --surface-2: #111114; /* Raised elements */
@@ -50,38 +59,172 @@
   --surface-4: #1c1c20; /* Most elevated */
 
   /* Core palette */
-  --color-background: var(--surface-0);
-  --color-foreground: #fafafa;
-  --color-card: var(--surface-1);
-  --color-card-foreground: #fafafa;
-  --color-popover: var(--surface-2);
-  --color-popover-foreground: #fafafa;
+  --background: var(--surface-0);
+  --foreground: #fafafa;
+  --card: var(--surface-1);
+  --card-foreground: #fafafa;
+  --popover: var(--surface-2);
+  --popover-foreground: #fafafa;
 
   /* Primary green - cyberpunk terminal */
-  --color-primary: #10b981;
-  --color-primary-foreground: #022c22;
+  --primary: #10b981;
+  --primary-foreground: #022c22;
 
   /* Secondary muted */
-  --color-secondary: var(--surface-2);
-  --color-secondary-foreground: #a1a1aa;
+  --secondary: var(--surface-2);
+  --secondary-foreground: #a1a1aa;
 
   /* Muted grays */
-  --color-muted: var(--surface-2);
-  --color-muted-foreground: #a1a1aa;
+  --muted: var(--surface-2);
+  --muted-foreground: #a1a1aa;
 
   /* Accent amber - alerts and highlights */
-  --color-accent: #f59e0b;
-  --color-accent-foreground: #451a03;
+  --accent: #f59e0b;
+  --accent-foreground: #451a03;
 
   /* Destructive */
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fef2f2;
+  --destructive: #ef4444;
+  --destructive-foreground: #fef2f2;
 
   /* Borders and inputs */
-  --color-border: #27272a;
-  --color-input: #27272a;
-  --color-ring: #10b981;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #10b981;
 
+  /* Elevation overlay tint (used at low alpha for hairlines/fills).
+     White in dark so `bg-overlay/[0.02]` == the old `bg-white/[0.02]`. */
+  --overlay: #ffffff;
+  /* Recessed / code-panel surface */
+  --sunken: #0a0a0c;
+  /* Code editor (Monaco) surface — stays dark in both themes */
+  --editor: #101010;
+  /* Base color painted on <html> behind everything */
+  --app-base: #050506;
+
+  /* ─── Glass system (rgb triplets consumed via rgb(var(--x) / alpha)) ─── */
+  --glass-base: 12 12 15;
+  --glass-base-header: 9 9 11;
+  --glass-base-raised: 22 22 25;
+  --glass-base-subtle: 17 17 20;
+  --glass-hairline: 255 255 255;
+
+  /* ─── Assorted surfaces ─── */
+  --scrollbar-thumb: #3f3f46;
+  --scrollbar-thumb-hover: #52525b;
+  --skeleton-from: #18181b;
+  --skeleton-via: #27272a;
+  --grid-line: rgba(39, 39, 42, 0.25);
+  --scroll-fade: 5 5 8;
+
+  /* Inverted tooltip (kept dark in both themes) */
+  --tooltip-bg: #27272a;
+  --tooltip-fg: #fafafa;
+  --tooltip-border: #3f3f46;
+
+  /* Contrast-boost text tokens (see utilities layer) */
+  --boost-muted-rgb: 161 161 170;
+  --boost-fg-rgb: 250 250 250;
+  --boost-zinc-400: #b4b4bf;
+  --boost-zinc-500: #9b9ba8;
+  --boost-zinc-600: #888896;
+}
+
+.light {
+  color-scheme: light;
+
+  /* ─── Surface Layers (light: base grey, cards white) ─── */
+  --surface-0: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #f7f7f8;
+  --surface-3: #f1f1f3;
+  --surface-4: #ffffff;
+
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+
+  /* Darker green keeps AA contrast for text/icons on white */
+  --primary: #047857;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f4f4f5;
+  --secondary-foreground: #3f3f46;
+
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+
+  --accent: #b45309;
+  --accent-foreground: #ffffff;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #059669;
+
+  /* Dark tint so `bg-overlay/[0.02]` becomes a subtle dark wash on white */
+  --overlay: #18181b;
+  --sunken: #f4f4f5;
+  /* --editor intentionally inherits the dark value (code editor stays dark) */
+  --app-base: #ececee;
+
+  --glass-base: 255 255 255;
+  --glass-base-header: 255 255 255;
+  --glass-base-raised: 255 255 255;
+  --glass-base-subtle: 255 255 255;
+  --glass-hairline: 24 24 27;
+
+  --scrollbar-thumb: #c4c4cc;
+  --scrollbar-thumb-hover: #a1a1aa;
+  --skeleton-from: #e4e4e7;
+  --skeleton-via: #f4f4f5;
+  --grid-line: rgba(24, 24, 27, 0.06);
+  --scroll-fade: 255 255 255;
+  /* --tooltip-* intentionally inherit dark values (inverted tooltip) */
+
+  /* Contrast-boost text tokens flip to dark greys on white */
+  --boost-muted-rgb: 82 82 91;
+  --boost-fg-rgb: 24 24 27;
+  --boost-zinc-400: #52525b;
+  --boost-zinc-500: #5b5b66;
+  --boost-zinc-600: #6b6b78;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Tailwind token registration
+   `inline` keeps utilities pointed at the raw vars above so they respond to
+   the active theme. Non-color design tokens are static.
+   ───────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+  --color-sunken: var(--sunken);
+  --color-editor: var(--editor);
+}
+
+@theme {
   /* ─── Depth Shadows ─── */
   /* Light top edge + dark bottom = realistic depth */
   --shadow-sm:
@@ -122,17 +265,17 @@
   *,
   *::before,
   *::after {
-    border-color: var(--color-border);
+    border-color: var(--border);
   }
 
   html {
-    background-color: #050506;
+    background-color: var(--app-base);
     scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -143,13 +286,13 @@
 
   /* Selection styling */
   ::selection {
-    background-color: var(--color-primary);
-    color: var(--color-background);
+    background-color: var(--primary);
+    color: var(--background);
   }
 
   /* Default focus ring for accessibility */
   :focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
   }
 
@@ -183,8 +326,8 @@
     position: absolute;
     top: -40px;
     left: 0;
-    background: var(--color-primary);
-    color: var(--color-primary-foreground);
+    background: var(--primary);
+    color: var(--primary-foreground);
     padding: 8px 16px;
     z-index: 10000;
     font-weight: 600;
@@ -203,10 +346,10 @@
 @layer components {
   /* ─── Base Glass Effect ─── */
   .glass {
-    background: rgba(12, 12, 15, 0.7);
+    background: rgb(var(--glass-base) / 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgb(var(--glass-hairline) / 0.06);
     box-shadow:
       inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
       0 4px 24px -4px rgba(0, 0, 0, 0.4);
@@ -214,10 +357,10 @@
 
   /* ─── Stronger Glass (for modals/dialogs) ─── */
   .glass-strong {
-    background: rgba(12, 12, 15, 0.85);
+    background: rgb(var(--glass-base) / 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgb(var(--glass-hairline) / 0.08);
     box-shadow:
       inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
       0 8px 32px -8px rgba(0, 0, 0, 0.5),
@@ -226,10 +369,10 @@
 
   /* ─── Subtle Glass (for cards/panels) ─── */
   .glass-subtle {
-    background: rgba(17, 17, 20, 0.6);
+    background: rgb(var(--glass-base-subtle) / 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid rgb(var(--glass-hairline) / 0.04);
     box-shadow:
       inset 0 1px 0 0 rgba(255, 255, 255, 0.03),
       0 2px 12px -2px rgba(0, 0, 0, 0.3);
@@ -237,10 +380,10 @@
 
   /* ─── Glass Header ─── */
   .glass-header {
-    background: rgba(9, 9, 11, 0.75);
+    background: rgb(var(--glass-base-header) / 0.75);
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgb(var(--glass-hairline) / 0.05);
     box-shadow:
       inset 0 -1px 0 0 rgba(0, 0, 0, 0.2),
       0 4px 20px -4px rgba(0, 0, 0, 0.4);
@@ -248,10 +391,10 @@
 
   /* ─── Glass Tooltip/Popover ─── */
   .glass-tooltip {
-    background: rgba(22, 22, 25, 0.9);
+    background: rgb(var(--glass-base-raised) / 0.9);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgb(var(--glass-hairline) / 0.08);
     box-shadow:
       0 4px 16px -4px rgba(0, 0, 0, 0.5),
       0 0 0 1px rgba(0, 0, 0, 0.2);
@@ -259,10 +402,10 @@
 
   /* ─── Interactive Glass Card ─── */
   .glass-card {
-    background: rgba(17, 17, 20, 0.5);
+    background: rgb(var(--glass-base-subtle) / 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid rgb(var(--glass-hairline) / 0.04);
     box-shadow:
       inset 0 1px 0 0 rgba(255, 255, 255, 0.03),
       0 2px 8px -2px rgba(0, 0, 0, 0.25);
@@ -270,8 +413,8 @@
   }
 
   .glass-card:hover {
-    background: rgba(22, 22, 25, 0.6);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: rgb(var(--glass-base-raised) / 0.6);
+    border-color: rgb(var(--glass-hairline) / 0.1);
     box-shadow:
       inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
       0 4px 12px -4px rgba(0, 0, 0, 0.35);
@@ -304,7 +447,7 @@
   .cursor-blink::after {
     content: "█";
     animation: cursor-blink 1s step-end infinite;
-    color: var(--color-primary);
+    color: var(--primary);
   }
 
   @keyframes cursor-blink {
@@ -340,7 +483,7 @@
   }
 
   .tag:focus-visible {
-    outline: 2px solid var(--color-primary);
+    outline: 2px solid var(--primary);
     outline-offset: 2px;
   }
 
@@ -445,34 +588,60 @@
     border-color: #71717a;
   }
 
+  /* Light theme: the pale tag tints/borders carry over, but the 300-shade
+     text colors need darker 700-shade equivalents to stay readable on white. */
+  .light .tag-execution {
+    color: #b91c1c;
+  }
+  .light .tag-persistence,
+  .light .tag-linux {
+    color: #b45309;
+  }
+  .light .tag-lateral {
+    color: #7e22ce;
+  }
+  .light .tag-browser,
+  .light .tag-windows {
+    color: #1d4ed8;
+  }
+  .light .tag-file {
+    color: #047857;
+  }
+  .light .tag-usb {
+    color: #be185d;
+  }
+  .light .tag-macos {
+    color: #52525b;
+  }
+
   /* ─── Terminal Code Block ─── */
   .code-block {
     font-family: var(--font-mono);
     font-size: 13px;
-    background-color: #0a0a0c;
-    color: var(--color-primary);
+    background-color: var(--sunken);
+    color: var(--primary);
     padding: 16px 20px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--border);
     position: relative;
     overflow-x: auto;
   }
 
   .code-block::before {
     content: "$ ";
-    color: var(--color-muted-foreground);
+    color: var(--muted-foreground);
     user-select: none;
   }
 
   .code-block:focus-within {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 1px var(--color-primary);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
   }
 
   /* ─── Grid Pattern Background ─── */
   .grid-pattern {
     background-image:
-      linear-gradient(rgba(39, 39, 42, 0.25) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(39, 39, 42, 0.25) 1px, transparent 1px);
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 48px 48px;
     background-position: -1px -1px;
   }
@@ -527,8 +696,8 @@
   .focus-ring:focus-visible {
     outline: none;
     box-shadow:
-      0 0 0 2px var(--color-background),
-      0 0 0 4px var(--color-primary);
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--primary);
   }
 
   /* ─── Keyboard Navigation Indicator ─── */
@@ -554,7 +723,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-bottom: 3px solid rgba(0, 0, 0, 0.5);
     border-radius: 6px;
-    color: var(--color-muted-foreground);
+    color: var(--muted-foreground);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
@@ -635,46 +804,46 @@
   .text-muted-foreground\/30,
   .text-muted-foreground\/40,
   .text-muted-foreground\/50 {
-    color: rgb(161 161 170 / 0.88) !important;
+    color: rgb(var(--boost-muted-rgb) / 0.88) !important;
   }
 
   .text-muted-foreground\/60,
   .text-muted-foreground\/70 {
-    color: rgb(161 161 170 / 0.94) !important;
+    color: rgb(var(--boost-muted-rgb) / 0.94) !important;
   }
 
   .text-muted-foreground\/80,
   .text-muted-foreground\/90 {
-    color: rgb(161 161 170 / 0.98) !important;
+    color: rgb(var(--boost-muted-rgb) / 0.98) !important;
   }
 
   .text-foreground\/40,
   .text-foreground\/50,
   .text-foreground\/60 {
-    color: rgb(250 250 250 / 0.8) !important;
+    color: rgb(var(--boost-fg-rgb) / 0.8) !important;
   }
 
   .text-foreground\/70,
   .text-foreground\/75 {
-    color: rgb(250 250 250 / 0.88) !important;
+    color: rgb(var(--boost-fg-rgb) / 0.88) !important;
   }
 
   .text-zinc-400 {
-    color: #b4b4bf !important;
+    color: var(--boost-zinc-400) !important;
   }
 
   .text-zinc-500 {
-    color: #9b9ba8 !important;
+    color: var(--boost-zinc-500) !important;
   }
 
   .text-zinc-600 {
-    color: #888896 !important;
+    color: var(--boost-zinc-600) !important;
   }
 
   /* ─── Custom Scrollbar ─── */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #3f3f46 transparent;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -687,7 +856,7 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #3f3f46;
+    background-color: var(--scrollbar-thumb);
     border-radius: 3px;
   }
 
@@ -730,10 +899,10 @@
     left: 0;
     background: linear-gradient(
       to right,
-      rgba(5, 5, 8, 0.96) 0%,
-      rgba(5, 5, 8, 0.84) 32%,
-      rgba(5, 5, 8, 0.45) 68%,
-      rgba(5, 5, 8, 0) 100%
+      rgb(var(--scroll-fade) / 0.96) 0%,
+      rgb(var(--scroll-fade) / 0.84) 32%,
+      rgb(var(--scroll-fade) / 0.45) 68%,
+      rgb(var(--scroll-fade) / 0) 100%
     );
   }
 
@@ -741,10 +910,10 @@
     right: 0;
     background: linear-gradient(
       to left,
-      rgba(5, 5, 8, 0.96) 0%,
-      rgba(5, 5, 8, 0.84) 32%,
-      rgba(5, 5, 8, 0.45) 68%,
-      rgba(5, 5, 8, 0) 100%
+      rgb(var(--scroll-fade) / 0.96) 0%,
+      rgb(var(--scroll-fade) / 0.84) 32%,
+      rgb(var(--scroll-fade) / 0.45) 68%,
+      rgb(var(--scroll-fade) / 0) 100%
     );
   }
 
@@ -761,7 +930,7 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: #52525b;
+    background-color: var(--scrollbar-thumb-hover);
   }
 
   /* ─── Scrollbar on hover only ─── */
@@ -771,7 +940,7 @@
   }
 
   .scrollbar-on-hover:hover {
-    scrollbar-color: #3f3f46 transparent;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 
   .scrollbar-on-hover::-webkit-scrollbar-thumb {
@@ -779,7 +948,7 @@
   }
 
   .scrollbar-on-hover:hover::-webkit-scrollbar-thumb {
-    background-color: #3f3f46;
+    background-color: var(--scrollbar-thumb);
   }
 
   /* ─── Animation Utilities ─── */
@@ -1082,11 +1251,11 @@
   left: 50%;
   transform: translateX(-50%);
   padding: 6px 10px;
-  background: #27272a;
-  color: #fafafa;
+  background: var(--tooltip-bg);
+  color: var(--tooltip-fg);
   font-size: 12px;
   white-space: nowrap;
-  border: 1px solid #3f3f46;
+  border: 1px solid var(--tooltip-border);
   opacity: 0;
   pointer-events: none;
   transition:
@@ -1104,7 +1273,12 @@
    Loading States
    ═══════════════════════════════════════════════════════════════════════════ */
 .skeleton {
-  background: linear-gradient(90deg, #18181b 25%, #27272a 50%, #18181b 75%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-from) 25%,
+    var(--skeleton-via) 50%,
+    var(--skeleton-from) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -1137,8 +1311,8 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (prefers-contrast: high) {
   :root {
-    --color-border: #52525b;
-    --color-muted-foreground: #a1a1aa;
+    --border: #52525b;
+    --muted-foreground: #a1a1aa;
   }
 
   .tag {

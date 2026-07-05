@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useHaptics } from "@/hooks/useHaptics";
 
 import { Search } from "../search/Search";
+import { ThemeToggle } from "./ThemeToggle";
 
 // Real GitHub mark icon (filled octocat)
 const GitHubMark = ({ className }: { className?: string }) => (
@@ -151,12 +152,14 @@ export function Header({ showSearch = true }: HeaderProps) {
         <div className="flex items-center gap-2">
           {/* Desktop-only converter link */}
           <a
-            className="focus-ring hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground md:flex"
+            className="focus-ring hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground md:flex"
             href="/converter"
           >
             <SigmaLogo className="h-3.5 w-3.5" />
             <span>Sigma Converter</span>
           </a>
+
+          <ThemeToggle />
 
           {showSearch && <Search />}
 
@@ -167,7 +170,7 @@ export function Header({ showSearch = true }: HeaderProps) {
             aria-label={
               mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"
             }
-            className="glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] text-muted-foreground transition-all duration-200 hover:border-white/[0.1] hover:text-foreground md:hidden"
+            className="glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-overlay/[0.06] text-muted-foreground transition-all duration-200 hover:border-overlay/[0.1] hover:text-foreground md:hidden"
             onClick={() => {
               toggleHaptic();
               setMobileMenuOpen((prev) => !prev);
@@ -188,7 +191,7 @@ export function Header({ showSearch = true }: HeaderProps) {
       <div
         aria-hidden={!mobileMenuOpen}
         aria-label="Mobile navigation"
-        className={`glass-strong overflow-hidden border-white/[0.06] border-t transition-all duration-300 ease-out md:hidden ${
+        className={`glass-strong overflow-hidden border-overlay/[0.06] border-t transition-all duration-300 ease-out md:hidden ${
           mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
         id="mobile-menu"
@@ -198,7 +201,7 @@ export function Header({ showSearch = true }: HeaderProps) {
         <nav className="space-y-1 px-4 py-3">
           {navItems.map((item, index) => (
             <a
-              className="focus-ring flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground text-sm transition-all duration-200 hover:bg-white/[0.04] hover:text-foreground"
+              className="focus-ring flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground text-sm transition-all duration-200 hover:bg-overlay/[0.04] hover:text-foreground"
               href={item.href}
               key={item.href}
               onClick={() => setMobileMenuOpen(false)}
@@ -221,7 +224,7 @@ export function Header({ showSearch = true }: HeaderProps) {
 
           {/* Mobile GitHub link */}
           <a
-            className="focus-ring flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground text-sm transition-all duration-200 hover:bg-white/[0.04] hover:text-foreground"
+            className="focus-ring flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground text-sm transition-all duration-200 hover:bg-overlay/[0.04] hover:text-foreground"
             href="https://github.com/LasCC/DFIRHub"
             onClick={() => setMobileMenuOpen(false)}
             rel="noopener noreferrer"
@@ -238,7 +241,7 @@ export function Header({ showSearch = true }: HeaderProps) {
         </nav>
 
         {/* Keyboard hints */}
-        <div className="border-white/[0.06] border-t bg-white/[0.02] px-4 py-2.5">
+        <div className="border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5">
           <p className="flex items-center gap-2 text-[10px] text-muted-foreground/50">
             <kbd className="kbd text-[9px]">⌘K</kbd>
             <span>to search & navigate</span>

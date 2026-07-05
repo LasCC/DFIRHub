@@ -338,9 +338,9 @@ const tools = [
                     <a
                       href={`/artifacts?scenario=${scenario.id}`}
                       class:list={[
-                        "group inline-flex shrink-0 items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.02] pl-1.5 pr-3 py-1",
+                        "group inline-flex shrink-0 items-center gap-2 rounded-full border border-overlay/[0.06] bg-overlay/[0.02] pl-1.5 pr-3 py-1",
                         "text-xs text-foreground/70 transition-all duration-200",
-                        "hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-foreground",
+                        "hover:border-overlay/[0.12] hover:bg-overlay/[0.05] hover:text-foreground",
                       ]}
                     >
                       <div class:list={["flex h-5 w-5 items-center justify-center rounded-full", colors.iconBg]}>
@@ -456,9 +456,9 @@ const tools = [
                     href={tool.href}
                     class:list={[
                       "tool-card group relative overflow-hidden rounded-xl p-5 sm:p-6",
-                      "border border-white/[0.06] bg-white/[0.02]",
+                      "border border-overlay/[0.06] bg-overlay/[0.02]",
                       "transition-all duration-300 ease-out",
-                      "hover:border-white/[0.12] hover:bg-white/[0.04]",
+                      "hover:border-overlay/[0.12] hover:bg-overlay/[0.04]",
                     ]}
                   >
                     <!-- Top gradient accent line -->
@@ -604,7 +604,7 @@ const tools = [
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
               <!-- Always Current -->
               <div
-                class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6"
+                class="rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] p-5 sm:p-6"
               >
                 <div
                   class="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"
@@ -641,7 +641,7 @@ const tools = [
 
               <!-- Browser-Native -->
               <div
-                class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6"
+                class="rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] p-5 sm:p-6"
               >
                 <div
                   class="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"
@@ -677,7 +677,7 @@ const tools = [
 
               <!-- Investigation-Ready -->
               <div
-                class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 sm:p-6"
+                class="rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] p-5 sm:p-6"
               >
                 <div
                   class="mb-4 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400"
@@ -771,7 +771,7 @@ const tools = [
                             {artifact.description || "Forensic artifact"}
                           </p>
                           <div class="flex items-center gap-1.5 text-[9px] sm:gap-2 sm:text-[10px]">
-                            <span class="rounded bg-white/[0.06] px-1.5 py-0.5 uppercase text-muted-foreground/80">
+                            <span class="rounded bg-overlay/[0.06] px-1.5 py-0.5 uppercase text-muted-foreground/80">
                               {artifact.category}
                             </span>
                             <span class="font-mono tabular-nums text-muted-foreground/80">
@@ -811,7 +811,7 @@ const tools = [
                             {artifact.description || "Forensic artifact"}
                           </p>
                           <div class="flex items-center gap-1.5 text-[9px] sm:gap-2 sm:text-[10px]">
-                            <span class="rounded bg-white/[0.06] px-1.5 py-0.5 uppercase text-muted-foreground/80">
+                            <span class="rounded bg-overlay/[0.06] px-1.5 py-0.5 uppercase text-muted-foreground/80">
                               {artifact.category}
                             </span>
                             <span class="font-mono tabular-nums text-muted-foreground/80">

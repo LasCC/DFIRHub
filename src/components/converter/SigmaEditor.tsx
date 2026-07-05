@@ -165,7 +165,7 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
 
   return (
     <div
-      className="relative flex h-full flex-col bg-[#101010]"
+      className="relative flex h-full flex-col bg-editor"
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={(e) => e.preventDefault()}
@@ -178,11 +178,11 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
           <span className="text-sm text-primary">Drop .yml file here</span>
         </div>
       )}
-      <div className="flex items-center justify-between border-white/[0.06] border-b px-4 py-2">
+      <div className="flex items-center justify-between border-overlay/[0.06] border-b px-4 py-2">
         <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
           Sigma Rule (YAML)
         </span>
-        <span className="rounded-md border border-white/[0.06] bg-white/[0.04] px-2 py-1 text-muted-foreground text-xs">
+        <span className="rounded-md border border-overlay/[0.06] bg-overlay/[0.04] px-2 py-1 text-muted-foreground text-xs">
           ⌘↵ convert
         </span>
       </div>

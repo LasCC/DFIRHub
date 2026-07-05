@@ -480,7 +480,7 @@ export function ConverterLayout() {
             <Popover>
               <PopoverTrigger asChild>
                 <button
-                  className="flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-white/[0.1] hover:text-foreground"
+                  className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-overlay/[0.1] hover:text-foreground"
                   title="Load a pre-built Sigma rule example"
                   type="button"
                 >
@@ -491,7 +491,7 @@ export function ConverterLayout() {
               <PopoverContent className="w-80">
                 {sigmaExamples.map((example) => (
                   <button
-                    className="w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.04]"
+                    className="w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.04]"
                     key={example.title}
                     onClick={() => handleExampleSelect(example.yaml)}
                     type="button"
@@ -509,7 +509,7 @@ export function ConverterLayout() {
 
             {/* Search SigmaHQ */}
             <button
-              className="flex shrink-0 items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-white/[0.1] hover:text-foreground"
+              className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-overlay/[0.1] hover:text-foreground"
               onClick={() => setShowSigmaSearch(true)}
               title="Search and import rules from SigmaHQ (⌘⇧K)"
               type="button"
@@ -545,7 +545,7 @@ export function ConverterLayout() {
               className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                 multiMode
                   ? "border-primary/30 bg-primary/10 text-primary"
-                  : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+                  : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
               }`}
               onClick={() => setMultiMode((prev) => !prev)}
               title="Convert to multiple backends at once"
@@ -561,7 +561,7 @@ export function ConverterLayout() {
               className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                 autoConvert
                   ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
-                  : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:border-white/[0.1] hover:text-foreground"
+                  : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
               }`}
               onClick={() => setAutoConvert((prev) => !prev)}
               title="Automatically convert on every change (500ms debounce)"
@@ -600,10 +600,10 @@ export function ConverterLayout() {
 
               {/* Dropdown menu (desktop) */}
               {showMoreMenu && (
-                <div className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-white/[0.08] bg-[#161619] shadow-xl shadow-black/40">
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-overlay/[0.08] bg-popover shadow-xl shadow-black/40">
                   <div className="p-1">
                     <button
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground disabled:opacity-40"
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground disabled:opacity-40"
                       disabled={!rule.trim()}
                       onClick={() => {
                         handleShare();
@@ -620,7 +620,7 @@ export function ConverterLayout() {
                     </button>
                     {exportConversions.size > 0 && (
                       <button
-                        className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
+                        className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground"
                         onClick={() => {
                           setShowExport(true);
                           setShowMoreMenu(false);
@@ -631,9 +631,9 @@ export function ConverterLayout() {
                         Export as ZIP
                       </button>
                     )}
-                    <div className="mx-2 my-1 h-px bg-white/[0.06]" />
+                    <div className="mx-2 my-1 h-px bg-overlay/[0.06]" />
                     <button
-                      className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.06] ${
+                      className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.06] ${
                         showAdvanced
                           ? "text-violet-400"
                           : "text-muted-foreground hover:text-foreground"
@@ -675,7 +675,7 @@ export function ConverterLayout() {
             )}
           </button>
           <button
-            className="flex items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] p-2.5 text-muted-foreground transition-colors hover:border-white/[0.12] hover:text-foreground"
+            className="flex items-center justify-center rounded-lg border border-overlay/[0.08] bg-overlay/[0.03] p-2.5 text-muted-foreground transition-colors hover:border-overlay/[0.12] hover:text-foreground"
             onClick={() => setShowMoreMenu((prev) => !prev)}
             title="More actions"
             type="button"
@@ -685,10 +685,10 @@ export function ConverterLayout() {
 
           {/* Dropdown menu (mobile) */}
           {showMoreMenu && (
-            <div className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-white/[0.08] bg-[#161619] shadow-xl shadow-black/40">
+            <div className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-overlay/[0.08] bg-popover shadow-xl shadow-black/40">
               <div className="p-1">
                 <button
-                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground disabled:opacity-40"
+                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground disabled:opacity-40"
                   disabled={!rule.trim()}
                   onClick={() => {
                     handleShare();
@@ -705,7 +705,7 @@ export function ConverterLayout() {
                 </button>
                 {exportConversions.size > 0 && (
                   <button
-                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground"
+                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground"
                     onClick={() => {
                       setShowExport(true);
                       setShowMoreMenu(false);
@@ -716,9 +716,9 @@ export function ConverterLayout() {
                     Export as ZIP
                   </button>
                 )}
-                <div className="mx-2 my-1 h-px bg-white/[0.06]" />
+                <div className="mx-2 my-1 h-px bg-overlay/[0.06]" />
                 <button
-                  className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.06] ${
+                  className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.06] ${
                     showAdvanced
                       ? "text-violet-400"
                       : "text-muted-foreground hover:text-foreground"
@@ -754,8 +754,8 @@ export function ConverterLayout() {
       )}
 
       {/* Editor + Output */}
-      <div className="grid min-h-[500px] grid-cols-1 gap-0 overflow-hidden rounded-lg border border-white/[0.06] lg:grid-cols-2">
-        <div className="border-white/[0.06] border-b lg:border-r lg:border-b-0">
+      <div className="grid min-h-[500px] grid-cols-1 gap-0 overflow-hidden rounded-lg border border-overlay/[0.06] lg:grid-cols-2">
+        <div className="border-overlay/[0.06] border-b lg:border-r lg:border-b-0">
           <Suspense
             fallback={
               <div className="flex h-full min-h-[400px] items-center justify-center text-muted-foreground text-sm">

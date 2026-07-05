@@ -88,7 +88,7 @@ export function ExportDialog({
       aria-modal="true"
       aria-label="Export Detection Package"
     >
-      <div className="w-full max-w-md rounded-lg border border-white/[0.06] bg-zinc-900 p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-lg border border-overlay/[0.06] bg-popover p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-semibold text-lg">Export Detection Package</h2>
           <button
@@ -107,7 +107,7 @@ export function ExportDialog({
           ), README with metadata, and test case template.
         </p>
 
-        <div className="mb-4 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+        <div className="mb-4 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] p-3">
           <div className="text-muted-foreground text-xs">Package contents:</div>
           <ul className="mt-2 space-y-1 font-mono text-sm">
             <li className="text-foreground/80">rule.yml</li>

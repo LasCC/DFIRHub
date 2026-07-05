@@ -54,7 +54,7 @@ function getCategoryColors(category: string): string {
     return "bg-amber-500/10 border-amber-500/30 text-amber-300";
   }
   if (cat.includes("macos") || cat.includes("mac")) {
-    return "bg-zinc-500/10 border-zinc-500/30 text-zinc-300";
+    return "bg-zinc-500/10 border-zinc-500/30 text-zinc-400";
   }
   return "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
 }
@@ -299,7 +299,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   return (
     <div className="glass-subtle overflow-hidden rounded-xl">
       {/* Header */}
-      <div className="flex items-center justify-between border-white/[0.04] border-b bg-white/[0.02] px-4 py-3">
+      <div className="flex items-center justify-between border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-3">
         <div className="text-muted-foreground text-xs">
           <span className="text-primary">{pathEntries.length}</span> path
           {pathEntries.length !== 1 ? "s" : ""}
@@ -323,7 +323,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 
       {/* Filter bar — only shown when > 5 paths */}
       {showFilter && (
-        <div className="flex flex-wrap items-center gap-2 border-white/[0.04] border-b bg-white/[0.02] px-4 py-2">
+        <div className="flex flex-wrap items-center gap-2 border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-2">
           <input
             aria-label="Filter paths"
             className="h-7 min-w-0 flex-1 rounded border border-border bg-background px-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
@@ -363,12 +363,12 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
       <div className="scrollbar-thin max-h-[600px] overflow-y-auto">
         {target.isCompound && resolvedTargets ? (
           // Grouped view for compound targets
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-overlay/[0.04]">
             {filteredGroupedPaths.map((group) => (
               <div key={group.name}>
                 <button
                   aria-expanded={expandedTargets.has(group.name)}
-                  className="focus-ring flex w-full items-center justify-between bg-white/[0.02] px-4 py-2 text-left transition-colors hover:bg-white/[0.04]"
+                  className="focus-ring flex w-full items-center justify-between bg-overlay/[0.02] px-4 py-2 text-left transition-colors hover:bg-overlay/[0.04]"
                   onClick={() => toggleExpanded(group.name)}
                   type="button"
                 >
@@ -396,7 +396,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                   )}
                 </button>
                 {expandedTargets.has(group.name) && (
-                  <div className="bg-black/20">
+                  <div className="bg-sunken">
                     {group.entries.map((entry, i) => (
                       <PathEntry
                         copiedPath={copiedPath}
@@ -413,7 +413,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
           </div>
         ) : (
           // Flat list for individual targets
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-overlay/[0.04]">
             {filteredEntries.map((entry, i) => (
               <PathEntry
                 copiedPath={copiedPath}
@@ -435,7 +435,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
       </div>
 
       {/* Legend */}
-      <div className="border-white/[0.04] border-t bg-white/[0.02] px-4 py-2 text-[10px] text-muted-foreground">
+      <div className="border-overlay/[0.04] border-t bg-overlay/[0.02] px-4 py-2 text-[10px] text-muted-foreground">
         <span className="text-primary">›</span> paths use Windows environment
         syntax
       </div>

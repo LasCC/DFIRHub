@@ -62,7 +62,7 @@ export function AdvancedOptions({
   );
 
   return (
-    <div className="space-y-4 rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+    <div className="space-y-4 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] p-4">
       {/* Header with docs links */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">
@@ -121,7 +121,7 @@ export function AdvancedOptions({
             </a>
           </div>
           <textarea
-            className="w-full rounded-md border border-white/[0.06] bg-[#101010] px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
+            className="w-full rounded-md border border-overlay/[0.06] bg-secondary px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
             id="sigma-filter"
             name="sigma-filter"
             onChange={(e) => onFilterChange(e.target.value)}
@@ -153,7 +153,7 @@ export function AdvancedOptions({
               </a>
             </div>
             <select
-              className="w-full rounded-md border border-white/[0.06] bg-[#101010] px-3 py-2 text-xs text-foreground focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
+              className="w-full rounded-md border border-overlay/[0.06] bg-secondary px-3 py-2 text-xs text-foreground focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
               id="correlation-method"
               name="correlation-method"
               onChange={(e) => onCorrelationMethodChange(e.target.value)}
@@ -198,7 +198,7 @@ export function AdvancedOptions({
             {optionEntries.length === 0 ? (
               <p className="text-xs text-muted-foreground/40">
                 No options set. Backend-specific key-value pairs passed via{" "}
-                <code className="rounded bg-white/[0.04] px-1 py-0.5 text-[10px]">
+                <code className="rounded bg-overlay/[0.04] px-1 py-0.5 text-[10px]">
                   -O key=value
                 </code>{" "}
                 in sigma-cli.
@@ -209,7 +209,7 @@ export function AdvancedOptions({
                   <div className="flex items-center gap-1.5" key={idx}>
                     <input
                       aria-label={`Backend option key ${idx + 1}`}
-                      className="w-1/2 rounded-md border border-white/[0.06] bg-[#101010] px-2 py-1 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none"
+                      className="w-1/2 rounded-md border border-overlay/[0.06] bg-secondary px-2 py-1 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none"
                       name={`backend-key-${idx}`}
                       onChange={(e) =>
                         handleOptionKeyChange(key, e.target.value)
@@ -219,7 +219,7 @@ export function AdvancedOptions({
                     />
                     <input
                       aria-label={`Backend option value ${idx + 1}`}
-                      className="w-1/2 rounded-md border border-white/[0.06] bg-[#101010] px-2 py-1 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none"
+                      className="w-1/2 rounded-md border border-overlay/[0.06] bg-secondary px-2 py-1 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none"
                       name={`backend-val-${idx}`}
                       onChange={(e) =>
                         handleOptionValueChange(key, e.target.value)

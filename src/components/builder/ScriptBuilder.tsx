@@ -504,8 +504,8 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
           {categories.map((cat) => {
             const Icon = categoryIconMap[cat.toLowerCase()];
             const colors = categoryColorMap[cat.toLowerCase()] || {
-              bg: "bg-white/[0.04]",
-              border: "border-white/[0.08]",
+              bg: "bg-overlay/[0.04]",
+              border: "border-overlay/[0.08]",
               text: "text-muted-foreground",
             };
             const isActive = activeCategory === cat;
@@ -515,7 +515,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs backdrop-blur-sm transition-all ${
                   isActive
                     ? `border ${colors.border} ${colors.bg} ${colors.text}`
-                    : "border border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:border-white/10 hover:bg-white/[0.04] hover:text-zinc-200"
+                    : "border border-overlay/[0.06] bg-overlay/[0.02] text-zinc-400 hover:border-overlay/10 hover:bg-overlay/[0.04] hover:text-foreground"
                 }`}
                 key={cat}
                 onClick={() => {
@@ -538,7 +538,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
         {/* Search */}
         <div className="mb-4 flex items-center gap-4">
           <input
-            className="h-9 flex-1 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
+            className="h-9 flex-1 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search targets..."
             type="text"
@@ -567,10 +567,10 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
               No targets found
             </div>
           ) : (
-            <div className="divide-y divide-white/[0.04]">
+            <div className="divide-y divide-overlay/[0.04]">
               {filteredTargets.map((target) => (
                 <label
-                  className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.04]"
+                  className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-overlay/[0.04]"
                   key={target.slug}
                 >
                   <input
@@ -616,7 +616,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                 format:
               </label>
               <select
-                className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
+                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
                 onChange={(e) =>
                   setOptions((prev) => ({
                     ...prev,
@@ -638,7 +638,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                 source:
               </label>
               <input
-                className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
+                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
                 onChange={(e) =>
                   setOptions((prev) => ({ ...prev, source: e.target.value }))
                 }
@@ -653,7 +653,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                 destination:
               </label>
               <input
-                className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
+                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
                 onChange={(e) =>
                   setOptions((prev) => ({
                     ...prev,
@@ -752,7 +752,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
               }
             />
           ) : (
-            <pre className="overflow-x-auto bg-black/30 p-4 text-muted-foreground text-xs">
+            <pre className="overflow-x-auto bg-sunken p-4 text-muted-foreground text-xs">
               <code>// Select targets to generate collection command</code>
             </pre>
           )}

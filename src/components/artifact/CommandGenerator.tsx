@@ -76,7 +76,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
       {/* Format Tabs */}
       <div
         aria-label="Command format selection"
-        className="flex overflow-x-auto border-white/[0.04] border-b bg-white/[0.02]"
+        className="flex overflow-x-auto border-overlay/[0.04] border-b bg-overlay/[0.02]"
         role="tablist"
       >
         {[
@@ -111,7 +111,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
       </div>
 
       {/* Configuration Panel */}
-      <div className="border-white/[0.04] border-b bg-white/[0.02] p-4">
+      <div className="border-overlay/[0.04] border-b bg-overlay/[0.02] p-4">
         <div className="flex flex-wrap items-center gap-4 text-xs">
           {/* Source Drive */}
           <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
             aria-label={
               copiedId === format ? "Copied to clipboard" : "Copy command"
             }
-            className="focus-ring absolute top-2 right-2 z-20 rounded border border-white/[0.1] bg-black/60 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur-sm transition-colors hover:text-foreground"
+            className="focus-ring absolute top-2 right-2 z-20 rounded border border-overlay/[0.1] bg-secondary px-2 py-1 text-[10px] text-muted-foreground backdrop-blur-sm transition-colors hover:text-foreground"
             onClick={() => handleCopy(currentCommand, format)}
             type="button"
           >

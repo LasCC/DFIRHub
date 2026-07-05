@@ -101,7 +101,7 @@ export function LoadingOverlay({
               <div className="mb-2 text-center text-muted-foreground text-sm">
                 Loading Python runtime…
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+              <div className="h-1.5 overflow-hidden rounded-full bg-overlay/[0.06]">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-300"
                   style={{ width: `${percent}%` }}

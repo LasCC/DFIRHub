@@ -91,7 +91,7 @@ export function CategoryChip({
         </span>
       )}
 
-      <span className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-2 font-medium text-xs text-zinc-400 backdrop-blur-sm">
+      <span className="inline-flex items-center rounded-full border border-overlay/[0.08] bg-overlay/[0.04] px-3 py-2 font-medium text-xs text-zinc-400 backdrop-blur-sm">
         v{version}
       </span>
     </div>

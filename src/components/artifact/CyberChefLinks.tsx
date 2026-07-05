@@ -58,7 +58,7 @@ export function CyberChefLinks({ target }: CyberChefLinksProps) {
         {applicableRecipes.map((recipe) => (
           <li key={recipe.id}>
             <a
-              className="group focus-ring flex items-center justify-between border border-border/50 bg-black/20 p-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
+              className="group focus-ring flex items-center justify-between border border-border/50 bg-sunken p-3 transition-colors hover:border-primary/30 hover:bg-primary/5"
               href={generateCyberChefUrl(recipe)}
               rel="noopener noreferrer"
               target="_blank"

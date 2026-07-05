@@ -47,10 +47,14 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     };
   }, [code, language]);
 
-  // Loading state - show plain code
+  // Loading state - show plain code on the same solid dark surface Shiki uses,
+  // so the light code text stays readable in both app themes.
   if (isLoading) {
     return (
-      <pre className="code-block-pre">
+      <pre
+        className="overflow-x-auto rounded-lg border border-overlay/[0.08] p-4 text-xs"
+        style={{ background: "#0d1117" }}
+      >
         <code className="whitespace-pre-wrap font-mono text-[#7ee787]">
           {code}
         </code>
@@ -65,11 +69,14 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         dangerouslySetInnerHTML={{ __html: highlightedHtml }}
       />
       <style>{`
+				/* Code blocks use Shiki's github-dark theme (light text), so they
+				   keep a solid dark surface in both light and dark app themes. */
 				.code-block-pre {
 					padding: 1rem;
-					background: rgba(0, 0, 0, 0.4);
+					background: #0d1117;
+					color: #e6edf3;
 					border-radius: 0.5rem;
-					border: 1px solid rgba(255, 255, 255, 0.06);
+					border: 1px solid rgba(255, 255, 255, 0.08);
 					font-size: 0.75rem;
 					overflow-x: auto;
 					max-height: 24rem;
@@ -83,8 +90,8 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 					max-height: 24rem;
 					font-size: 0.75rem;
 					line-height: 1.6;
-					background: rgba(0, 0, 0, 0.4) !important;
-					border: 1px solid rgba(255, 255, 255, 0.06);
+					background: #0d1117 !important;
+					border: 1px solid rgba(255, 255, 255, 0.08);
 				}
 				.shiki-wrapper .shiki code,
 				.shiki-wrapper pre code {
