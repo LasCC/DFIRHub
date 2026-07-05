@@ -70,7 +70,11 @@ async function initPyodide(): Promise<void> {
   await micropip.install(wheelUrl);
 
   sendStatus("Installing pySigma", 0.5);
-  await micropip.install("pySigma");
+  // Pin below 1.4.0: pySigma 1.4.0+ hard-depends on `jq` (a C-extension with
+  // no pure-Python/Pyodide wasm wheel), which makes micropip fail to resolve
+  // in the browser. 1.3.3 is the last jq-free release and satisfies the
+  // pipelines (pysigma >=1.0,<2.0) and backends (pysigma >=1).
+  await micropip.install("pySigma<1.4");
 
   sendStatus("Installing default pipelines", 0.65);
   await micropip.install([
