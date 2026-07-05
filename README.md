@@ -19,21 +19,21 @@ A web application for searching Windows forensic artifacts, converting Sigma rul
 git clone https://github.com/LasCC/DFIRHub.git
 cd DFIRHub
 git submodule update --init --recursive
-bun install
-bun dev
+pnpm install
+pnpm dev
 ```
 
 Open `http://localhost:4321`.
 
 ## Commands
 
-| Command               | Description                            |
-| --------------------- | -------------------------------------- |
-| `bun dev`             | Development server                     |
-| `bun build`           | Production build                       |
-| `bun preview`         | Preview production build               |
-| `bun run test`        | Run tests                              |
-| `bun run sigma:index` | Rebuild Sigma rules index from SigmaHQ |
+| Command                | Description                            |
+| ---------------------- | -------------------------------------- |
+| `pnpm dev`             | Development server                     |
+| `pnpm build`           | Production build                       |
+| `pnpm preview`         | Preview production build               |
+| `pnpm test`            | Run tests                              |
+| `pnpm run sigma:index` | Rebuild Sigma rules index from SigmaHQ |
 
 ## Project Structure
 

@@ -1,9 +1,10 @@
 [build]
-command = "rm -rf .astro/content-cache && git submodule sync --recursive && git submodule update --init --recursive --remote src/content/kapefiles && bun install --frozen-lockfile && bun run build"
+command = "rm -rf .astro/content-cache && git submodule sync --recursive && git submodule update --init --recursive --remote src/content/kapefiles && pnpm install --frozen-lockfile && pnpm run build"
 publish = "dist"
 
 [build.environment]
-NODE_VERSION = "20"
+# Astro 7 requires Node >= 22.12
+NODE_VERSION = "22"
 
 # Note on trailing slashes: do NOT add `from = "/foo/"` rules here.
 # Netlify treats /foo and /foo/ as equivalent on the match side, so a rule

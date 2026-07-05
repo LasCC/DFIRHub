@@ -1,7 +1,8 @@
-import yaml from "js-yaml";
-import JSZip from "jszip";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+
+import * as yaml from "js-yaml";
+import JSZip from "jszip";
 
 interface SigmaRuleEntry {
   id: string;

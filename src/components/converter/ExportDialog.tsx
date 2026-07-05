@@ -38,7 +38,7 @@ export function ExportDialog({
 
       let parsed: any = {};
       try {
-        parsed = yaml.default.load(rule) ?? {};
+        parsed = yaml.load(rule) ?? {};
       } catch {
         // If parsing fails, use defaults
       }

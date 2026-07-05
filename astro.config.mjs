@@ -21,13 +21,6 @@ export default defineConfig({
     format: "file",
   },
 
-  experimental: {
-    svgo: true,
-    // rustCompiler: true, // TODO: re-enable once <script is:inline define:vars> is supported (https://github.com/withastro/compiler-rs)
-    queuedRendering: {
-      enabled: true,
-    },
-  },
   integrations: [
     react(),
     sitemap({
