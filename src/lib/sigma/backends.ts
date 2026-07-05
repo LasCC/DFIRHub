@@ -121,14 +121,6 @@ export const backends: BackendConfig[] = [
     language: "sentinelone",
   },
   {
-    id: "panther",
-    name: "Panther",
-    category: "edr",
-    package: "pySigma-backend-panther",
-    backendClass: "PantherBackend",
-    language: "python",
-  },
-  {
     id: "uberagent",
     name: "uberAgent",
     category: "edr",
@@ -183,7 +175,6 @@ export function getFileExtension(backendId: string): string {
     log_scale: "txt",
     carbon_black: "txt",
     sentinel_one_pq: "txt",
-    panther: "py",
     uberagent: "txt",
     sqlite: "sql",
     surreal_ql: "txt",
