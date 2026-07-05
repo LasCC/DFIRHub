@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
@@ -372,13 +373,12 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                   type="button"
                 >
                   <span className="font-medium text-xs">
-                    <span
-                      className={`mr-2 inline-block text-primary transition-transform ${
+                    <ChevronRight
+                      aria-hidden="true"
+                      className={`mr-1 inline-block h-3.5 w-3.5 align-middle text-primary transition-transform ${
                         expandedTargets.has(group.name) ? "rotate-90" : ""
                       }`}
-                    >
-                      ▸
-                    </span>
+                    />
                     {group.name}
                     <span className="ml-2 text-muted-foreground">
                       ({group.entries.length} path

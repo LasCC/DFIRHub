@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import { useMemo } from "react";
 
 import type { KapeTarget } from "../../lib/kapefiles";
@@ -63,9 +64,10 @@ export function CyberChefLinks({ target }: CyberChefLinksProps) {
               target="_blank"
             >
               <div className="flex items-center gap-3">
-                <span aria-hidden="true" className="text-primary">
-                  →
-                </span>
+                <ArrowRight
+                  aria-hidden="true"
+                  className="h-4 w-4 shrink-0 text-primary"
+                />
                 <div>
                   <div className="font-medium text-sm transition-colors group-hover:text-primary">
                     {recipe.name}

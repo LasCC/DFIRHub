@@ -1,4 +1,5 @@
-import { Keyboard, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Command, CornerDownLeft, Keyboard, X } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from "react";
 
 interface ShortcutGroup {
@@ -8,6 +9,14 @@ interface ShortcutGroup {
     description: string;
   }[];
 }
+
+// Map keyboard glyphs to their lucide icon equivalents.
+const keyIcons: Record<string, LucideIcon> = {
+  "↑": ArrowUp,
+  "↓": ArrowDown,
+  "↵": CornerDownLeft,
+  "⌘": Command,
+};
 
 const shortcutGroups: ShortcutGroup[] = [
   {
@@ -173,21 +182,31 @@ export function KeyboardShortcuts() {
                         {shortcut.description}
                       </span>
                       <div className="flex items-center gap-1">
-                        {shortcut.keys.map((key, keyIndex) => (
-                          <span
-                            className="flex items-center gap-1"
-                            key={keyIndex}
-                          >
-                            {keyIndex > 0 && (
-                              <span className="text-muted-foreground/30 text-xs">
-                                +
-                              </span>
-                            )}
-                            <kbd className="kbd min-w-[24px] text-center">
-                              {key}
-                            </kbd>
-                          </span>
-                        ))}
+                        {shortcut.keys.map((key, keyIndex) => {
+                          const KeyIcon = keyIcons[key];
+                          return (
+                            <span
+                              className="flex items-center gap-1"
+                              key={keyIndex}
+                            >
+                              {keyIndex > 0 && (
+                                <span className="text-muted-foreground/30 text-xs">
+                                  +
+                                </span>
+                              )}
+                              <kbd className="kbd flex min-w-[24px] items-center justify-center text-center">
+                                {KeyIcon ? (
+                                  <KeyIcon
+                                    aria-hidden="true"
+                                    className="h-3 w-3"
+                                  />
+                                ) : (
+                                  key
+                                )}
+                              </kbd>
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

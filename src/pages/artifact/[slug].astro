@@ -9,6 +9,7 @@ import {
   ArtifactPageContainer,
   ArtifactSection,
 } from "../../components/artifact/ArtifactContent";
+import { ArrowRight } from "lucide-react";
 import { CategoryChip } from "../../components/artifact/CategoryChip";
 import { CommandGenerator } from "../../components/artifact/CommandGenerator";
 import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
@@ -288,7 +289,7 @@ const jsonLd = {
                                                         {refName}
                                                     </span>
                                                     {foundTarget && (
-                                                        <span class="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                                                        <span class="inline-flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary transition-colors">
                                                             {
                                                                 foundTarget.targets.filter(
                                                                     (e) =>
@@ -297,7 +298,11 @@ const jsonLd = {
                                                                         ),
                                                                 ).length
                                                             }{" "}
-                                                            paths →
+                                                            paths
+                                                            <ArrowRight
+                                                                aria-hidden="true"
+                                                                className="h-3 w-3"
+                                                            />
                                                         </span>
                                                     )}
                                                 </a>
