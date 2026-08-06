@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Dark variant follows the in-app theme class on <html>, not the OS
+   color-scheme media query. The theme bootstrap toggles `.light`/`.dark`
+   on the root element, so all `dark:` utilities must match that class. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ═══════════════════════════════════════════════════════════════════════════
    Berkeley Mono — used for code, paths, and command lines only
    ═══════════════════════════════════════════════════════════════════════════ */

@@ -58,7 +58,7 @@ export function CategoryChip({
       </a>
 
       {isCompound && categoryLower !== "compound" && (
-        <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/5 px-4 py-2 font-medium text-cyan-700 text-xs dark:text-cyan-400">
+        <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/5 px-4 py-2 font-medium text-cyan-800 text-xs dark:text-cyan-400">
           <Layers className="h-3.5 w-3.5" />
           <span>Compound</span>
         </span>
