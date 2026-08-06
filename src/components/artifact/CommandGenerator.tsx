@@ -70,7 +70,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
   };
 
   return (
-    <div className="glass-subtle overflow-hidden rounded-xl">
+    <div className="overflow-hidden">
       {/* Format Tabs */}
       <div
         aria-label="Command format selection"

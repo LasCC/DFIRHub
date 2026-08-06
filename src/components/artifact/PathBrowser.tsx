@@ -422,7 +422,6 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
     () => parsePathSegments(entry.path, entry.fileMask),
     [entry.path, entry.fileMask]
   );
-  const colorClasses = getCategoryClasses(entry.category || "file");
 
   return (
     <button
@@ -432,19 +431,11 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
       type="button"
     >
       <div className="min-w-0 flex-1">
-        <div className="mb-1.5 flex flex-wrap items-start gap-1.5 sm:items-center sm:gap-2">
-          <span
-            className={`inline-flex max-w-[11.5rem] items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-1.5 py-0.5 font-medium text-xs uppercase tracking-wider ${colorClasses}`}
-            title={entry.category || "file"}
-          >
-            {entry.category || "file"}
-          </span>
-          {entry.name && (
-            <span className="text-muted-foreground text-xs leading-4">
-              {entry.name}
-            </span>
-          )}
-        </div>
+        {entry.name && (
+          <div className="mb-1 font-medium text-sm leading-5">
+            {entry.name}
+          </div>
+        )}
         <code className="block break-all font-mono text-xs leading-relaxed">
           {segments.map((seg, i) => {
             switch (seg.type) {

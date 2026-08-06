@@ -99,6 +99,16 @@ const fullTitle =
           });
           // Re-apply after client-side navigations (ClientRouter swaps <html>)
           document.addEventListener("astro:after-swap", apply);
+          // Stamp the resolved theme onto the incoming document BEFORE it is
+          // painted, otherwise view-transition navigations flash the :root
+          // (dark) palette for a frame when the user is in light mode.
+          document.addEventListener("astro:before-swap", (e) => {
+            const mode = resolve(read());
+            const root = e.newDocument.documentElement;
+            root.classList.toggle("dark", mode === "dark");
+            root.classList.toggle("light", mode === "light");
+            root.style.colorScheme = mode;
+          });
         }
       })();
     </script>

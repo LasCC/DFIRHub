@@ -1,7 +1,6 @@
 ---
 import {
   ArtifactBreadcrumb,
-  ArtifactCard,
   ArtifactFooter,
   ArtifactHeader,
   ArtifactList,
@@ -9,7 +8,7 @@ import {
   ArtifactPageContainer,
   ArtifactSection,
 } from "../../components/artifact/ArtifactContent";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { CategoryChip } from "../../components/artifact/CategoryChip";
 import { CommandGenerator } from "../../components/artifact/CommandGenerator";
 import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
@@ -215,20 +214,10 @@ const jsonLd = {
 
         <!-- Description -->
         {target.description && (
-                        <ArtifactCard
-                            className="mb-8 p-5 glass-subtle rounded-xl"
-                        >
-                            <h2
-                                id="description-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
-                            >
-                                Description
-                            </h2>
-                            <p class="text-sm leading-relaxed whitespace-pre-line">
-                                {target.description}
-                            </p>
-                        </ArtifactCard>
-                    )}
+          <p class="mb-8 max-w-3xl text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
+            {target.description}
+          </p>
+        )}
 
         <!-- Compound Target Info -->
         {target.isCompound && resolvedTargets && (
@@ -325,17 +314,6 @@ const jsonLd = {
           />
         </ArtifactSection>
 
-        <!-- Tool Commands -->
-        <ArtifactSection className="mb-8" ariaLabel="commands-heading">
-          <h2
-            id="commands-heading"
-            class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
-          >
-            Collection Commands
-          </h2>
-          <CommandGenerator client:idle target={commandTarget} />
-        </ArtifactSection>
-
         <!-- CyberChef Links -->
         <ArtifactSection className="mb-8">
           <CyberChefLinks client:idle target={target} />
@@ -421,31 +399,45 @@ const jsonLd = {
                         </ArtifactSection>
                     )}
 
+        <!-- Collection Commands (collapsed by default) -->
+        <details class="group glass-subtle mb-8 overflow-hidden rounded-xl" aria-labelledby="commands-heading">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-overlay/[0.03] focus-ring [&::-webkit-details-marker]:hidden">
+            <h2
+              id="commands-heading"
+              class="text-xs uppercase tracking-wider text-muted-foreground"
+            >
+              Collection commands
+            </h2>
+            <span class="flex items-center gap-2 text-xs text-muted-foreground">
+              <span class="hidden sm:inline">KAPE, PowerShell, Batch, WSL</span>
+              <ChevronDown
+                aria-hidden="true"
+                className="h-4 w-4 transition-transform group-open:rotate-180"
+              />
+            </span>
+          </summary>
+          <div class="border-t border-overlay/[0.04]">
+            <CommandGenerator client:idle target={commandTarget} />
+          </div>
+        </details>
+
         <!-- Included In Collections -->
         {includedInCollections.length > 0 && (
-                        <ArtifactSection
-                            className="mb-8"
-                            ariaLabel="collections-heading"
-                        >
-                            <h2
-                                id="collections-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
-                            >
-                                Included in Collections
-                            </h2>
-                            <div class="flex flex-wrap gap-2" role="list">
-                                {includedInCollections.map((collection) => (
-                                    <a
-                                        href={"/artifact/" + collection.slug}
-                                        class="px-3 py-1.5 text-xs text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 transition-colors focus-ring rounded-md"
-                                        role="listitem"
-                                    >
-                                        {collection.name}
-                                    </a>
-                                ))}
-                            </div>
-                        </ArtifactSection>
-                    )}
+          <p class="mb-8 text-sm text-muted-foreground">
+            Included in collections:{" "}
+            {includedInCollections.map((collection, i) => (
+              <>
+                {i > 0 && <span aria-hidden="true"> · </span>}
+                <a
+                  href={"/artifact/" + collection.slug}
+                  class="text-primary hover:underline transition-colors focus-ring rounded-sm"
+                >
+                  {collection.name}
+                </a>
+              </>
+            ))}
+          </p>
+        )}
 
         <!-- Source File -->
         <ArtifactFooter

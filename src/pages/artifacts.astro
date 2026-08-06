@@ -144,13 +144,17 @@ const targetsByCategory = categories.reduce(
   {} as Record<string, KapeTarget[]>
 );
 
-// Serialize data for client-side filtering
+// Serialize data for client-side filtering (short keys keep the JSON small)
 const allTargetsJson = JSON.stringify(
   targets.map((t) => ({
-    category: t.category,
-    isCompound: t.isCompound,
-    name: t.name,
-    slug: t.slug,
+    n: t.name,
+    s: t.slug,
+    c: t.category,
+    i: t.isCompound,
+    d: t.description || "",
+    count: !t.isCompound
+      ? t.targets.filter((e) => !e.path.endsWith(".tkape")).length
+      : t.referencedTargets.length,
   }))
 );
 const scenarioArtifactsJson = JSON.stringify(scenarioArtifacts);
@@ -276,49 +280,35 @@ const filterCategories = [
                                         </svg>
                                     </a>
                                 </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-0.5">
                                     {targetsByCategory[category]
-                                        .slice(0, 6)
+                                        .slice(0, 8)
                                         .map((target) => (
                                             <a
                                                 href={"/artifact/" + target.slug}
-                                                class={`artifact-card group rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] transition-all duration-300 hover:border-overlay/[0.12] hover:bg-overlay/[0.05]`}
+                                                class="artifact-row group flex items-baseline gap-3 rounded-md px-3 py-2 transition-colors hover:bg-overlay/[0.04] focus-ring"
                                             >
-                                                <div class="p-4">
-                                                    <div class="flex items-start justify-between gap-2 mb-2">
-                                                        <h3 class="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                                                            {target.name}
-                                                        </h3>
-                                                        {target.isCompound && (
-                                                            <span class="shrink-0 px-2 py-0.5 text-xs uppercase tracking-wider font-medium text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
-                                                                collection
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p class="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
-                                                        {target.description || "No description available"}
-                                                    </p>
-                                                    <div class="flex items-center justify-between text-xs">
-                                                        <span class={`uppercase tracking-wider font-medium ${style.text}`}>
-                                                            {target.category}
-                                                        </span>
-                                                        <span class="text-muted-foreground">
-                                                            {!target.isCompound
-                                                                ? target.targets.filter((e) => !e.path.endsWith(".tkape")).length + " paths"
-                                                                : target.referencedTargets.length + " targets"}
-                                                        </span>
-                                                    </div>
-                                                </div>
+                                                <span class="text-sm font-medium text-foreground group-hover:text-primary transition-colors shrink-0">
+                                                    {target.name}
+                                                </span>
+                                                <span class="hidden sm:block text-sm text-muted-foreground truncate flex-1">
+                                                    {target.description || "No description available"}
+                                                </span>
+                                                <span class="ml-auto sm:ml-0 text-xs text-muted-foreground tabular-nums shrink-0">
+                                                    {!target.isCompound
+                                                        ? target.targets.filter((e) => !e.path.endsWith(".tkape")).length + " paths"
+                                                        : target.referencedTargets.length + " targets"}
+                                                </span>
                                             </a>
                                         ))}
                                 </div>
-                                {targetsByCategory[category].length > 6 && (
+                                {targetsByCategory[category].length > 8 && (
                                     <div class="mt-4 text-center">
                                         <a
                                             href={"/artifacts?category=" + category.toLowerCase()}
                                             class="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-full border border-overlay/[0.04] hover:border-overlay/[0.08] hover:bg-overlay/[0.02]"
                                         >
-                                            <span>+{targetsByCategory[category].length - 6} more in {category}</span>
+                                            <span>+{targetsByCategory[category].length - 8} more in {category}</span>
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                             </svg>
@@ -330,47 +320,9 @@ const filterCategories = [
                     })}
       </div>
 
-      <!-- Filtered View: All matching artifacts (hidden by default) -->
+      <!-- Filtered View: rendered client-side when a filter is active -->
       <div id="filtered-view" class="hidden">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {targets.map((target) => {
-                            const style = getCategoryStyle(target.category);
-                            return (
-                                    <a
-                                        href={"/artifact/" + target.slug}
-                                        data-slug={target.slug.toLowerCase()}
-                                        data-category={target.category.toLowerCase()}
-                                        class={`filtered-card artifact-card group rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] transition-all duration-300 hover:border-overlay/[0.12] hover:bg-overlay/[0.05]`}
-                                    >
-                                    <div class="p-4">
-                                        <div class="flex items-start justify-between gap-2 mb-2">
-                                            <h3 class="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                                                {target.name}
-                                            </h3>
-                                            {target.isCompound && (
-                                                <span class="shrink-0 px-2 py-0.5 text-xs uppercase tracking-wider font-medium text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
-                                                    collection
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p class="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
-                                            {target.description || "No description available"}
-                                        </p>
-                                        <div class="flex items-center justify-between text-xs">
-                                            <span class={`uppercase tracking-wider font-medium ${style.text}`}>
-                                                {target.category}
-                                            </span>
-                                            <span class="text-muted-foreground">
-                                                {!target.isCompound
-                                                    ? target.targets.filter((e) => !e.path.endsWith(".tkape")).length + " paths"
-                                                    : target.referencedTargets.length + " targets"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </a>
-                            );
-                        })}
-        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
       </div>
     </div>
   </main>
@@ -398,6 +350,80 @@ const filterCategories = [
 <script is:inline define:vars={{ allTargetsJson, scenarioArtifactsJson }}>
   const allTargets = JSON.parse(allTargetsJson);
   const scenarioArtifacts = JSON.parse(scenarioArtifactsJson);
+
+  // Category label colors, mirroring src/lib/categoryStyles.ts (no imports in inline scripts)
+  const categoryTextClasses = {
+    Antivirus: "text-red-700 dark:text-red-400",
+    Apps: "text-emerald-700 dark:text-emerald-400",
+    Browsers: "text-orange-700 dark:text-orange-400",
+    Compound: "text-cyan-700 dark:text-cyan-400",
+    Logs: "text-yellow-700 dark:text-yellow-400",
+    P2P: "text-purple-700 dark:text-purple-400",
+    Windows: "text-blue-700 dark:text-blue-400",
+  };
+  const defaultTextClass = "text-zinc-600 dark:text-zinc-400";
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // Builds the same card markup the filtered view previously shipped as static HTML
+  function createCard(t) {
+    const a = el(
+      "a",
+      "filtered-card artifact-card group rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] transition-all duration-300 hover:border-overlay/[0.12] hover:bg-overlay/[0.05]"
+    );
+    a.href = "/artifact/" + t.s;
+
+    const inner = el("div", "p-4");
+    const head = el("div", "flex items-start justify-between gap-2 mb-2");
+    head.appendChild(
+      el(
+        "h3",
+        "text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate",
+        t.n
+      )
+    );
+    if (t.i) {
+      head.appendChild(
+        el(
+          "span",
+          "shrink-0 px-2 py-0.5 text-xs uppercase tracking-wider font-medium text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full",
+          "collection"
+        )
+      );
+    }
+    inner.appendChild(head);
+    inner.appendChild(
+      el(
+        "p",
+        "text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed",
+        t.d || "No description available"
+      )
+    );
+    const footer = el("div", "flex items-center justify-between text-xs");
+    footer.appendChild(
+      el(
+        "span",
+        "uppercase tracking-wider font-medium " +
+          (categoryTextClasses[t.c] || defaultTextClass),
+        t.c
+      )
+    );
+    footer.appendChild(
+      el(
+        "span",
+        "text-muted-foreground",
+        t.count + (t.i ? " targets" : " paths")
+      )
+    );
+    inner.appendChild(footer);
+    a.appendChild(inner);
+    return a;
+  }
 
   // Scenario labels for display
   const scenarioLabels = {
@@ -446,7 +472,6 @@ const filterCategories = [
     const filterCount = document.querySelector("#filter-count");
     const defaultView = document.querySelector("#default-view");
     const filteredView = document.querySelector("#filtered-view");
-    const filteredCards = document.querySelectorAll(".filtered-card");
 
     // Determine which filter is active and update buttons
     const activeFilterId = categoryParam || filterParam || "all";
@@ -463,10 +488,10 @@ const filterCategories = [
       const needle = qParam.toLowerCase();
       allTargets.forEach((t) => {
         if (
-          t.name.toLowerCase().includes(needle) ||
-          t.slug.toLowerCase().includes(needle)
+          t.n.toLowerCase().includes(needle) ||
+          t.s.toLowerCase().includes(needle)
         ) {
-          matchingSlugs.add(t.slug.toLowerCase());
+          matchingSlugs.add(t.s.toLowerCase());
         }
       });
     } else if (categoryParam) {
@@ -474,16 +499,16 @@ const filterCategories = [
       isFiltered = true;
       label = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1);
       allTargets.forEach((t) => {
-        if (t.category.toLowerCase() === categoryParam.toLowerCase()) {
-          matchingSlugs.add(t.slug.toLowerCase());
+        if (t.c.toLowerCase() === categoryParam.toLowerCase()) {
+          matchingSlugs.add(t.s.toLowerCase());
         }
       });
     } else if (filterParam) {
       isFiltered = true;
       label = filterParam.charAt(0).toUpperCase() + filterParam.slice(1);
       allTargets.forEach((t) => {
-        if (t.category.toLowerCase() === filterParam.toLowerCase()) {
-          matchingSlugs.add(t.slug.toLowerCase());
+        if (t.c.toLowerCase() === filterParam.toLowerCase()) {
+          matchingSlugs.add(t.s.toLowerCase());
         }
       });
     } else if (scenarioParam && scenarioArtifacts[scenarioParam]) {
@@ -491,7 +516,7 @@ const filterCategories = [
       label = scenarioLabels[scenarioParam] || scenarioParam;
       const scenarioSlugs = scenarioArtifacts[scenarioParam];
       allTargets.forEach((t) => {
-        const slugLower = t.slug.toLowerCase();
+        const slugLower = t.s.toLowerCase();
         if (scenarioSlugs.includes(slugLower)) {
           matchingSlugs.add(slugLower);
         }
@@ -511,20 +536,23 @@ const filterCategories = [
         filterLabel.textContent = label;
         filterCount.textContent = `(${matchingSlugs.size} artifacts)`;
 
-        // Switch views
+        // Switch views and render matching cards client-side
         defaultView.classList.add("hidden");
         filteredView.classList.remove("hidden");
 
-        // Filter the cards in filtered view
-        filteredCards.forEach((card) => {
-          const slug = card.getAttribute("data-slug");
-          card.classList.toggle("hidden", !(matchingSlugs.has(slug)));
+        const grid = filteredView.firstElementChild;
+        grid.textContent = "";
+        allTargets.forEach((t) => {
+          if (matchingSlugs.has(t.s.toLowerCase())) {
+            grid.appendChild(createCard(t));
+          }
         });
       } else {
         // No filter - show default view
         filterBanner.classList.add("hidden");
         defaultView.classList.remove("hidden");
         filteredView.classList.add("hidden");
+        filteredView.firstElementChild.textContent = "";
       }
     }
   }
