@@ -208,19 +208,6 @@ const filterCategories = [
         </p>
       </header>
 
-      <!-- No results state (shown via JS when a search matches nothing) -->
-      <div id="filter-empty" class="hidden mb-8 py-12 text-center">
-        <p class="text-sm text-muted-foreground">
-          No artifacts match "<span id="filter-empty-query" class="font-medium text-foreground"></span>"
-        </p>
-        <a
-          href="/artifacts"
-          class="mt-2 inline-block text-sm text-primary transition-colors hover:underline"
-        >
-          Clear search
-        </a>
-      </div>
-
       <!-- Category Filter (sticky below header) -->
       <div class="sticky top-14 z-40 -mx-4 px-4 py-3 bg-background border-b border-border mb-8">
         <div class="relative mb-3">
@@ -278,6 +265,19 @@ const filterCategories = [
             aria-live="polite"
           ></span>
         </div>
+      </div>
+
+      <!-- No results state (shown via JS when a search matches nothing) -->
+      <div id="filter-empty" class="hidden py-16 text-center">
+        <p class="text-sm text-muted-foreground">
+          No artifacts match "<span id="filter-empty-query" class="font-medium text-foreground"></span>"
+        </p>
+        <a
+          href="/artifacts"
+          class="mt-2 inline-block text-sm text-primary transition-colors hover:underline"
+        >
+          Clear search
+        </a>
       </div>
 
       <!-- Default View: Targets by Category (hidden when filtered) -->
@@ -558,18 +558,24 @@ const filterCategories = [
 
     if (defaultView && filteredView) {
       if (isFiltered) {
-        // Show match count at the end of the sticky bar; prefix with the
-        // scenario label since the pills alone don't convey a scenario filter
-        if (filterStatus) {
-          filterStatus.textContent =
-            (scenarioParam && label ? label + " · " : "") +
-            matchingSlugs.size +
-            " of " +
-            allTargets.length;
-          filterStatus.classList.remove("hidden");
-        }
-
         const hasMatches = matchingSlugs.size > 0;
+
+        // Show match count at the end of the sticky bar; prefix with the
+        // scenario label since the pills alone don't convey a scenario filter.
+        // Hidden on zero matches - the empty state below says it already.
+        if (filterStatus) {
+          if (hasMatches) {
+            filterStatus.textContent =
+              (scenarioParam && label ? label + " · " : "") +
+              matchingSlugs.size +
+              " of " +
+              allTargets.length;
+            filterStatus.classList.remove("hidden");
+          } else {
+            filterStatus.classList.add("hidden");
+            filterStatus.textContent = "";
+          }
+        }
 
         // Switch views and render matching cards client-side
         defaultView.classList.add("hidden");
