@@ -1,11 +1,9 @@
 import {
-  Blocks,
   FileSearch,
   Hammer,
   Home,
   Layers,
   Search as SearchIcon,
-  Sparkles,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -114,7 +112,7 @@ export function Search({ showTrigger = true }: SearchProps) {
         e.preventDefault();
         setOpen((open) => !open);
       }
-      if (e.key === "/" && !open) {
+      if (e.key === "/" && !open && !e.defaultPrevented) {
         const activeEl = document.activeElement;
         const isInput =
           activeEl instanceof HTMLInputElement ||
@@ -309,12 +307,8 @@ export function Search({ showTrigger = true }: SearchProps) {
           {!query && (
             <CommandGroup
               heading={
-                <span className="flex items-center gap-2 text-xs uppercase tracking-wider">
-                  <Sparkles
-                    aria-hidden="true"
-                    className="h-3 w-3 text-primary/60"
-                  />
-                  <span>Quick navigation</span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Quick navigation
                 </span>
               }
             >
@@ -322,7 +316,7 @@ export function Search({ showTrigger = true }: SearchProps) {
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-muted">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
                   <Home
                     aria-hidden="true"
                     className="h-3.5 w-3.5 text-muted-foreground"
@@ -338,10 +332,10 @@ export function Search({ showTrigger = true }: SearchProps) {
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/artifacts")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/10 transition-colors group-data-[selected=true]:border-primary/40 group-data-[selected=true]:bg-primary/20">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
                   <FileSearch
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 text-primary"
+                    className="h-3.5 w-3.5 text-muted-foreground"
                   />
                 </div>
                 <span>All artifacts</span>
@@ -354,10 +348,10 @@ export function Search({ showTrigger = true }: SearchProps) {
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/collections")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-cyan-500/20 bg-cyan-500/10 transition-colors group-data-[selected=true]:border-cyan-500/40 group-data-[selected=true]:bg-cyan-500/20">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
                   <Layers
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 text-cyan-700 dark:text-cyan-400"
+                    className="h-3.5 w-3.5 text-muted-foreground"
                   />
                 </div>
                 <span>Collections</span>
@@ -370,10 +364,10 @@ export function Search({ showTrigger = true }: SearchProps) {
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/builder")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-amber-500/20 bg-amber-500/10 transition-colors group-data-[selected=true]:border-amber-500/40 group-data-[selected=true]:bg-amber-500/20">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
                   <Hammer
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400"
+                    className="h-3.5 w-3.5 text-muted-foreground"
                   />
                 </div>
                 <span>Builder</span>
@@ -386,10 +380,10 @@ export function Search({ showTrigger = true }: SearchProps) {
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/converter")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-purple-500/20 bg-purple-500/10 transition-colors group-data-[selected=true]:border-purple-500/40 group-data-[selected=true]:bg-purple-500/20">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
                   <svg
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 text-purple-700 dark:text-purple-400"
+                    className="h-3.5 w-3.5 text-muted-foreground"
                     fill="currentColor"
                     viewBox="155 155 750 625"
                     xmlns="http://www.w3.org/2000/svg"
@@ -409,15 +403,8 @@ export function Search({ showTrigger = true }: SearchProps) {
           {results.length > 0 && (
             <CommandGroup
               heading={
-                <span className="flex items-center gap-2 text-xs uppercase tracking-wider">
-                  <Blocks
-                    aria-hidden="true"
-                    className="h-3 w-3 text-primary/60"
-                  />
-                  <span>Results</span>
-                  <span className="font-medium text-primary">
-                    ({results.length})
-                  </span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Results ({results.length})
                 </span>
               }
             >
@@ -429,10 +416,10 @@ export function Search({ showTrigger = true }: SearchProps) {
                 >
                   <div className="flex w-full flex-col gap-1.5">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/10 transition-colors group-data-[selected=true]:border-primary/30 group-data-[selected=true]:bg-primary/20">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
                         <FileSearch
                           aria-hidden="true"
-                          className="h-3.5 w-3.5 text-primary/70 group-data-[selected=true]:text-primary"
+                          className="h-3.5 w-3.5 text-muted-foreground"
                         />
                       </div>
                       <span className="font-medium">
@@ -470,10 +457,6 @@ export function Search({ showTrigger = true }: SearchProps) {
               <kbd className="kbd kbd-compact">esc</kbd>
               <span>Close</span>
             </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <SearchIcon aria-hidden="true" className="h-3 w-3" />
-            <span>Pagefind</span>
           </div>
         </div>
       </CommandDialog>
