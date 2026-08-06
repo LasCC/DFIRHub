@@ -208,45 +208,76 @@ const filterCategories = [
         </p>
       </header>
 
-      <!-- Active Filter Banner (hidden by default, shown via JS) -->
-      <div id="filter-banner" class="hidden mb-6 p-3 sm:p-4 rounded-xl glass-subtle">
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
-            <span class="text-xs sm:text-sm text-muted-foreground shrink-0">Filtered by:</span>
-            <span
-              id="filter-label"
-              class="text-xs sm:text-sm font-semibold text-primary truncate"
-            ></span>
-            <span
-              id="filter-count"
-              class="text-xs text-muted-foreground shrink-0"
-            ></span>
-          </div>
-          <a
-            href="/artifacts"
-            class="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 shrink-0"
-          >
-            Clear filter
-            <svg
-              class="w-3 h-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </a>
-        </div>
+      <!-- No results state (shown via JS when a search matches nothing) -->
+      <div id="filter-empty" class="hidden mb-8 py-12 text-center">
+        <p class="text-sm text-muted-foreground">
+          No artifacts match "<span id="filter-empty-query" class="font-medium text-foreground"></span>"
+        </p>
+        <a
+          href="/artifacts"
+          class="mt-2 inline-block text-sm text-primary transition-colors hover:underline"
+        >
+          Clear search
+        </a>
       </div>
 
       <!-- Category Filter (sticky below header) -->
       <div class="sticky top-14 z-40 -mx-4 px-4 py-3 bg-background border-b border-border mb-8">
-        <CategoryFilters client:idle categories={filterCategories} />
+        <div class="relative mb-3">
+          <svg
+            aria-hidden="true"
+            class="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input
+            id="artifacts-search"
+            type="search"
+            data-search-input
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Search artifacts by name, category, or description"
+            aria-label="Search artifacts"
+            class="h-10 w-full rounded-lg border border-input bg-card pl-9 pr-9 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/30 [&::-webkit-search-cancel-button]:hidden"
+          />
+          <button
+            id="artifacts-search-clear"
+            type="button"
+            aria-label="Clear search"
+            class="hidden absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="min-w-0 flex-1">
+            <CategoryFilters client:idle categories={filterCategories} />
+          </div>
+          <span
+            id="filter-status"
+            class="hidden shrink-0 text-xs text-muted-foreground tabular-nums"
+            aria-live="polite"
+          ></span>
+        </div>
       </div>
 
       <!-- Default View: Targets by Category (hidden when filtered) -->
@@ -353,13 +384,13 @@ const filterCategories = [
 
   // Category label colors, mirroring src/lib/categoryStyles.ts (no imports in inline scripts)
   const categoryTextClasses = {
-    Antivirus: "text-red-700 dark:text-red-400",
-    Apps: "text-emerald-700 dark:text-emerald-400",
-    Browsers: "text-orange-700 dark:text-orange-400",
-    Compound: "text-cyan-700 dark:text-cyan-400",
-    Logs: "text-yellow-700 dark:text-yellow-400",
-    P2P: "text-purple-700 dark:text-purple-400",
-    Windows: "text-blue-700 dark:text-blue-400",
+    Antivirus: "text-red-800 dark:text-red-400",
+    Apps: "text-emerald-800 dark:text-emerald-400",
+    Browsers: "text-orange-800 dark:text-orange-400",
+    Compound: "text-cyan-800 dark:text-cyan-400",
+    Logs: "text-yellow-800 dark:text-yellow-400",
+    P2P: "text-purple-800 dark:text-purple-400",
+    Windows: "text-blue-800 dark:text-blue-400",
   };
   const defaultTextClass = "text-zinc-600 dark:text-zinc-400";
 
@@ -467,9 +498,9 @@ const filterCategories = [
     const qParam = params.get("q");
 
     // Query DOM elements fresh each time (for view transitions)
-    const filterBanner = document.querySelector("#filter-banner");
-    const filterLabel = document.querySelector("#filter-label");
-    const filterCount = document.querySelector("#filter-count");
+    const filterStatus = document.querySelector("#filter-status");
+    const filterEmpty = document.querySelector("#filter-empty");
+    const filterEmptyQuery = document.querySelector("#filter-empty-query");
     const defaultView = document.querySelector("#default-view");
     const filteredView = document.querySelector("#filtered-view");
 
@@ -482,14 +513,16 @@ const filterCategories = [
     let isFiltered = false;
 
     if (qParam) {
-      // Free-text search via ?q= param (from the homepage search form)
+      // Free-text search via ?q= param (homepage search, in-page search bar)
       isFiltered = true;
       label = `"${qParam}"`;
       const needle = qParam.toLowerCase();
       allTargets.forEach((t) => {
         if (
           t.n.toLowerCase().includes(needle) ||
-          t.s.toLowerCase().includes(needle)
+          t.s.toLowerCase().includes(needle) ||
+          t.c.toLowerCase().includes(needle) ||
+          (t.d || "").toLowerCase().includes(needle)
         ) {
           matchingSlugs.add(t.s.toLowerCase());
         }
@@ -523,41 +556,117 @@ const filterCategories = [
       });
     }
 
-    if (
-      filterBanner &&
-      filterLabel &&
-      filterCount &&
-      defaultView &&
-      filteredView
-    ) {
+    if (defaultView && filteredView) {
       if (isFiltered) {
-        // Show filter banner
-        filterBanner.classList.remove("hidden");
-        filterLabel.textContent = label;
-        filterCount.textContent = `(${matchingSlugs.size} artifacts)`;
+        // Show match count at the end of the sticky bar; prefix with the
+        // scenario label since the pills alone don't convey a scenario filter
+        if (filterStatus) {
+          filterStatus.textContent =
+            (scenarioParam && label ? label + " · " : "") +
+            matchingSlugs.size +
+            " of " +
+            allTargets.length;
+          filterStatus.classList.remove("hidden");
+        }
+
+        const hasMatches = matchingSlugs.size > 0;
 
         // Switch views and render matching cards client-side
         defaultView.classList.add("hidden");
-        filteredView.classList.remove("hidden");
+        filteredView.classList.toggle("hidden", !hasMatches);
 
-        const grid = filteredView.firstElementChild;
-        grid.textContent = "";
-        allTargets.forEach((t) => {
-          if (matchingSlugs.has(t.s.toLowerCase())) {
-            grid.appendChild(createCard(t));
+        if (hasMatches) {
+          const grid = filteredView.firstElementChild;
+          grid.textContent = "";
+          allTargets.forEach((t) => {
+            if (matchingSlugs.has(t.s.toLowerCase())) {
+              grid.appendChild(createCard(t));
+            }
+          });
+        }
+
+        // Show an empty state when a search matches nothing
+        if (filterEmpty && filterEmptyQuery) {
+          filterEmpty.classList.toggle("hidden", hasMatches);
+          if (!hasMatches) {
+            filterEmptyQuery.textContent = qParam || "";
           }
-        });
+        }
       } else {
         // No filter - show default view
-        filterBanner.classList.add("hidden");
+        if (filterStatus) {
+          filterStatus.classList.add("hidden");
+          filterStatus.textContent = "";
+        }
         defaultView.classList.remove("hidden");
         filteredView.classList.add("hidden");
         filteredView.firstElementChild.textContent = "";
+        if (filterEmpty) {
+          filterEmpty.classList.add("hidden");
+        }
       }
     }
   }
 
-  // Apply filter on initial load and view transitions
+  // Apply filter on initial load, view transitions, and history navigation
   applyFilter();
   document.addEventListener("astro:page-load", applyFilter);
+  window.addEventListener("popstate", applyFilter);
+
+  // ── In-page search bar ─────────────────────────────────────────────
+  const searchInput = document.getElementById("artifacts-search");
+  const searchClear = document.getElementById("artifacts-search-clear");
+  let searchTimer = null;
+
+  function syncSearchClear() {
+    if (searchClear && searchInput) {
+      searchClear.classList.toggle("hidden", !searchInput.value.trim());
+    }
+  }
+
+  function syncSearchInput() {
+    if (!searchInput || document.activeElement === searchInput) {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    searchInput.value = params.get("q") || "";
+    syncSearchClear();
+  }
+
+  function submitSearch() {
+    const value = (searchInput ? searchInput.value : "").trim();
+    if (value) {
+      history.replaceState(null, "", "/artifacts?q=" + encodeURIComponent(value));
+    } else {
+      history.replaceState(null, "", "/artifacts");
+    }
+    applyFilter();
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      syncSearchClear();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(submitSearch, 150);
+    });
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        clearTimeout(searchTimer);
+        submitSearch();
+      }
+    });
+  }
+
+  if (searchClear && searchInput) {
+    searchClear.addEventListener("click", () => {
+      searchInput.value = "";
+      syncSearchClear();
+      clearTimeout(searchTimer);
+      submitSearch();
+      searchInput.focus();
+    });
+  }
+
+  document.addEventListener("astro:page-load", syncSearchInput);
+  syncSearchInput();
 </script>
