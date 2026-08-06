@@ -1,30 +1,51 @@
 ---
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
+import { HomeSearch } from "../components/search/HomeSearch";
+import type { HomeSearchItem } from "../components/search/HomeSearch";
 import Layout from "../layouts/Layout.astro";
-import { getCategoryStyle } from "../lib/categoryStyles";
-import { getCategories, getStats } from "../lib/kapefiles";
+import { getIndividualTargets, getStats, getTargetBySlug } from "../lib/kapefiles";
 
 const stats = getStats();
 
-const categories = [
-  { id: "all", label: "All", count: stats.total },
-  ...getCategories().map((cat) => ({
-    id: cat.toLowerCase(),
-    label: cat,
-    count: stats.byCategory[cat] || 0,
-  })),
+// Curated entry points shown as one-click links under the search bar
+const popularSlugs = [
+  "anydesk",
+  "screenconnect",
+  "teamviewerlogs",
+  "prefetch",
+  "amcache",
+  "chrome",
+  "srum",
+  "eventlogs",
+  "jumplists",
 ];
 
-// Investigation scenarios (filtered views on the artifacts page)
-const scenarios = [
-  { id: "lateral-movement", title: "Lateral Movement" },
-  { id: "browser-forensics", title: "Browser Forensics" },
-  { id: "persistence", title: "Persistence" },
-  { id: "execution", title: "Program Execution" },
-  { id: "user-activity", title: "User Activity" },
-  { id: "anti-forensics", title: "Data Recovery" },
-];
+const popular: HomeSearchItem[] = popularSlugs.flatMap((slug) => {
+  const target = getTargetBySlug(slug);
+  return target
+    ? [
+        {
+          n: target.name,
+          s: target.slug,
+          c: target.category,
+          d: "",
+          p: target.targets.filter((entry) => !entry.path.endsWith(".tkape"))
+            .length,
+        },
+      ]
+    : [];
+});
+
+// Compact artifact index for client-side suggestions (short keys keep the
+// serialized payload small)
+const searchIndex: HomeSearchItem[] = getIndividualTargets().map((target) => ({
+  n: target.name,
+  s: target.slug,
+  c: target.category,
+  d: target.description || "",
+  p: target.targets.filter((entry) => !entry.path.endsWith(".tkape")).length,
+}));
 
 const tools = [
   {
@@ -55,24 +76,6 @@ const tools = [
     icon: "sigma",
   },
 ];
-
-const features = [
-  {
-    title: "Always current",
-    description:
-      "Artifact definitions sync weekly from the KapeFiles repository, so paths and targets stay up to date.",
-  },
-  {
-    title: "Runs in your browser",
-    description:
-      "No server, no telemetry. Searches and rule conversions never leave your machine.",
-  },
-  {
-    title: "Built for investigations",
-    description:
-      "Go from artifact lookup to a ready KAPE collection script in seconds.",
-  },
-];
 ---
 
 <Layout title="DFIRHub">
@@ -81,105 +84,33 @@ const features = [
   <main id="main-content" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4">
       <!-- Hero -->
-      <section class="py-14 sm:py-20">
-        <h1
-          class="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl"
-        >
+      <section class="mx-auto max-w-2xl pt-16 pb-12 text-center sm:pt-24 sm:pb-16">
+        <h1 class="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
           Search Windows forensic artifacts
         </h1>
-        <p class="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Reference {stats.total} KAPE artifact definitions, build collection
-          scripts, and convert Sigma rules — all in one place.
+        <p class="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+          Browse {stats.total} KAPE artifact definitions, build collection
+          scripts, and convert Sigma rules. All in one place.
         </p>
 
-        <!-- Search -->
-        <form
-          action="/artifacts"
-          method="get"
-          role="search"
-          class="mt-8 max-w-xl"
-        >
-          <label for="home-search" class="sr-only">Search artifacts</label>
-          <div
-            class="flex h-12 items-center gap-3 rounded-lg border border-input bg-background px-4 transition-colors focus-within:border-primary"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 shrink-0 text-muted-foreground"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.3-4.3"></path>
-            </svg>
-            <input
-              id="home-search"
-              name="q"
-              type="search"
-              data-search-input
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="Search artifacts, e.g. prefetch, amcache, srum"
-              class="h-full flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground sm:text-base"
-            />
-            <kbd class="kbd" aria-hidden="true">/</kbd>
-          </div>
-        </form>
+        <div class="mt-8">
+          <HomeSearch client:load data={searchIndex} popular={popular} />
+        </div>
 
-        <!-- Category quick links -->
-        <nav aria-label="Browse by category" class="mt-8">
-          <p class="mb-3 text-sm text-muted-foreground">Browse by category</p>
-          <ul class="flex flex-wrap gap-2">
-            {categories.map((cat) => {
-              const style = getCategoryStyle(cat.label);
-              return (
-                <li>
-                  <a
-                    href={cat.id === "all" ? "/artifacts" : `/artifacts?category=${cat.id}`}
-                    class="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
-                  >
-                    {cat.id !== "all" && (
-                      <span
-                        class:list={["h-1.5 w-1.5 rounded-full", style.accent]}
-                        aria-hidden="true"
-                      />
-                    )}
-                    {cat.label}
-                    <span class="text-xs tabular-nums text-muted-foreground">
-                      {cat.count}
-                    </span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        <!-- Scenario quick links -->
-        <nav aria-label="Investigate by scenario" class="mt-6">
-          <p class="text-sm text-muted-foreground">
-            Investigate by scenario:{" "}
-            {scenarios.map((scenario, i) => (
-              <>
-                <a
-                  href={`/artifacts?scenario=${scenario.id}`}
-                  class="text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
-                >
-                  {scenario.title}
-                </a>
-                {i < scenarios.length - 1 && (
-                  <span aria-hidden="true" class="mx-1 text-muted-foreground">
-                    ·
-                  </span>
-                )}
-              </>
-            ))}
-          </p>
-        </nav>
+        <p class="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          <span>Popular:</span>
+          {popular.map((item, i) => (
+            <>
+              {i > 0 && <span aria-hidden="true">·</span>}
+              <a
+                href={`/artifact/${item.s}`}
+                class="transition-colors hover:text-primary hover:underline underline-offset-4"
+              >
+                {item.n}
+              </a>
+            </>
+          ))}
+        </p>
       </section>
 
       <!-- Tools -->
@@ -225,25 +156,6 @@ const features = [
                 {tool.description}
               </p>
             </a>
-          ))}
-        </div>
-      </section>
-
-      <!-- Why DFIRHub -->
-      <section class="border-t border-border py-12 sm:py-16">
-        <h2 class="mb-6 text-lg font-semibold tracking-tight sm:text-xl">
-          Why DFIRHub
-        </h2>
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8">
-          {features.map((feature) => (
-            <div>
-              <h3 class="text-sm font-medium text-foreground sm:text-base">
-                {feature.title}
-              </h3>
-              <p class="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                {feature.description}
-              </p>
-            </div>
           ))}
         </div>
       </section>
