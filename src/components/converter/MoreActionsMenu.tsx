@@ -9,8 +9,6 @@ interface MoreActionsMenuProps {
   onShare: () => void;
   onExport: () => void;
   onToggleAdvanced: () => void;
-  /** Trigger styling: "desktop" is the split-button segment, "mobile" the standalone square button */
-  variant: "desktop" | "mobile";
 }
 
 /**
@@ -28,7 +26,6 @@ export function MoreActionsMenu({
   onShare,
   onExport,
   onToggleAdvanced,
-  variant,
 }: MoreActionsMenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,21 +47,13 @@ export function MoreActionsMenu({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  const triggerClass =
-    variant === "desktop"
-      ? "flex items-center self-stretch rounded-r-lg bg-primary px-2.5 text-background transition-colors hover:bg-primary/90"
-      : "flex items-center justify-center rounded-lg border border-overlay/[0.08] bg-overlay/[0.03] p-2.5 text-muted-foreground transition-colors hover:border-overlay/[0.12] hover:text-foreground";
-
   return (
-    <div
-      className={variant === "desktop" ? "relative flex items-center" : "relative"}
-      ref={containerRef}
-    >
+    <div className="relative flex items-center" ref={containerRef}>
       <button
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="More actions"
-        className={triggerClass}
+        className="flex items-center justify-center rounded-lg border border-overlay/[0.08] bg-overlay/[0.03] p-2 text-muted-foreground transition-colors hover:border-overlay/[0.12] hover:text-foreground"
         onClick={() => setOpen((prev) => !prev)}
         title="More actions"
         type="button"

@@ -426,15 +426,16 @@ export function ConverterLayout() {
       />
 
       {/* ── Toolbar ─────────────────────────────────────────────────────────
-           Mobile  : row-1 = scrollable chips (all controls)
-                     row-2 = full-width Convert button
-           Desktop : single row, everything inline
+           Desktop : scrollable chips on the left, Convert + More on the right
+                     (outside the scroll container so the dropdown isn't clipped)
+           Mobile  : row-1 = scrollable chips, row-2 = full-width Convert
       ─────────────────────────────────────────────────────────────────── */}
       <div className="space-y-2">
-        {/* Row 1: all controls — scrollable on mobile, single row on desktop */}
-        <div
-          className={`scroll-shadow-x${mobileScrollStart ? " scrolled-start" : ""}${mobileScrollEnd ? " scrolled-end" : ""}`}
-        >
+        <div className="flex items-center gap-2">
+          {/* Row 1: all controls — scrollable on mobile */}
+          <div
+            className={`min-w-0 flex-1 scroll-shadow-x${mobileScrollStart ? " scrolled-start" : ""}${mobileScrollEnd ? " scrolled-end" : ""}`}
+          >
           <div
             className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
             ref={mobileScrollRef}
@@ -540,39 +541,16 @@ export function ConverterLayout() {
               Auto-convert
             </button>
 
-            {/* Desktop-only spacer + split Convert button */}
+            {/* Desktop-only spacer */}
             <div className="hidden flex-1 md:block" />
-
-            <div className="hidden shrink-0 items-center md:flex">
-              <button
-                className="flex items-center gap-2 rounded-l-lg bg-primary px-4 py-2 font-medium text-background text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
-                disabled={!isReady || isConverting || !rule.trim()}
-                onClick={handleConvert}
-                title="Convert Sigma rule to the selected backend (⌘↵)"
-                type="button"
-              >
-                Convert
-                <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
-              </button>
-              <div className="h-5 w-px bg-background/20" />
-              <MoreActionsMenu
-                canExport={exportConversions.size > 0}
-                canShare={rule.trim().length > 0}
-                onExport={() => setShowExport(true)}
-                onShare={handleShare}
-                onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
-                shareCopied={shareCopied}
-                showAdvanced={showAdvanced}
-                variant="desktop"
-              />
-            </div>
           </div>
         </div>
 
-        {/* Row 2 mobile-only: full-width Convert + More */}
-        <div className="flex items-center gap-2 md:hidden">
+        {/* Desktop actions — outside the scroll container so the dropdown
+            isn't clipped by overflow */}
+        <div className="hidden shrink-0 items-center gap-2 md:flex">
           <button
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-background text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
             disabled={!isReady || isConverting || !rule.trim()}
             onClick={handleConvert}
             title="Convert Sigma rule to the selected backend (⌘↵)"
@@ -591,7 +569,32 @@ export function ConverterLayout() {
             onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
             shareCopied={shareCopied}
             showAdvanced={showAdvanced}
-            variant="mobile"
+          />
+        </div>
+      </div>
+
+        {/* Row 2 mobile-only: full-width Convert + More */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
+            disabled={!isReady || isConverting || !rule.trim()}
+            onClick={handleConvert}
+            title="Convert Sigma rule to the selected backend (⌘↵)"
+            type="button"
+          >
+            {isConverting ? "Converting…" : "Convert"}
+            {!isConverting && (
+              <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+            )}
+          </button>
+          <MoreActionsMenu
+            canExport={exportConversions.size > 0}
+            canShare={rule.trim().length > 0}
+            onExport={() => setShowExport(true)}
+            onShare={handleShare}
+            onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
+            shareCopied={shareCopied}
+            showAdvanced={showAdvanced}
           />
         </div>
       </div>
