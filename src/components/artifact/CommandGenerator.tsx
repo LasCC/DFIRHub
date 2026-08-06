@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import type { KapeTarget } from "../../lib/kapefiles";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
-import { useHaptics } from "../../hooks/useHaptics";
 import { trackCopyCommand } from "../../lib/analytics";
 import {
   generateBatch,
@@ -26,7 +25,6 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
   const [useVss, setUseVss] = useState(false);
   const [useVhdx, setUseVhdx] = useState(false);
   const [copiedId, triggerCopied] = useCopyFeedbackKeyed<string>();
-  const { tapHaptic, toggleHaptic } = useHaptics();
 
   const opts = useMemo(
     () => ({ destination, source, useVhdx, useVss }),
@@ -98,14 +96,11 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
                 : "text-muted-foreground hover:text-foreground"
             }`}
             key={tab.id}
-            onClick={() => {
-              tapHaptic();
-              setFormat(tab.id as CommandFormat);
-            }}
+            onClick={() => setFormat(tab.id as CommandFormat)}
             role="tab"
             type="button"
           >
-            {tab.label.toLowerCase()}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -116,10 +111,10 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
           {/* Source Drive */}
           <div className="flex items-center gap-2">
             <label className="text-muted-foreground" htmlFor="source-input">
-              source:
+              Source
             </label>
             <input
-              className="h-7 w-16 border border-border bg-background px-2 text-xs outline-none focus:border-primary/50"
+              className="h-7 w-16 rounded border border-border bg-background px-2 text-xs outline-none focus:border-primary/50"
               id="source-input"
               onChange={(e) => setSource(e.target.value)}
               placeholder="C:"
@@ -131,10 +126,10 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
           {/* Destination Path */}
           <div className="flex items-center gap-2">
             <label className="text-muted-foreground" htmlFor="dest-input">
-              destination:
+              Destination
             </label>
             <input
-              className="h-7 w-40 border border-border bg-background px-2 text-xs outline-none focus:border-primary/50"
+              className="h-7 w-40 rounded border border-border bg-background px-2 text-xs outline-none focus:border-primary/50"
               id="dest-input"
               onChange={(e) => setDestination(e.target.value)}
               placeholder="D:\Evidence"
@@ -150,10 +145,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
                 <input
                   checked={useVss}
                   className="h-3 w-3 accent-primary"
-                  onChange={(e) => {
-                    toggleHaptic();
-                    setUseVss(e.target.checked);
-                  }}
+                  onChange={(e) => setUseVss(e.target.checked)}
                   type="checkbox"
                 />
                 <span className="text-muted-foreground">--vss</span>
@@ -162,10 +154,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
                 <input
                   checked={useVhdx}
                   className="h-3 w-3 accent-primary"
-                  onChange={(e) => {
-                    toggleHaptic();
-                    setUseVhdx(e.target.checked);
-                  }}
+                  onChange={(e) => setUseVhdx(e.target.checked)}
                   type="checkbox"
                 />
                 <span className="text-muted-foreground">--vhdx</span>
@@ -194,20 +183,19 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
             aria-label={
               copiedId === format ? "Copied to clipboard" : "Copy command"
             }
-            className="focus-ring absolute top-2 right-2 z-20 rounded border border-overlay/[0.1] bg-secondary px-2 py-1 text-[10px] text-muted-foreground backdrop-blur-sm transition-colors hover:text-foreground"
+            className="focus-ring absolute top-2 right-2 z-20 rounded border border-overlay/[0.1] bg-secondary px-2 py-1 text-muted-foreground text-xs transition-colors hover:text-foreground"
             onClick={() => handleCopy(currentCommand, format)}
             type="button"
           >
-            {copiedId === format ? "copied!" : "copy"}
+            {copiedId === format ? "Copied!" : "Copy"}
           </button>
         </div>
 
         {/* Format description */}
-        <div className="mt-3 text-[10px] text-muted-foreground">
+        <div className="mt-3 text-muted-foreground text-xs">
           {format === "kape" && (
             <p>
-              <span className="text-primary">›</span> Run with administrator
-              privileges.{" "}
+              Run with administrator privileges.{" "}
               <a
                 className="text-primary transition-colors hover:text-primary/80"
                 href="https://ericzimmerman.github.io/KapeDocs/"
@@ -220,8 +208,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
           )}
           {format === "powershell" && (
             <p>
-              <span className="text-primary">›</span> Save as .ps1 and run as
-              Administrator. Use:{" "}
+              Save as .ps1 and run as Administrator. Use:{" "}
               <code className="text-primary">
                 powershell -ExecutionPolicy Bypass -File script.ps1
               </code>
@@ -229,13 +216,13 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
           )}
           {format === "batch" && (
             <p>
-              <span className="text-primary">›</span> Save as .bat and run as
-              Administrator (right-click → Run as administrator).
+              Save as .bat and run as Administrator (right-click → Run as
+              administrator).
             </p>
           )}
           {format === "wsl" && (
             <p>
-              <span className="text-primary">›</span> Save as .sh and run with{" "}
+              Save as .sh and run with{" "}
               <code className="text-primary">sudo bash script.sh</code> from
               WSL.
             </p>
@@ -246,8 +233,10 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
       {/* Target Info */}
       {target.isCompound && (
         <div className="px-4 pb-4">
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
-            <span className="text-amber-400">Note:</span>{" "}
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+            <span className="font-medium text-amber-700 dark:text-amber-400">
+              Note:
+            </span>{" "}
             <span className="text-muted-foreground">
               This is a compound target that references{" "}
               {target.referencedTargets.length} other target

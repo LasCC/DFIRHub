@@ -35,7 +35,7 @@ const others = sortedCollections.filter(
   title="Triage Collections"
   description="Pre-built KAPE triage collections for rapid forensic acquisition"
 >
-  <Header client:load />
+  <Header client:load currentPath={Astro.url.pathname} />
 
   <main id="main-content" class="flex-1 relative" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4 py-8">
@@ -49,14 +49,13 @@ const others = sortedCollections.filter(
             <a
               href="/"
               class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+              >Home</a
             >
-              <span class="text-primary">~</span>/
-            </a>
           </li>
           <li class="flex items-center gap-1">
             <span aria-hidden="true">/</span>
             <span class="text-foreground px-1" aria-current="page"
-              >collections</span
+              >Collections</span
             >
           </li>
         </ol>
@@ -64,9 +63,9 @@ const others = sortedCollections.filter(
 
       <!-- Header -->
       <header class="mb-8 animate-in" style="animation-delay: 50ms;">
-        <h1 class="text-2xl font-semibold mb-2">Triage Collections</h1>
-        <p class="text-sm text-muted-foreground">
-          <span class="text-cyan-400">{collections.length}</span> pre-built KAPE
+        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">Triage Collections</h1>
+        <p class="text-sm sm:text-base text-muted-foreground">
+          <span class="font-medium text-foreground">{collections.length}</span> pre-built KAPE
           compound targets for rapid forensic acquisition
         </p>
       </header>
@@ -77,7 +76,7 @@ const others = sortedCollections.filter(
         style="animation-delay: 100ms;"
       >
         <p class="text-sm text-muted-foreground">
-          <span class="text-cyan-400">Compound targets</span> combine multiple
+          <span class="font-medium text-cyan-700 dark:text-cyan-400">Compound targets</span> combine multiple
           individual targets into a single collection. Use these for
           comprehensive triage acquisition with a single KAPE command.
         </p>
@@ -92,12 +91,9 @@ const others = sortedCollections.filter(
                     >
                         <h2
                             id="featured-heading"
-                            class="text-xs uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2"
+                            class="text-xs uppercase tracking-wider text-muted-foreground mb-4"
                         >
-                            <span class="text-primary/50" aria-hidden="true">
-                                //
-                            </span>
-                            featured collections
+                            Featured Collections
                         </h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {featured.map((collection) => {
@@ -114,14 +110,13 @@ const others = sortedCollections.filter(
                                 return (
                                     <a
                                         href={`/artifact/${collection.slug}`}
-                                        data-haptic="tap"
                                         class="group block border border-cyan-500/30 bg-cyan-500/5 rounded-xl hover:bg-cyan-500/10 transition-colors focus-ring p-5"
                                     >
                                         <div class="flex items-start justify-between gap-3 mb-3">
-                                            <h3 class="text-lg font-medium text-cyan-400 group-hover:text-cyan-300 transition-colors">
+                                            <h3 class="text-lg font-medium text-cyan-700 dark:text-cyan-400 group-hover:text-cyan-600 dark:group-hover:text-cyan-300 transition-colors">
                                                 {collection.name}
                                             </h3>
-                                            <span class="px-2 py-1 text-[10px] uppercase tracking-wider text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 shrink-0">
+                                            <span class="px-2 py-1 text-xs uppercase tracking-wider text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 shrink-0">
                                                 featured
                                             </span>
                                         </div>
@@ -130,7 +125,7 @@ const others = sortedCollections.filter(
                                         </p>
                                         <div class="flex items-center gap-4 text-xs text-muted-foreground">
                                             <span>
-                                                <span class="text-cyan-400">
+                                                <span class="font-medium text-cyan-700 dark:text-cyan-400">
                                                     {
                                                         collection
                                                             .referencedTargets
@@ -140,13 +135,13 @@ const others = sortedCollections.filter(
                                                 targets
                                             </span>
                                             <span>
-                                                <span class="text-cyan-400">
+                                                <span class="font-medium text-cyan-700 dark:text-cyan-400">
                                                     {resolved.length}
                                                 </span>{" "}
                                                 resolved
                                             </span>
                                             <span>
-                                                <span class="text-cyan-400">
+                                                <span class="font-medium text-cyan-700 dark:text-cyan-400">
                                                     {totalPaths}
                                                 </span>{" "}
                                                 paths
@@ -167,24 +162,22 @@ const others = sortedCollections.filter(
       >
         <h2
           id="all-heading"
-          class="text-xs uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2"
+          class="text-xs uppercase tracking-wider text-muted-foreground mb-4"
         >
-          <span class="text-primary/50" aria-hidden="true">//</span>
-          all collections
-          <span class="text-cyan-400">({others.length + featured.length})</span>
+          All Collections{" "}
+          <span class="text-cyan-700 dark:text-cyan-400">({others.length + featured.length})</span>
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {sortedCollections.map((collection) => (
                             <a
                                 href={`/artifact/${collection.slug}`}
-                                data-haptic="tap"
                                 class="group block border border-border bg-card/20 rounded-lg hover:bg-card/40 hover:border-cyan-500/30 transition-colors focus-ring p-4"
                             >
                                 <div class="flex items-start justify-between gap-2 mb-2">
-                                    <h3 class="text-sm font-medium group-hover:text-cyan-400 transition-colors truncate">
+                                    <h3 class="text-sm font-medium group-hover:text-cyan-700 dark:group-hover:text-cyan-400 transition-colors truncate">
                                         {collection.name}
                                     </h3>
-                                    <span class="text-[10px] text-cyan-400 shrink-0">
+                                    <span class="text-xs text-cyan-700 dark:text-cyan-400 shrink-0">
                                         {collection.referencedTargets.length}
                                     </span>
                                 </div>
@@ -192,7 +185,7 @@ const others = sortedCollections.filter(
                                     {collection.description ||
                                         "Compound target collection"}
                                 </p>
-                                <div class="text-[10px] text-muted-foreground">
+                                <div class="text-xs text-muted-foreground">
                                     by {collection.author}
                                 </div>
                             </a>

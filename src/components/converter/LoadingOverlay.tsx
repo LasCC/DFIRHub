@@ -41,7 +41,7 @@ function PythonIcon({ className }: { className?: string }) {
         fill="url(#py-blue)"
       />
       <path
-        d="M128.757 254.126c64.832 0 60.784-28.115 60.784-28.115l-.072-29.127H127.6v-8.745h86.441s41.486 4.705 41.486-60.712c0-65.416-36.21-63.096-36.21-63.096h-21.61v30.355s1.165 36.21-35.632 36.21h-61.362s-34.475-.557-34.475 33.32v56.013s-5.235 33.897 62.518 33.897m34.114-19.586a11.12 11.12 0 0 1-11.13-11.13 11.12 11.12 0 0 1 11.13-11.131 11.12 11.12 0 0 1 11.13 11.13 11.12 11.12 0 0 1-11.13 11.13"
+        d="M128.757 254.126c64.832 0 60.784-28.115 60.784-28.115l-.072-29.127H127.6v-8.745h86.441s41.486 4.705 41.486-60.712c0-65.416-36.21-63.096-36.21-63.096h-21.61v30.355s1.165 36.21-35.632 36.21h-61.362s-34.475-.557-34.475 33.32v56.013s-5.235 33.897 62.518 33.897m34.114-19.586a11.12 11.12 0 0 1-11.13-11.13 11.12 11.12 0 0 1 11.13-11.131 11.12 11.12 0 0 1 11.13 11.13 11.12 11.12 0 0 1 11.13 11.13"
         fill="url(#py-yellow)"
       />
     </svg>
@@ -63,7 +63,7 @@ export function LoadingOverlay({
   return (
     <div
       aria-busy={!error}
-      className="fixed top-0 left-0 z-50 flex h-[100dvh] w-full items-center justify-center bg-background/80 backdrop-blur-sm"
+      className="fixed top-0 left-0 z-50 flex h-[100dvh] w-full items-center justify-center bg-background"
       role={error ? "alert" : "progressbar"}
       {...(!error && {
         "aria-label": `Loading Pyodide runtime: ${percent}%`,
@@ -79,15 +79,15 @@ export function LoadingOverlay({
 
         {error ? (
           <div className="w-64">
-            <div className="mb-2 text-center text-sm text-red-400">
+            <div className="mb-2 text-center text-destructive text-sm">
               Failed to initialize
             </div>
-            <p className="mb-4 text-center text-xs text-muted-foreground/60">
+            <p className="mb-4 text-center text-muted-foreground text-xs">
               {error}
             </p>
             {onRetry && (
               <button
-                className="mx-auto flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-primary/90"
+                className="mx-auto flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-background text-sm transition-colors hover:bg-primary/90"
                 onClick={onRetry}
                 type="button"
               >
@@ -107,11 +107,11 @@ export function LoadingOverlay({
                   style={{ width: `${percent}%` }}
                 />
               </div>
-              <div className="mt-1 text-center text-muted-foreground/50 text-xs">
+              <div className="mt-1 text-center text-muted-foreground text-xs">
                 {percent}%
               </div>
             </div>
-            <p className="max-w-xs text-center text-muted-foreground/40 text-xs">
+            <p className="max-w-xs text-center text-muted-foreground text-xs">
               Installing pySigma and detection backends. This only happens once
               per session.
             </p>

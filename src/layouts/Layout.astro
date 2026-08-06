@@ -137,19 +137,8 @@ const fullTitle =
     <meta name="twitter:description" content={description}>
     <meta name="twitter:image" content={`${siteUrl}${image}`}>
 
-    <!-- Google Sans Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
-      rel="stylesheet"
-    >
-
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
 
     <!-- Structured Data (JSON-LD) -->
@@ -349,26 +338,6 @@ const fullTitle =
           mainContent.focus();
         }
       });
-    </script>
-
-    <!-- Global haptic feedback for data-haptic elements -->
-    <script>
-      import { WebHaptics } from "web-haptics";
-
-      if (WebHaptics.isSupported) {
-        const haptics = new WebHaptics();
-
-        document.addEventListener(
-          "pointerdown",
-          (e) => {
-            if (!(e.target instanceof Element)) return;
-            const el = e.target.closest("[data-haptic]");
-            if (!el) return;
-            haptics.trigger("light");
-          },
-          { passive: true }
-        );
-      }
     </script>
 
     <!-- Keyboard navigation styles -->

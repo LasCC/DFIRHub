@@ -87,7 +87,7 @@ export function OutputPanel({
       <div className="flex items-center justify-between border-overlay/[0.06] border-b px-4 py-2">
         <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
           {backend}{" "}
-          <span className="text-muted-foreground/50">({language})</span>
+          <span className="text-muted-foreground">({language})</span>
         </span>
         {query && (
           <button
@@ -118,7 +118,7 @@ export function OutputPanel({
           </div>
         )}
         {error && (
-          <div className="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-red-400 text-sm">
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-destructive text-sm">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <pre className="whitespace-pre-wrap font-mono text-xs">{error}</pre>
           </div>
@@ -137,7 +137,7 @@ export function OutputPanel({
             </pre>
           ))}
         {!(query || error || isLoading) && (
-          <p className="text-muted-foreground/50 text-sm">
+          <p className="text-muted-foreground text-sm">
             Convert a Sigma rule to see the output here.
           </p>
         )}

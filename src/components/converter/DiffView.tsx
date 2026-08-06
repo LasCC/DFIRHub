@@ -14,7 +14,7 @@ export function DiffView({ results, isLoading }: DiffViewProps) {
 
   if (entries.length === 0 && !isLoading) {
     return (
-      <div className="flex h-full items-center justify-center p-8 text-muted-foreground/50 text-sm">
+      <div className="flex h-full items-center justify-center p-8 text-muted-foreground text-sm">
         Select backends and convert a rule to compare outputs side-by-side.
       </div>
     );

@@ -2,61 +2,31 @@ import { ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
+import type { CategoryStyle } from "../../lib/categoryStyles";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
-import { useHaptics } from "../../hooks/useHaptics";
 import { trackCopyPath } from "../../lib/analytics";
+import { getCategoryStyle } from "../../lib/categoryStyles";
 
 interface PathBrowserProps {
   target: KapeTarget;
   resolvedTargets?: KapeTarget[];
 }
 
-// ─── Category → color classes (rounded pill badges) ───
-function getCategoryColors(category: string): string {
-  const cat = category.toLowerCase();
-  if (
-    cat.includes("browser") ||
-    cat.includes("chrome") ||
-    cat.includes("firefox") ||
-    cat.includes("edge")
-  ) {
-    return "bg-blue-500/10 border-blue-500/30 text-blue-300";
-  }
-  if (
-    cat.includes("execution") ||
-    cat.includes("prefetch") ||
-    cat.includes("amcache")
-  ) {
-    return "bg-red-500/10 border-red-500/30 text-red-300";
-  }
-  if (
-    cat.includes("persistence") ||
-    cat.includes("registry") ||
-    cat.includes("startup")
-  ) {
-    return "bg-amber-500/10 border-amber-500/30 text-amber-300";
-  }
-  if (cat.includes("usb") || cat.includes("removable")) {
-    return "bg-pink-500/10 border-pink-500/30 text-pink-300";
-  }
-  if (
-    cat.includes("lateral") ||
-    cat.includes("rdp") ||
-    cat.includes("remote")
-  ) {
-    return "bg-purple-500/10 border-purple-500/30 text-purple-300";
-  }
-  if (cat.includes("windows") || cat.includes("os")) {
-    return "bg-blue-500/10 border-blue-500/30 text-blue-300";
-  }
-  if (cat.includes("linux")) {
-    return "bg-amber-500/10 border-amber-500/30 text-amber-300";
-  }
-  if (cat.includes("macos") || cat.includes("mac")) {
-    return "bg-zinc-500/10 border-zinc-500/30 text-zinc-400";
-  }
-  return "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+// ─── Category → accent classes (rounded pill badges) ───
+// categoryStyles keys are capitalized ("Windows", "P2P"); normalize lookup.
+const SPECIAL_KEYS: Record<string, string> = { p2p: "P2P" };
+
+function getCategoryStyleFor(category: string): CategoryStyle {
+  const lower = category.toLowerCase();
+  const key =
+    SPECIAL_KEYS[lower] ?? lower.charAt(0).toUpperCase() + lower.slice(1);
+  return getCategoryStyle(key);
+}
+
+function getCategoryClasses(category: string): string {
+  const style = getCategoryStyleFor(category);
+  return `${style.bg} ${style.text} border-current/40`;
 }
 
 // ─── Clipboard helper ───
@@ -130,7 +100,6 @@ function parsePathSegments(pathStr: string, fileMask?: string): PathSegment[] {
 // ─── Main component ───
 export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   const [copiedPath, triggerCopied] = useCopyFeedbackKeyed<string>();
-  const { tapHaptic } = useHaptics();
   // For compound targets, default-expand the first group so visitors land on
   // visible content instead of a row of collapsed accordions.
   const firstGroupName =
@@ -289,8 +258,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
     return (
       <div className="glass-subtle rounded-xl p-6 text-center">
         <p className="text-muted-foreground text-sm">
-          <span className="text-primary">$</span> no file paths defined for this
-          target
+          No file paths defined for this target
         </p>
       </div>
     );
@@ -317,7 +285,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
           onClick={handleCopyAll}
           type="button"
         >
-          {copiedPath === "all" ? "[copied!]" : "[copy all]"}
+          {copiedPath === "all" ? "Copied!" : "Copy all"}
         </button>
       </div>
 
@@ -326,9 +294,9 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
         <div className="flex flex-wrap items-center gap-2 border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-2">
           <input
             aria-label="Filter paths"
-            className="h-7 min-w-0 flex-1 rounded border border-border bg-background px-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none"
+            className="h-7 min-w-0 flex-1 rounded border border-border bg-background px-2 text-foreground text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
             onChange={(e) => setFilter(e.target.value)}
-            placeholder="filter paths..."
+            placeholder="Filter paths..."
             type="text"
             value={filter}
           />
@@ -337,7 +305,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
               {uniqueCategories.map((cat) => (
                 <button
                   aria-pressed={activeCategories.has(cat)}
-                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider cursor-pointer transition-opacity ${getCategoryColors(cat)} ${
+                  className={`inline-flex cursor-pointer items-center rounded-full border px-2 py-0.5 font-medium text-xs uppercase tracking-wider transition-opacity ${getCategoryClasses(cat)} ${
                     activeCategories.size > 0 && !activeCategories.has(cat)
                       ? "opacity-30"
                       : ""
@@ -352,7 +320,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
             </div>
           )}
           {(filter || activeCategories.size > 0) && (
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {visibleCount} / {pathEntries.length}
             </span>
           )}
@@ -387,11 +355,11 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                   </span>
                   {group.slug !== target.slug && (
                     <a
-                      className="text-[10px] text-primary transition-colors hover:text-primary/80"
+                      className="text-primary text-xs transition-colors hover:text-primary/80"
                       href={`/artifact/${group.slug}`}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      [view]
+                      View
                     </a>
                   )}
                 </button>
@@ -403,7 +371,6 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                         entry={entry}
                         key={`${group.name}-${entry.path}-${i}`}
                         onCopy={handleCopyPath}
-                        onTap={tapHaptic}
                       />
                     ))}
                   </div>
@@ -420,7 +387,6 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                 entry={entry}
                 key={`${entry.name}-${entry.path}-${i}`}
                 onCopy={handleCopyPath}
-                onTap={tapHaptic}
               />
             ))}
           </div>
@@ -429,15 +395,14 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
         {/* No results state */}
         {visibleCount === 0 && (filter || activeCategories.size > 0) && (
           <div className="px-4 py-6 text-center text-muted-foreground text-xs">
-            no paths match the current filter
+            No paths match the current filter
           </div>
         )}
       </div>
 
       {/* Legend */}
-      <div className="border-overlay/[0.04] border-t bg-overlay/[0.02] px-4 py-2 text-[10px] text-muted-foreground">
-        <span className="text-primary">›</span> paths use Windows environment
-        syntax
+      <div className="border-overlay/[0.04] border-t bg-overlay/[0.02] px-4 py-2 text-muted-foreground text-xs">
+        Paths use Windows environment variable syntax
       </div>
     </div>
   );
@@ -448,43 +413,39 @@ interface PathEntryProps {
   entry: KapeTargetEntry;
   copiedPath: string | null;
   onCopy: (path: string, fileMask?: string) => void;
-  onTap: () => void;
 }
 
-function PathEntry({ entry, copiedPath, onCopy, onTap }: PathEntryProps) {
+function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
   const fullPath = joinPathAndMask(entry.path, entry.fileMask);
   const isCopied = copiedPath === fullPath;
   const segments = useMemo(
     () => parsePathSegments(entry.path, entry.fileMask),
     [entry.path, entry.fileMask]
   );
-  const colorClasses = getCategoryColors(entry.category || "file");
+  const colorClasses = getCategoryClasses(entry.category || "file");
 
   return (
     <button
       aria-label={`Copy path: ${fullPath}`}
       className="group relative flex w-full cursor-pointer items-start justify-between px-4 py-3 text-left transition-colors hover:z-10 hover:bg-primary/5"
-      onClick={() => {
-        onTap();
-        onCopy(entry.path, entry.fileMask);
-      }}
+      onClick={() => onCopy(entry.path, entry.fileMask)}
       type="button"
     >
       <div className="min-w-0 flex-1">
         <div className="mb-1.5 flex flex-wrap items-start gap-1.5 sm:items-center sm:gap-2">
           <span
-            className={`inline-flex max-w-[11.5rem] items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[8px] font-medium uppercase tracking-wider sm:text-[9px] ${colorClasses}`}
+            className={`inline-flex max-w-[11.5rem] items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-1.5 py-0.5 font-medium text-xs uppercase tracking-wider ${colorClasses}`}
             title={entry.category || "file"}
           >
             {entry.category || "file"}
           </span>
           {entry.name && (
-            <span className="text-muted-foreground text-[11px] leading-4 sm:text-xs">
+            <span className="text-muted-foreground text-xs leading-4">
               {entry.name}
             </span>
           )}
         </div>
-        <code className="block break-all font-mono text-[11px] leading-relaxed sm:text-xs">
+        <code className="block break-all font-mono text-xs leading-relaxed">
           {segments.map((seg, i) => {
             switch (seg.type) {
               case "drive": {
@@ -504,7 +465,7 @@ function PathEntry({ entry, copiedPath, onCopy, onTap }: PathEntryProps) {
               case "envvar": {
                 return (
                   <span
-                    className="rounded-sm bg-cyan-500/10 px-0.5 text-cyan-400"
+                    className="rounded-sm bg-cyan-500/10 px-0.5 text-cyan-700 dark:text-cyan-400"
                     key={i}
                   >
                     {seg.text}
@@ -513,7 +474,10 @@ function PathEntry({ entry, copiedPath, onCopy, onTap }: PathEntryProps) {
               }
               case "mask": {
                 return (
-                  <span className="text-amber-400" key={i}>
+                  <span
+                    className="text-amber-700 dark:text-amber-400"
+                    key={i}
+                  >
                     {seg.text}
                   </span>
                 );
@@ -529,16 +493,14 @@ function PathEntry({ entry, copiedPath, onCopy, onTap }: PathEntryProps) {
           })}
         </code>
         {entry.comment && (
-          <p className="mt-1 text-[10px] text-muted-foreground/70">
-            {entry.comment}
-          </p>
+          <p className="mt-1 text-muted-foreground text-xs">{entry.comment}</p>
         )}
       </div>
       <span
         className={`relative ml-2 shrink-0 rounded-md p-1.5 transition-all sm:ml-4 ${
           isCopied
             ? "text-primary"
-            : "text-muted-foreground/50 opacity-100 sm:opacity-0 hover:text-foreground sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100"
+            : "text-muted-foreground opacity-100 hover:text-foreground sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100"
         }`}
         title={isCopied ? "Copied!" : "Copy path"}
       >

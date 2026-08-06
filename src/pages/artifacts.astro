@@ -3,6 +3,7 @@ import { CategoryFilters } from "../components/artifacts/CategoryFilters";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
+import { getCategoryStyle } from "../lib/categoryStyles";
 import { getCategories, getStats, loadAllTargets } from '../lib/kapefiles';
 import type { KapeTarget } from '../lib/kapefiles';
 
@@ -143,58 +144,6 @@ const targetsByCategory = categories.reduce(
   {} as Record<string, KapeTarget[]>
 );
 
-// Category color and accent configuration
-const categoryStyles: Record<
-  string,
-  { accent: string; text: string; bg: string }
-> = {
-  Antivirus: {
-    accent: "bg-red-500",
-    bg: "bg-red-500/5",
-    text: "text-red-400",
-  },
-  Apps: {
-    accent: "bg-emerald-500",
-    bg: "bg-emerald-500/5",
-    text: "text-emerald-400",
-  },
-  Browsers: {
-    accent: "bg-orange-500",
-    bg: "bg-orange-500/5",
-    text: "text-orange-400",
-  },
-  Compound: {
-    accent: "bg-cyan-500",
-    bg: "bg-cyan-500/5",
-    text: "text-cyan-400",
-  },
-  Logs: {
-    accent: "bg-yellow-500",
-    bg: "bg-yellow-500/5",
-    text: "text-yellow-400",
-  },
-  P2P: {
-    accent: "bg-purple-500",
-    bg: "bg-purple-500/5",
-    text: "text-purple-400",
-  },
-  Windows: {
-    accent: "bg-blue-500",
-    bg: "bg-blue-500/5",
-    text: "text-blue-400",
-  },
-};
-
-function getStyle(category: string) {
-  return (
-    categoryStyles[category] || {
-      accent: "bg-zinc-500",
-      bg: "bg-zinc-500/5",
-      text: "text-zinc-400",
-    }
-  );
-}
-
 // Serialize data for client-side filtering
 const allTargetsJson = JSON.stringify(
   targets.map((t) => ({
@@ -221,7 +170,7 @@ const filterCategories = [
   title="All Artifacts"
   description="Browse all KAPE forensic artifact targets"
 >
-  <Header client:load />
+  <Header client:load currentPath={Astro.url.pathname} />
 
   <main id="main-content" class="flex-1 relative" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4 py-8">
@@ -232,14 +181,13 @@ const filterCategories = [
             <a
               href="/"
               class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+              >Home</a
             >
-              <span class="text-primary">~</span>/
-            </a>
           </li>
           <li class="flex items-center gap-1">
             <span aria-hidden="true">/</span>
             <span class="text-foreground px-1" aria-current="page"
-              >artifacts</span
+              >Artifacts</span
             >
           </li>
         </ol>
@@ -247,11 +195,11 @@ const filterCategories = [
 
       <!-- Header -->
       <header class="mb-8">
-        <h1 class="text-3xl font-semibold mb-2 tracking-tight">
+        <h1 class="text-2xl sm:text-3xl font-semibold mb-2 tracking-tight">
           All Artifacts
         </h1>
-        <p class="text-sm text-muted-foreground">
-          Browse <span class="text-primary font-mono">{stats.total}</span> KAPE
+        <p class="text-sm sm:text-base text-muted-foreground">
+          Browse <span class="font-medium text-foreground">{stats.total}</span> KAPE
           forensic artifact targets
         </p>
       </header>
@@ -267,14 +215,14 @@ const filterCategories = [
             ></span>
             <span
               id="filter-count"
-              class="text-[10px] sm:text-xs text-muted-foreground font-mono shrink-0"
+              class="text-xs text-muted-foreground shrink-0"
             ></span>
           </div>
           <a
             href="/artifacts"
-            class="text-xs text-zinc-400 hover:text-foreground transition-colors flex items-center gap-1 shrink-0"
+            class="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 shrink-0"
           >
-            clear filter
+            Clear filter
             <svg
               class="w-3 h-3"
               fill="none"
@@ -293,14 +241,14 @@ const filterCategories = [
       </div>
 
       <!-- Category Filter (sticky below header) -->
-      <div class="sticky top-14 z-40 -mx-4 px-4 py-3 bg-background/80 backdrop-blur-md border-b border-overlay/[0.04] mb-8">
+      <div class="sticky top-14 z-40 -mx-4 px-4 py-3 bg-background border-b border-border mb-8">
         <CategoryFilters client:idle categories={filterCategories} />
       </div>
 
       <!-- Default View: Targets by Category (hidden when filtered) -->
       <div id="default-view">
         {categories.map((category) => {
-                        const style = getStyle(category);
+                        const style = getCategoryStyle(category);
                         return (
                             <section
                                 class="category-section mb-12"
@@ -314,7 +262,7 @@ const filterCategories = [
                                     >
                                         <span class={`w-2 h-2 rounded-full ${style.accent}`}></span>
                                         <span class="text-foreground">{category}</span>
-                                        <span class={`text-xs font-mono ${style.text}`}>
+                                        <span class={`text-xs ${style.text}`}>
                                             {targetsByCategory[category].length}
                                         </span>
                                     </h2>
@@ -322,7 +270,7 @@ const filterCategories = [
                                         href={"/artifacts?category=" + category.toLowerCase()}
                                         class="text-xs text-muted-foreground hover:text-primary transition-colors focus-ring rounded-sm px-2 py-1 flex items-center gap-1"
                                     >
-                                        view all
+                                        View all
                                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                         </svg>
@@ -334,8 +282,7 @@ const filterCategories = [
                                         .map((target) => (
                                             <a
                                                 href={"/artifact/" + target.slug}
-                                                data-haptic="tap"
-                                                class={`artifact-card group rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] backdrop-blur-sm transition-all duration-300 hover:border-overlay/[0.12] hover:bg-overlay/[0.05]`}
+                                                class={`artifact-card group rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] transition-all duration-300 hover:border-overlay/[0.12] hover:bg-overlay/[0.05]`}
                                             >
                                                 <div class="p-4">
                                                     <div class="flex items-start justify-between gap-2 mb-2">
@@ -343,19 +290,19 @@ const filterCategories = [
                                                             {target.name}
                                                         </h3>
                                                         {target.isCompound && (
-                                                            <span class="shrink-0 px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
+                                                            <span class="shrink-0 px-2 py-0.5 text-xs uppercase tracking-wider font-medium text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
                                                                 collection
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p class="text-xs text-zinc-500 line-clamp-2 mb-3 leading-relaxed">
+                                                    <p class="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
                                                         {target.description || "No description available"}
                                                     </p>
-                                                    <div class="flex items-center justify-between text-[10px]">
+                                                    <div class="flex items-center justify-between text-xs">
                                                         <span class={`uppercase tracking-wider font-medium ${style.text}`}>
                                                             {target.category}
                                                         </span>
-                                                        <span class="text-zinc-600 font-mono">
+                                                        <span class="text-muted-foreground">
                                                             {!target.isCompound
                                                                 ? target.targets.filter((e) => !e.path.endsWith(".tkape")).length + " paths"
                                                                 : target.referencedTargets.length + " targets"}
@@ -369,7 +316,7 @@ const filterCategories = [
                                     <div class="mt-4 text-center">
                                         <a
                                             href={"/artifacts?category=" + category.toLowerCase()}
-                                            class="inline-flex items-center gap-2 text-xs text-zinc-500 hover:text-foreground transition-colors px-4 py-2 rounded-full border border-overlay/[0.04] hover:border-overlay/[0.08] hover:bg-overlay/[0.02]"
+                                            class="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-full border border-overlay/[0.04] hover:border-overlay/[0.08] hover:bg-overlay/[0.02]"
                                         >
                                             <span>+{targetsByCategory[category].length - 6} more in {category}</span>
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -387,14 +334,13 @@ const filterCategories = [
       <div id="filtered-view" class="hidden">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {targets.map((target) => {
-                            const style = getStyle(target.category);
+                            const style = getCategoryStyle(target.category);
                             return (
                                     <a
                                         href={"/artifact/" + target.slug}
                                         data-slug={target.slug.toLowerCase()}
                                         data-category={target.category.toLowerCase()}
-                                        data-haptic="tap"
-                                        class={`filtered-card artifact-card group rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] backdrop-blur-sm transition-all duration-300 hover:border-overlay/[0.12] hover:bg-overlay/[0.05]`}
+                                        class={`filtered-card artifact-card group rounded-xl border border-overlay/[0.06] bg-overlay/[0.02] transition-all duration-300 hover:border-overlay/[0.12] hover:bg-overlay/[0.05]`}
                                     >
                                     <div class="p-4">
                                         <div class="flex items-start justify-between gap-2 mb-2">
@@ -402,19 +348,19 @@ const filterCategories = [
                                                 {target.name}
                                             </h3>
                                             {target.isCompound && (
-                                                <span class="shrink-0 px-2 py-0.5 text-[9px] uppercase tracking-wider font-medium text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
+                                                <span class="shrink-0 px-2 py-0.5 text-xs uppercase tracking-wider font-medium text-cyan-700 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">
                                                     collection
                                                 </span>
                                             )}
                                         </div>
-                                        <p class="text-xs text-zinc-500 line-clamp-2 mb-3 leading-relaxed">
+                                        <p class="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
                                             {target.description || "No description available"}
                                         </p>
-                                        <div class="flex items-center justify-between text-[10px]">
+                                        <div class="flex items-center justify-between text-xs">
                                             <span class={`uppercase tracking-wider font-medium ${style.text}`}>
                                                 {target.category}
                                             </span>
-                                            <span class="text-zinc-600 font-mono">
+                                            <span class="text-muted-foreground">
                                                 {!target.isCompound
                                                     ? target.targets.filter((e) => !e.path.endsWith(".tkape")).length + " paths"
                                                     : target.referencedTargets.length + " targets"}
@@ -492,6 +438,7 @@ const filterCategories = [
     const categoryParam = params.get("category");
     const filterParam = params.get("filter");
     const scenarioParam = params.get("scenario");
+    const qParam = params.get("q");
 
     // Query DOM elements fresh each time (for view transitions)
     const filterBanner = document.querySelector("#filter-banner");
@@ -509,7 +456,20 @@ const filterCategories = [
     let label = "";
     let isFiltered = false;
 
-    if (categoryParam) {
+    if (qParam) {
+      // Free-text search via ?q= param (from the homepage search form)
+      isFiltered = true;
+      label = `"${qParam}"`;
+      const needle = qParam.toLowerCase();
+      allTargets.forEach((t) => {
+        if (
+          t.name.toLowerCase().includes(needle) ||
+          t.slug.toLowerCase().includes(needle)
+        ) {
+          matchingSlugs.add(t.slug.toLowerCase());
+        }
+      });
+    } else if (categoryParam) {
       // Category filter via ?category= param
       isFiltered = true;
       label = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1);

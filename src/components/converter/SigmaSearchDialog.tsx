@@ -21,19 +21,18 @@ interface SigmaSearchDialogProps {
 }
 
 const LEVEL_COLORS: Record<string, string> = {
-  critical: "border-red-500/40 bg-red-500/15 text-red-400",
-  high: "border-orange-500/40 bg-orange-500/15 text-orange-400",
-  informational: "border-zinc-500/40 bg-zinc-500/15 text-zinc-400",
-  low: "border-blue-500/40 bg-blue-500/15 text-blue-400",
-  medium: "border-yellow-500/40 bg-yellow-500/15 text-yellow-400",
+  critical: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400",
+  high: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-400",
+  informational: "border-overlay/[0.12] bg-overlay/[0.06] text-muted-foreground",
+  low: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  medium:
+    "border-yellow-500/40 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
 };
 
 function LevelBadge({ level }: { level: string }) {
   const colors = LEVEL_COLORS[level] ?? LEVEL_COLORS.informational;
   return (
-    <span
-      className={`rounded border px-1.5 py-0.5 text-[10px] leading-none ${colors}`}
-    >
+    <span className={`rounded border px-1.5 py-0.5 text-xs leading-none ${colors}`}>
       {level}
     </span>
   );
@@ -54,7 +53,7 @@ function LogsourceBadge({
   }
 
   return (
-    <span className="rounded border border-overlay/[0.08] bg-overlay/[0.04] px-1.5 py-0.5 text-[10px] leading-none text-muted-foreground">
+    <span className="rounded border border-overlay/[0.08] bg-overlay/[0.04] px-1.5 py-0.5 text-muted-foreground text-xs leading-none">
       {parts.join("/")}
     </span>
   );
@@ -74,7 +73,7 @@ function MitreTags({ tags }: { tags: string[] }) {
     <>
       {mitre.map((tag) => (
         <span
-          className="rounded border border-purple-500/30 bg-purple-500/10 px-1.5 py-0.5 text-[10px] leading-none text-purple-400"
+          className="rounded border border-purple-500/30 bg-purple-500/10 px-1.5 py-0.5 text-purple-700 text-xs leading-none dark:text-purple-400"
           key={tag}
         >
           {tag}
@@ -134,9 +133,9 @@ export function SigmaSearchDialog({
         {indexReady && query && results.length === 0 && (
           <CommandEmpty className="py-8 text-center text-muted-foreground text-sm">
             <div className="flex flex-col items-center gap-2">
-              <SearchIcon className="h-8 w-8 text-muted-foreground/30" />
+              <SearchIcon className="h-8 w-8 text-muted-foreground/50" />
               <span>No rules found for "{query}"</span>
-              <span className="text-muted-foreground/60 text-xs">
+              <span className="text-muted-foreground text-xs">
                 Try a different search term or MITRE technique ID
               </span>
             </div>
@@ -146,9 +145,9 @@ export function SigmaSearchDialog({
         {indexReady && !query && (
           <div className="px-4 py-8 text-center text-muted-foreground text-sm">
             <div className="flex flex-col items-center gap-2">
-              <SearchIcon className="h-8 w-8 text-muted-foreground/30" />
+              <SearchIcon className="h-8 w-8 text-muted-foreground/50" />
               <span>Search by title, description, logsource, or MITRE tag</span>
-              <span className="text-muted-foreground/60 text-xs">
+              <span className="text-muted-foreground text-xs">
                 e.g. "mimikatz", "T1059.001", "process_creation"
               </span>
             </div>
@@ -158,8 +157,8 @@ export function SigmaSearchDialog({
         {results.length > 0 && (
           <CommandGroup
             heading={
-              <span className="flex items-center gap-2 text-[10px] uppercase tracking-wider">
-                <span>results</span>
+              <span className="flex items-center gap-2 text-xs uppercase tracking-wider">
+                <span>Results</span>
                 <span className="font-medium text-primary">
                   ({results.length})
                 </span>
@@ -181,7 +180,7 @@ export function SigmaSearchDialog({
                     <span className="font-medium">{entry.title}</span>
                   </div>
                   {entry.description && (
-                    <p className="line-clamp-1 text-muted-foreground/70 text-xs">
+                    <p className="line-clamp-1 text-muted-foreground text-xs">
                       {entry.description}
                     </p>
                   )}
@@ -197,25 +196,25 @@ export function SigmaSearchDialog({
         )}
       </CommandList>
 
-      <div className="flex items-center justify-between border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5 text-[10px] text-muted-foreground/50">
+      <div className="flex items-center justify-between border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5 text-muted-foreground text-xs">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
             <div className="flex items-center gap-0.5">
-              <kbd className="kbd text-[9px]">↑</kbd>
-              <kbd className="kbd text-[9px]">↓</kbd>
+              <kbd className="kbd kbd-compact">↑</kbd>
+              <kbd className="kbd kbd-compact">↓</kbd>
             </div>
-            <span>navigate</span>
+            <span>Navigate</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="kbd text-[9px]">↵</kbd>
-            <span>import</span>
+            <kbd className="kbd kbd-compact">↵</kbd>
+            <span>Import</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="kbd text-[9px]">esc</kbd>
-            <span>close</span>
+            <kbd className="kbd kbd-compact">esc</kbd>
+            <span>Close</span>
           </span>
         </div>
-        <div className="text-muted-foreground/40">SigmaHQ</div>
+        <div>SigmaHQ</div>
       </div>
     </CommandDialog>
   );

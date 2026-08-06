@@ -131,7 +131,7 @@ export function KeyboardShortcuts() {
       {/* Backdrop */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 animate-in bg-background/80 backdrop-blur-sm"
+        className="absolute inset-0 animate-in bg-background/80"
         onClick={() => setIsOpen(false)}
       />
 
@@ -166,10 +166,7 @@ export function KeyboardShortcuts() {
           <div className="grid gap-6">
             {shortcutGroups.map((group) => (
               <div key={group.title}>
-                <h3 className="mb-3 flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-wider">
-                  <span aria-hidden="true" className="text-primary/50">
-                    //
-                  </span>
+                <h3 className="mb-3 text-muted-foreground text-xs uppercase tracking-wider">
                   {group.title}
                 </h3>
                 <div className="space-y-2">
@@ -190,7 +187,7 @@ export function KeyboardShortcuts() {
                               key={keyIndex}
                             >
                               {keyIndex > 0 && (
-                                <span className="text-muted-foreground/30 text-xs">
+                                <span className="text-muted-foreground text-xs">
                                   +
                                 </span>
                               )}
@@ -218,8 +215,8 @@ export function KeyboardShortcuts() {
 
         {/* Footer */}
         <div className="border-border border-t bg-secondary/20 px-5 py-3">
-          <p className="text-center text-[10px] text-muted-foreground/60">
-            Press <kbd className="kbd text-[9px]">?</kbd> to toggle this help
+          <p className="text-center text-muted-foreground text-xs">
+            Press <kbd className="kbd kbd-compact">?</kbd> to toggle this help
           </p>
         </div>
       </div>

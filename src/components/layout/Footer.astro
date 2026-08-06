@@ -2,265 +2,104 @@
 const currentYear = new Date().getFullYear();
 ---
 
-<footer
-  aria-label="Site footer"
-  class="mt-auto border-overlay/[0.06] border-t bg-overlay/[0.01]"
->
+<footer aria-label="Site footer" class="mt-auto border-t">
   <div class="mx-auto max-w-6xl px-4 py-10">
-    <!-- Main Footer Content -->
-    <div class="mb-8 grid grid-cols-1 gap-8 md:grid-cols-4">
+    <div class="mb-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
       <!-- Brand Column -->
-      <div class="md:col-span-2">
-        <a class="mb-3 inline-flex items-center gap-2" href="/">
-          <span class="font-semibold text-lg">
-            dfir<span class="text-primary">hub</span>
-          </span>
+      <div>
+        <a class="mb-3 inline-block font-semibold text-base" href="/">
+          DFIRHub
         </a>
-        <p class="mb-4 max-w-md text-muted-foreground text-sm">
+        <p class="max-w-md text-muted-foreground text-sm">
           The comprehensive resource for Windows forensic artifacts. Search,
           explore, and generate collection scripts for DFIR investigations.
         </p>
-        <a
-          aria-label="GitHub Repository"
-          class="flex h-8 w-8 items-center justify-center rounded-lg border border-overlay/[0.06] bg-overlay/[0.04] text-muted-foreground transition-all hover:border-overlay/[0.1] hover:text-foreground"
-          href="https://github.com/LasCC/DFIRHub"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path
-              d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-            ></path>
-          </svg>
-        </a>
       </div>
 
       <!-- Navigation Column -->
       <div>
-        <h3 class="mb-4 text-muted-foreground text-xs uppercase tracking-wider">
-          Navigate
-        </h3>
+        <h3 class="mb-3 font-medium text-foreground text-sm">Navigate</h3>
         <nav aria-label="Footer navigation" class="space-y-2">
           <a
-            class="flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="/artifacts"
           >
-            <div
-              class="flex h-6 w-6 items-center justify-center rounded-md border border-primary/20 bg-primary/10"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="text-primary"
-              >
-                <path
-                  d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"
-                ></path>
-              </svg>
-            </div>
-            <span>All Artifacts</span>
+            All Artifacts
           </a>
           <a
-            class="flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="/collections"
           >
-            <div
-              class="flex h-6 w-6 items-center justify-center rounded-md border border-cyan-500/20 bg-cyan-500/10"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="text-cyan-400"
-              >
-                <path
-                  d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
-                ></path>
-                <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"></path>
-                <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"></path>
-              </svg>
-            </div>
-            <span>Collections</span>
+            Collections
           </a>
           <a
-            class="flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="/builder"
           >
-            <div
-              class="flex h-6 w-6 items-center justify-center rounded-md border border-amber-500/20 bg-amber-500/10"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="text-amber-400"
-              >
-                <path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9"></path>
-                <path d="m18 15 4-4"></path>
-                <path
-                  d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5"
-                ></path>
-              </svg>
-            </div>
-            <span>Script Builder</span>
+            Script Builder
           </a>
           <a
-            class="flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="/converter"
           >
-            <div
-              class="flex h-6 w-6 items-center justify-center rounded-md border border-purple-500/20 bg-purple-500/10"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="155 155 750 625"
-                fill="currentColor"
-                class="text-purple-400"
-              >
-                <path d="m890.394412 165c3.019653 25.589448-5.253407 50.2282-24.819179 73.916253-19.565772 23.688054-45.907539 35.53208-79.025312 35.53208l-62.977337.363397c39.393202 52.779296 59.977836 120.64775 53.603978 194.68827-14.47716 168.170707-162.549778 304.5-330.729454 304.5s-292.780187-136.329293-278.30303-304.5c14.477156-168.170706 162.549776-304.5 330.729452-304.5zm-401.090784 111.166667c-106.780747 0-200.795108 86.558282-209.986954 193.333334s69.91959 193.333333 176.700337 193.333333c106.780746 0 200.795108-86.558281 209.986952-193.333333 9.191849-106.775052-69.919588-193.333334-176.700335-193.333334z"></path>
-              </svg>
-            </div>
-            <span>Sigma Converter</span>
+            Sigma Converter
           </a>
         </nav>
       </div>
 
       <!-- Resources Column -->
       <div>
-        <h3 class="mb-4 text-muted-foreground text-xs uppercase tracking-wider">
-          Resources
-        </h3>
+        <h3 class="mb-3 font-medium text-foreground text-sm">Resources</h3>
         <nav aria-label="External resources" class="space-y-2">
           <a
-            class="flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
+            href="https://github.com/LasCC/DFIRHub"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            GitHub<span class="sr-only">(opens in new tab)</span>
+          </a>
+          <a
+            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="https://github.com/EricZimmerman/KapeFiles"
             rel="noopener noreferrer"
             target="_blank"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path
-                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-              ></path>
-            </svg>
-            <span>KapeFiles</span>
-            <span class="text-[10px] text-muted-foreground/50">&#8599;</span>
+            KapeFiles<span class="sr-only">(opens in new tab)</span>
           </a>
           <a
-            class="flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="https://ericzimmerman.github.io/KapeDocs/"
             rel="noopener noreferrer"
             target="_blank"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M12 7v14"></path>
-              <path
-                d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
-              ></path>
-            </svg>
-            <span>KAPE Documentation</span>
-            <span class="text-[10px] text-muted-foreground/50">&#8599;</span>
+            KAPE Documentation<span class="sr-only">(opens in new tab)</span>
           </a>
           <a
-            class="flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground"
+            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
             href="https://www.sans.org/tools/kape/"
             rel="noopener noreferrer"
             target="_blank"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
-              ></path>
-            </svg>
-            <span>SANS KAPE</span>
-            <span class="text-[10px] text-muted-foreground/50">&#8599;</span>
+            SANS KAPE<span class="sr-only">(opens in new tab)</span>
           </a>
         </nav>
       </div>
     </div>
 
     <!-- Bottom Bar -->
-    <div class="border-overlay/[0.06] border-t pt-6">
-      <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <!-- Copyright -->
-        <p class="text-muted-foreground/50 text-xs">
-          &copy; {currentYear} DFIRHub. Data sourced from{" "}
-          <a
-            class="text-primary/50 transition-colors hover:text-primary"
-            href="https://github.com/EricZimmerman/KapeFiles"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            KapeFiles
-          </a>
-        </p>
-
-        <!-- Keyboard Shortcuts -->
-        <div
-          class="flex items-center gap-4 text-[10px] text-muted-foreground/40"
+    <div class="border-t pt-6">
+      <p class="text-muted-foreground text-xs">
+        &copy; {currentYear} DFIRHub. Data sourced from{" "}
+        <a
+          class="text-primary transition-colors hover:underline"
+          href="https://github.com/EricZimmerman/KapeFiles"
+          rel="noopener noreferrer"
+          target="_blank"
         >
-          <span class="flex items-center gap-1.5">
-            <kbd class="kbd text-[9px]">⌘K</kbd>
-            <span>search</span>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <kbd class="kbd text-[9px]">?</kbd>
-            <span>shortcuts</span>
-          </span>
-        </div>
-      </div>
+          KapeFiles
+        </a>
+      </p>
     </div>
   </div>
 </footer>

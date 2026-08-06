@@ -1,17 +1,19 @@
-import { useMemo, useState } from "react";
 import {
-  HiOutlineArrowsRightLeft,
-  HiOutlineComputerDesktop,
-  HiOutlineCube,
-  HiOutlineDocumentText,
-  HiOutlineGlobeAlt,
-  HiOutlineRectangleStack,
-  HiOutlineShieldCheck,
-} from "react-icons/hi2";
+  ArrowLeftRight,
+  Box,
+  FileText,
+  Globe,
+  Layers,
+  Monitor,
+  ShieldCheck,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+
+import type { CategoryStyle } from "@/lib/categoryStyles";
 
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
-import { useHaptics } from "@/hooks/useHaptics";
 import { trackBuilderCopy, trackBuilderDownload } from "@/lib/analytics";
+import { getCategoryStyle } from "@/lib/categoryStyles";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 
@@ -29,55 +31,24 @@ const categoryIconMap: Record<
   string,
   React.ComponentType<{ className?: string }>
 > = {
-  antivirus: HiOutlineShieldCheck,
-  apps: HiOutlineCube,
-  browsers: HiOutlineGlobeAlt,
-  compound: HiOutlineRectangleStack,
-  logs: HiOutlineDocumentText,
-  p2p: HiOutlineArrowsRightLeft,
-  windows: HiOutlineComputerDesktop,
+  antivirus: ShieldCheck,
+  apps: Box,
+  browsers: Globe,
+  compound: Layers,
+  logs: FileText,
+  p2p: ArrowLeftRight,
+  windows: Monitor,
 };
 
-const categoryColorMap: Record<
-  string,
-  { text: string; border: string; bg: string }
-> = {
-  antivirus: {
-    bg: "bg-red-500/10",
-    border: "border-red-500/40",
-    text: "text-red-400",
-  },
-  apps: {
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/40",
-    text: "text-emerald-400",
-  },
-  browsers: {
-    bg: "bg-orange-500/10",
-    border: "border-orange-500/40",
-    text: "text-orange-400",
-  },
-  compound: {
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/40",
-    text: "text-cyan-400",
-  },
-  logs: {
-    bg: "bg-yellow-500/10",
-    border: "border-yellow-500/40",
-    text: "text-yellow-400",
-  },
-  p2p: {
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/40",
-    text: "text-purple-400",
-  },
-  windows: {
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/40",
-    text: "text-blue-400",
-  },
-};
+// categoryStyles keys are capitalized ("Windows", "P2P"); normalize lookup.
+const SPECIAL_KEYS: Record<string, string> = { p2p: "P2P" };
+
+function resolveCategoryStyle(category: string): CategoryStyle {
+  const lower = category.toLowerCase();
+  const key =
+    SPECIAL_KEYS[lower] ?? lower.charAt(0).toUpperCase() + lower.slice(1);
+  return getCategoryStyle(key);
+}
 
 interface ScriptOptions {
   format: ExportFormat;
@@ -113,7 +84,6 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
     useVss: false,
   });
   const [copied, triggerCopied] = useCopyFeedback();
-  const { tapHaptic, toggleHaptic } = useHaptics();
 
   // Filter targets by category and search
   const filteredTargets = useMemo(() => {
@@ -492,8 +462,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
       {/* Target Selection */}
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
-          <span className="text-primary/50">//</span>
-          select targets
+          Select targets
           <span className="text-primary">
             ({selectedTargets.size} selected)
           </span>
@@ -503,33 +472,27 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
         <div className="mb-4 flex flex-wrap gap-2">
           {categories.map((cat) => {
             const Icon = categoryIconMap[cat.toLowerCase()];
-            const colors = categoryColorMap[cat.toLowerCase()] || {
-              bg: "bg-overlay/[0.04]",
-              border: "border-overlay/[0.08]",
-              text: "text-muted-foreground",
-            };
+            const style = resolveCategoryStyle(cat);
             const isActive = activeCategory === cat;
 
             return (
               <button
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs backdrop-blur-sm transition-all ${
+                aria-pressed={isActive}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs transition-colors ${
                   isActive
-                    ? `border ${colors.border} ${colors.bg} ${colors.text}`
-                    : "border border-overlay/[0.06] bg-overlay/[0.02] text-zinc-400 hover:border-overlay/10 hover:bg-overlay/[0.04] hover:text-foreground"
+                    ? `border border-current/40 ${style.bg} ${style.text}`
+                    : "border border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/10 hover:bg-overlay/[0.04] hover:text-foreground"
                 }`}
                 key={cat}
-                onClick={() => {
-                  tapHaptic();
-                  setActiveCategory(cat);
-                }}
+                onClick={() => setActiveCategory(cat)}
                 type="button"
               >
                 {Icon && (
                   <Icon
-                    className={`h-3.5 w-3.5 ${isActive ? colors.text : "opacity-60"}`}
+                    className={`h-3.5 w-3.5 ${isActive ? "" : "opacity-60"}`}
                   />
                 )}
-                <span>{cat.toLowerCase()}</span>
+                <span>{cat}</span>
               </button>
             );
           })}
@@ -538,7 +501,8 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
         {/* Search */}
         <div className="mb-4 flex items-center gap-4">
           <input
-            className="h-9 flex-1 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
+            aria-label="Search targets"
+            className="h-9 flex-1 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-sm outline-none focus:border-primary/50"
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search targets..."
             type="text"
@@ -549,14 +513,14 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
             onClick={selectAll}
             type="button"
           >
-            [select all]
+            Select all
           </button>
           <button
-            className="px-3 py-1.5 text-red-400 text-xs transition-colors hover:text-red-300"
+            className="px-3 py-1.5 text-destructive text-xs transition-colors hover:text-destructive/80"
             onClick={clearAll}
             type="button"
           >
-            [clear]
+            Clear
           </button>
         </div>
 
@@ -576,21 +540,18 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                   <input
                     checked={selectedTargets.has(target.slug)}
                     className="h-3.5 w-3.5 accent-primary"
-                    onChange={() => {
-                      toggleHaptic();
-                      toggleTarget(target.slug);
-                    }}
+                    onChange={() => toggleTarget(target.slug)}
                     type="checkbox"
                   />
                   <div className="min-w-0 flex-1">
                     <span className="text-sm">{target.name}</span>
                     {target.isCompound && (
-                      <span className="ml-2 border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-[9px] text-cyan-400 uppercase">
-                        collection
+                      <span className="ml-2 rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-700 text-xs uppercase dark:text-cyan-400">
+                        Collection
                       </span>
                     )}
                   </div>
-                  <span className="shrink-0 text-[10px] text-muted-foreground">
+                  <span className="shrink-0 text-muted-foreground text-xs">
                     {target.isCompound
                       ? `${target.referencedTargets.length} targets`
                       : `${target.targets.filter((e) => !e.path.endsWith(".tkape")).length} paths`}
@@ -605,18 +566,21 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
       {/* Export Options */}
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
-          <span className="text-primary/50">//</span>
-          export options
+          Export options
         </h2>
         <div className="glass-subtle rounded-xl p-4">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {/* Format */}
             <div>
-              <label className="mb-2 block text-muted-foreground text-xs">
-                format:
+              <label
+                className="mb-2 block text-muted-foreground text-xs"
+                htmlFor="script-format"
+              >
+                Format
               </label>
               <select
-                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
+                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-sm outline-none focus:border-primary/50"
+                id="script-format"
                 onChange={(e) =>
                   setOptions((prev) => ({
                     ...prev,
@@ -634,11 +598,15 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 
             {/* Source */}
             <div>
-              <label className="mb-2 block text-muted-foreground text-xs">
-                source:
+              <label
+                className="mb-2 block text-muted-foreground text-xs"
+                htmlFor="script-source"
+              >
+                Source
               </label>
               <input
-                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
+                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-sm outline-none focus:border-primary/50"
+                id="script-source"
                 onChange={(e) =>
                   setOptions((prev) => ({ ...prev, source: e.target.value }))
                 }
@@ -649,11 +617,15 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 
             {/* Destination */}
             <div>
-              <label className="mb-2 block text-muted-foreground text-xs">
-                destination:
+              <label
+                className="mb-2 block text-muted-foreground text-xs"
+                htmlFor="script-destination"
+              >
+                Destination
               </label>
               <input
-                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-xs outline-none backdrop-blur-sm focus:border-primary/50"
+                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-sm outline-none focus:border-primary/50"
+                id="script-destination"
                 onChange={(e) =>
                   setOptions((prev) => ({
                     ...prev,
@@ -668,21 +640,20 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
             {/* KAPE Options */}
             {options.format === "kape" && (
               <div className="flex flex-col gap-2">
-                <label className="block text-muted-foreground text-xs">
-                  options:
-                </label>
+                <span className="block text-muted-foreground text-xs">
+                  Options
+                </span>
                 <div className="flex items-center gap-4">
                   <label className="flex cursor-pointer items-center gap-1.5">
                     <input
                       checked={options.useVss}
                       className="h-3 w-3 accent-primary"
-                      onChange={(e) => {
-                        toggleHaptic();
+                      onChange={(e) =>
                         setOptions((prev) => ({
                           ...prev,
                           useVss: e.target.checked,
-                        }));
-                      }}
+                        }))
+                      }
                       type="checkbox"
                     />
                     <span className="text-muted-foreground text-xs">--vss</span>
@@ -691,13 +662,12 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                     <input
                       checked={options.useVhdx}
                       className="h-3 w-3 accent-primary"
-                      onChange={(e) => {
-                        toggleHaptic();
+                      onChange={(e) =>
                         setOptions((prev) => ({
                           ...prev,
                           useVhdx: e.target.checked,
-                        }));
-                      }}
+                        }))
+                      }
                       type="checkbox"
                     />
                     <span className="text-muted-foreground text-xs">
@@ -715,8 +685,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
-            <span className="text-primary/50">//</span>
-            generated {options.format === "kape" ? "command" : "script"}
+            Generated {options.format === "kape" ? "command" : "script"}
           </h2>
           {generatedScript && (
             <div className="flex gap-2">
@@ -725,14 +694,14 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                 onClick={handleCopy}
                 type="button"
               >
-                {copied ? "copied!" : "copy"}
+                {copied ? "Copied!" : "Copy"}
               </button>
               <button
                 className="rounded-md border border-primary/50 bg-primary/10 px-3 py-1.5 text-primary text-xs transition-colors hover:bg-primary/20"
                 onClick={handleDownload}
                 type="button"
               >
-                download
+                Download
               </button>
             </div>
           )}
@@ -752,17 +721,17 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
               }
             />
           ) : (
-            <pre className="overflow-x-auto bg-sunken p-4 text-muted-foreground text-xs">
-              <code>// Select targets to generate collection command</code>
-            </pre>
+            <div className="bg-sunken p-4 text-muted-foreground text-sm">
+              Select targets to generate a collection command
+            </div>
           )}
         </div>
       </section>
 
       {/* Selected Targets Summary */}
       {selectedTargets.size > 0 && (
-        <section className="text-muted-foreground/70 text-xs">
-          <span className="text-primary">$</span> selected:{" "}
+        <section className="text-muted-foreground text-xs">
+          <span className="font-medium text-foreground">Selected:</span>{" "}
           {selectedTargetObjects.map((t) => t.name).join(", ")}
         </section>
       )}

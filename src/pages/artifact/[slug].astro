@@ -149,7 +149,7 @@ const jsonLd = {
     slot="head"
   />
 
-  <Header client:load />
+  <Header client:load currentPath={Astro.url.pathname} />
 
   <main id="main-content" class="flex-1 relative" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4 py-8">
@@ -161,16 +161,15 @@ const jsonLd = {
               <a
                 href="/"
                 class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                >Home</a
               >
-                <span class="text-primary">~</span>/
-              </a>
             </li>
             <li class="flex items-center gap-1">
               <span aria-hidden="true">/</span>
               <a
                 href="/artifacts"
                 class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
-                >artifacts</a
+                >Artifacts</a
               >
             </li>
             <li class="flex items-center gap-1">
@@ -180,7 +179,7 @@ const jsonLd = {
                                     target.category.toLowerCase()}
                 class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
               >
-                {target.category.toLowerCase()}
+                {target.category}
               </a>
             </li>
             <li class="flex items-center gap-1">
@@ -196,7 +195,7 @@ const jsonLd = {
         <ArtifactHeader className="mb-8">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div class="min-w-0">
-              <h1 class="text-2xl font-semibold mb-3" id="artifact-title">
+              <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-3" id="artifact-title">
                 {target.name}
               </h1>
               <CategoryChip
@@ -221,15 +220,9 @@ const jsonLd = {
                         >
                             <h2
                                 id="description-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
                             >
-                                <span
-                                    class="text-primary/50"
-                                    aria-hidden="true"
-                                >
-                                    //
-                                </span>
-                                description
+                                Description
                             </h2>
                             <p class="text-sm leading-relaxed whitespace-pre-line">
                                 {target.description}
@@ -245,15 +238,9 @@ const jsonLd = {
                         >
                             <h2
                                 id="includes-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
                             >
-                                <span
-                                    class="text-primary/50"
-                                    aria-hidden="true"
-                                >
-                                    //
-                                </span>
-                                includes
+                                Includes
                                 <span class="text-primary">
                                     ({referencedResolved.length})
                                 </span>
@@ -327,10 +314,9 @@ const jsonLd = {
         <ArtifactSection className="mb-8" ariaLabel="paths-heading">
           <h2
             id="paths-heading"
-            class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+            class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
           >
-            <span class="text-primary/50" aria-hidden="true">//</span>
-            paths
+            Paths
           </h2>
           <PathBrowser
             client:idle
@@ -343,10 +329,9 @@ const jsonLd = {
         <ArtifactSection className="mb-8" ariaLabel="commands-heading">
           <h2
             id="commands-heading"
-            class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+            class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
           >
-            <span class="text-primary/50" aria-hidden="true">//</span>
-            collection commands
+            Collection Commands
           </h2>
           <CommandGenerator client:idle target={commandTarget} />
         </ArtifactSection>
@@ -364,15 +349,9 @@ const jsonLd = {
                         >
                             <h2
                                 id="references-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
                             >
-                                <span
-                                    class="text-primary/50"
-                                    aria-hidden="true"
-                                >
-                                    //
-                                </span>
-                                references
+                                References
                             </h2>
                             <ArtifactList className="space-y-1">
                                 {docReferences.map((url) => {
@@ -388,15 +367,15 @@ const jsonLd = {
                                                 rel="noopener noreferrer"
                                                 class="group flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-overlay/[0.03] focus-ring"
                                             >
-                                                <span class="shrink-0 rounded bg-overlay/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/90 group-hover:text-foreground/90 transition-colors">
+                                                <span class="shrink-0 rounded bg-overlay/[0.05] px-1.5 py-0.5 font-mono text-xs text-muted-foreground group-hover:text-foreground transition-colors">
                                                     {host}
                                                 </span>
-                                                <span class="truncate text-primary/90 group-hover:text-primary transition-colors">
+                                                <span class="truncate text-primary group-hover:underline">
                                                     {url}
                                                 </span>
                                                 <svg
                                                     aria-hidden="true"
-                                                    class="ml-auto h-3 w-3 shrink-0 text-muted-foreground/50 transition-colors group-hover:text-primary"
+                                                    class="ml-auto h-3 w-3 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
                                                     viewBox="0 0 24 24"
                                                     fill="none"
                                                     stroke="currentColor"
@@ -426,22 +405,16 @@ const jsonLd = {
                         >
                             <h2
                                 id="notes-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
                             >
-                                <span
-                                    class="text-primary/50"
-                                    aria-hidden="true"
-                                >
-                                    //
-                                </span>
-                                notes
+                                Notes
                             </h2>
                             <div class="glass-subtle rounded-xl p-5 space-y-4 text-sm leading-relaxed text-foreground/80">
                                 {noteBlocks.map((block) => (
                                     block.type === "text" ? (
                                         <p class="break-words">{block.value}</p>
                                     ) : (
-                                        <pre class="scrollbar-thin overflow-x-auto rounded-lg border border-overlay/[0.06] bg-sunken px-3 py-2.5 text-[11px] leading-5 text-foreground/75"><code class="font-mono">{block.lines.join("\n")}</code></pre>
+                                        <pre class="scrollbar-thin overflow-x-auto rounded-lg border border-overlay/[0.06] bg-sunken px-3 py-2.5 text-xs leading-5 text-foreground/80"><code class="font-mono">{block.lines.join("\n")}</code></pre>
                                     )
                                 ))}
                             </div>
@@ -456,21 +429,15 @@ const jsonLd = {
                         >
                             <h2
                                 id="collections-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2"
+                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
                             >
-                                <span
-                                    class="text-primary/50"
-                                    aria-hidden="true"
-                                >
-                                    //
-                                </span>
-                                included in collections
+                                Included in Collections
                             </h2>
                             <div class="flex flex-wrap gap-2" role="list">
                                 {includedInCollections.map((collection) => (
                                     <a
                                         href={"/artifact/" + collection.slug}
-                                        class="px-3 py-1.5 text-xs text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 transition-colors focus-ring rounded-md"
+                                        class="px-3 py-1.5 text-xs text-cyan-700 dark:text-cyan-400 border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 transition-colors focus-ring rounded-md"
                                         role="listitem"
                                     >
                                         {collection.name}
@@ -482,9 +449,9 @@ const jsonLd = {
 
         <!-- Source File -->
         <ArtifactFooter
-          className="text-xs text-muted-foreground/50 pt-4 border-t border-border/30"
+          className="text-xs text-muted-foreground pt-4 border-t border-border/30"
         >
-          <span>source: </span>
+          <span>Source: </span>
           <a
             href={"https://github.com/EricZimmerman/KapeFiles/blob/master/Targets/" +
                             target.category +
@@ -492,7 +459,7 @@ const jsonLd = {
                             target.sourceFile}
             target="_blank"
             rel="noopener noreferrer"
-            class="text-primary/50 hover:text-primary transition-colors focus-ring rounded-sm"
+            class="text-primary hover:underline transition-colors focus-ring rounded-sm"
           >
             KapeFiles/{target.category}/{target.sourceFile}
             <span class="sr-only">(opens in new tab)</span>

@@ -17,7 +17,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useHaptics } from "@/hooks/useHaptics";
 import { trackSearchQuery, trackSearchResultSelected } from "@/lib/analytics";
 
 interface SearchResult {
@@ -66,7 +65,6 @@ export function Search({ showTrigger = true }: SearchProps) {
   const [loading, setLoading] = useState(false);
   const pagefindRef = useRef<PagefindAPI | null>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
-  const { dialogHaptic } = useHaptics();
 
   // Announce to screen readers
   const announce = useCallback((message: string) => {
@@ -114,7 +112,6 @@ export function Search({ showTrigger = true }: SearchProps) {
       // Ctrl/Cmd+K or / to open
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        dialogHaptic();
         setOpen((open) => !open);
       }
       if (e.key === "/" && !open) {
@@ -124,7 +121,6 @@ export function Search({ showTrigger = true }: SearchProps) {
           activeEl instanceof HTMLTextAreaElement;
         if (!isInput) {
           e.preventDefault();
-          dialogHaptic();
           setOpen(true);
           announce("Search dialog opened");
         }
@@ -235,17 +231,14 @@ export function Search({ showTrigger = true }: SearchProps) {
           aria-label="Open search dialog"
           className="group glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-overlay/[0.06] text-muted-foreground text-xs transition-all duration-200 hover:border-primary/30 hover:bg-overlay/[0.04] sm:h-8 sm:w-auto sm:px-3"
           data-search-trigger
-          onClick={() => {
-            dialogHaptic();
-            setOpen(true);
-          }}
+          onClick={() => setOpen(true)}
           type="button"
         >
           <SearchIcon
             aria-hidden="true"
             className="h-4 w-4 text-primary/70 transition-colors group-hover:text-primary sm:h-3.5 sm:w-3.5"
           />
-          <span className="ml-2 hidden sm:inline">search</span>
+          <span className="ml-2 hidden sm:inline">Search</span>
           <span className="ml-2 hidden items-center gap-1 sm:flex">
             <kbd className="kbd kbd-compact">{isMac ? "⌘" : "ctrl"}</kbd>
             <kbd className="kbd kbd-compact">K</kbd>
@@ -289,7 +282,7 @@ export function Search({ showTrigger = true }: SearchProps) {
                   aria-hidden="true"
                   className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary"
                 />
-                <span className="text-primary">$</span> searching
+                Searching
                 <span className="loading-dots" />
               </span>
             </div>
@@ -303,13 +296,10 @@ export function Search({ showTrigger = true }: SearchProps) {
               <div className="flex flex-col items-center gap-2">
                 <SearchIcon
                   aria-hidden="true"
-                  className="h-8 w-8 text-muted-foreground/30"
+                  className="h-8 w-8 text-muted-foreground/50"
                 />
-                <span>
-                  <span className="text-primary">$</span> no results for "
-                  {query}"
-                </span>
-                <span className="text-muted-foreground/60 text-xs">
+                <span>No results for "{query}"</span>
+                <span className="text-muted-foreground text-xs">
                   Try a different search term
                 </span>
               </div>
@@ -319,12 +309,12 @@ export function Search({ showTrigger = true }: SearchProps) {
           {!query && (
             <CommandGroup
               heading={
-                <span className="flex items-center gap-2 text-[10px] uppercase tracking-wider">
+                <span className="flex items-center gap-2 text-xs uppercase tracking-wider">
                   <Sparkles
                     aria-hidden="true"
                     className="h-3 w-3 text-primary/60"
                   />
-                  <span>quick navigation</span>
+                  <span>Quick navigation</span>
                 </span>
               }
             >
@@ -332,74 +322,74 @@ export function Search({ showTrigger = true }: SearchProps) {
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-zinc-500/20 bg-zinc-500/20 transition-colors group-data-[selected=true]:border-zinc-400/30 group-data-[selected=true]:bg-zinc-500/30">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-muted">
                   <Home
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 text-zinc-400"
+                    className="h-3.5 w-3.5 text-muted-foreground"
                   />
                 </div>
-                <span>home</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="kbd text-[9px]">g</kbd>
-                  <kbd className="kbd text-[9px]">h</kbd>
+                <span>Home</span>
+                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
+                  <kbd className="kbd">g</kbd>
+                  <kbd className="kbd">h</kbd>
                 </span>
               </CommandItem>
               <CommandItem
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/artifacts")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/20 transition-colors group-data-[selected=true]:border-primary/40 group-data-[selected=true]:bg-primary/30">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-primary/20 bg-primary/10 transition-colors group-data-[selected=true]:border-primary/40 group-data-[selected=true]:bg-primary/20">
                   <FileSearch
                     aria-hidden="true"
                     className="h-3.5 w-3.5 text-primary"
                   />
                 </div>
-                <span>all artifacts</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="kbd text-[9px]">g</kbd>
-                  <kbd className="kbd text-[9px]">a</kbd>
+                <span>All artifacts</span>
+                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
+                  <kbd className="kbd">g</kbd>
+                  <kbd className="kbd">a</kbd>
                 </span>
               </CommandItem>
               <CommandItem
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/collections")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-cyan-500/20 bg-cyan-500/20 transition-colors group-data-[selected=true]:border-cyan-400/30 group-data-[selected=true]:bg-cyan-500/30">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-cyan-500/20 bg-cyan-500/10 transition-colors group-data-[selected=true]:border-cyan-500/40 group-data-[selected=true]:bg-cyan-500/20">
                   <Layers
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 text-cyan-400"
+                    className="h-3.5 w-3.5 text-cyan-700 dark:text-cyan-400"
                   />
                 </div>
-                <span>collections</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="kbd text-[9px]">g</kbd>
-                  <kbd className="kbd text-[9px]">c</kbd>
+                <span>Collections</span>
+                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
+                  <kbd className="kbd">g</kbd>
+                  <kbd className="kbd">c</kbd>
                 </span>
               </CommandItem>
               <CommandItem
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/builder")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-amber-500/20 bg-amber-500/20 transition-colors group-data-[selected=true]:border-amber-400/30 group-data-[selected=true]:bg-amber-500/30">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-amber-500/20 bg-amber-500/10 transition-colors group-data-[selected=true]:border-amber-500/40 group-data-[selected=true]:bg-amber-500/20">
                   <Hammer
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 text-amber-400"
+                    className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400"
                   />
                 </div>
-                <span>builder</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="kbd text-[9px]">g</kbd>
-                  <kbd className="kbd text-[9px]">b</kbd>
+                <span>Builder</span>
+                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
+                  <kbd className="kbd">g</kbd>
+                  <kbd className="kbd">b</kbd>
                 </span>
               </CommandItem>
               <CommandItem
                 className="group my-0.5 rounded-lg text-sm"
                 onSelect={() => handleSelect("/converter")}
               >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-purple-500/20 bg-purple-500/20 transition-colors group-data-[selected=true]:border-purple-400/30 group-data-[selected=true]:bg-purple-500/30">
+                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-purple-500/20 bg-purple-500/10 transition-colors group-data-[selected=true]:border-purple-500/40 group-data-[selected=true]:bg-purple-500/20">
                   <svg
                     aria-hidden="true"
-                    className="h-3.5 w-3.5 text-purple-400"
+                    className="h-3.5 w-3.5 text-purple-700 dark:text-purple-400"
                     fill="currentColor"
                     viewBox="155 155 750 625"
                     xmlns="http://www.w3.org/2000/svg"
@@ -407,10 +397,10 @@ export function Search({ showTrigger = true }: SearchProps) {
                     <path d="m890.394412 165c3.019653 25.589448-5.253407 50.2282-24.819179 73.916253-19.565772 23.688054-45.907539 35.53208-79.025312 35.53208l-62.977337.363397c39.393202 52.779296 59.977836 120.64775 53.603978 194.68827-14.47716 168.170707-162.549778 304.5-330.729454 304.5s-292.780187-136.329293-278.30303-304.5c14.477156-168.170706 162.549776-304.5 330.729452-304.5zm-401.090784 111.166667c-106.780747 0-200.795108 86.558282-209.986954 193.333334s69.91959 193.333333 176.700337 193.333333c106.780746 0 200.795108-86.558281 209.986952-193.333333 9.191849-106.775052-69.919588-193.333334-176.700335-193.333334z" />
                   </svg>
                 </div>
-                <span>converter</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground/40">
-                  <kbd className="kbd text-[9px]">g</kbd>
-                  <kbd className="kbd text-[9px]">s</kbd>
+                <span>Converter</span>
+                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
+                  <kbd className="kbd">g</kbd>
+                  <kbd className="kbd">s</kbd>
                 </span>
               </CommandItem>
             </CommandGroup>
@@ -419,12 +409,12 @@ export function Search({ showTrigger = true }: SearchProps) {
           {results.length > 0 && (
             <CommandGroup
               heading={
-                <span className="flex items-center gap-2 text-[10px] uppercase tracking-wider">
+                <span className="flex items-center gap-2 text-xs uppercase tracking-wider">
                   <Blocks
                     aria-hidden="true"
                     className="h-3 w-3 text-primary/60"
                   />
-                  <span>results</span>
+                  <span>Results</span>
                   <span className="font-medium text-primary">
                     ({results.length})
                   </span>
@@ -463,27 +453,27 @@ export function Search({ showTrigger = true }: SearchProps) {
         </CommandList>
 
         {/* Footer with keyboard hints */}
-        <div className="flex items-center justify-between border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5 text-[10px] text-muted-foreground/50">
+        <div className="flex items-center justify-between border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5 text-muted-foreground text-xs">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
               <div className="flex items-center gap-0.5">
-                <kbd className="kbd text-[9px]">↑</kbd>
-                <kbd className="kbd text-[9px]">↓</kbd>
+                <kbd className="kbd kbd-compact">↑</kbd>
+                <kbd className="kbd kbd-compact">↓</kbd>
               </div>
-              <span>navigate</span>
+              <span>Navigate</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <kbd className="kbd text-[9px]">↵</kbd>
-              <span>select</span>
+              <kbd className="kbd kbd-compact">↵</kbd>
+              <span>Select</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <kbd className="kbd text-[9px]">esc</kbd>
-              <span>close</span>
+              <kbd className="kbd kbd-compact">esc</kbd>
+              <span>Close</span>
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground/40">
+          <div className="flex items-center gap-1.5">
             <SearchIcon aria-hidden="true" className="h-3 w-3" />
-            <span>pagefind</span>
+            <span>Pagefind</span>
           </div>
         </div>
       </CommandDialog>

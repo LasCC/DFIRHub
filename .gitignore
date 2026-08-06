@@ -41,3 +41,6 @@ pnpm-debug.log*
 # Backup files
 *.bak
 *-original.*
+
+# Playwright MCP artifacts
+.playwright-mcp/

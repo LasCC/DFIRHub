@@ -1,20 +1,9 @@
-import {
-  ChevronRight,
-  FileSearch,
-  Hammer,
-  HatGlasses,
-  Layers,
-  Menu,
-  X,
-} from "lucide-react";
+import { HatGlasses, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-
-import { useHaptics } from "@/hooks/useHaptics";
 
 import { Search } from "../search/Search";
 import { ThemeToggle } from "./ThemeToggle";
 
-// Real GitHub mark icon (filled octocat)
 const GitHubMark = ({ className }: { className?: string }) => (
   <svg
     aria-hidden="true"
@@ -27,62 +16,25 @@ const GitHubMark = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// Official Sigma logo (monocle shape from sigmahq.io)
-const SigmaLogo = ({ className }: { className?: string }) => (
-  <svg
-    aria-hidden="true"
-    className={className}
-    fill="currentColor"
-    viewBox="155 155 750 625"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="m890.394412 165c3.019653 25.589448-5.253407 50.2282-24.819179 73.916253-19.565772 23.688054-45.907539 35.53208-79.025312 35.53208l-62.977337.363397c39.393202 52.779296 59.977836 120.64775 53.603978 194.68827-14.47716 168.170707-162.549778 304.5-330.729454 304.5s-292.780187-136.329293-278.30303-304.5c14.477156-168.170706 162.549776-304.5 330.729452-304.5zm-401.090784 111.166667c-106.780747 0-200.795108 86.558282-209.986954 193.333334s69.91959 193.333333 176.700337 193.333333c106.780746 0 200.795108-86.558281 209.986952-193.333333 9.191849-106.775052-69.919588-193.333334-176.700335-193.333334z" />
-  </svg>
-);
-
 interface HeaderProps {
   showSearch?: boolean;
+  currentPath?: string;
 }
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-  badgeClass: string;
-}
-
-const navItems: NavItem[] = [
-  {
-    badgeClass: "border-primary/20 bg-primary/10 text-primary",
-    href: "/artifacts",
-    icon: <FileSearch className="h-4 w-4" />,
-    label: "artifacts",
-  },
-  {
-    badgeClass: "border-cyan-500/20 bg-cyan-500/10 text-cyan-400",
-    href: "/collections",
-    icon: <Layers className="h-4 w-4" />,
-    label: "collections",
-  },
-  {
-    badgeClass: "border-amber-500/20 bg-amber-500/10 text-amber-400",
-    href: "/builder",
-    icon: <Hammer className="h-4 w-4" />,
-    label: "builder",
-  },
-  {
-    badgeClass: "border-purple-500/20 bg-purple-500/10 text-purple-400",
-    href: "/converter",
-    icon: <SigmaLogo className="h-4 w-4" />,
-    label: "converter",
-  },
+const navItems = [
+  { href: "/artifacts", label: "Artifacts" },
+  { href: "/collections", label: "Collections" },
+  { href: "/builder", label: "Builder" },
+  { href: "/converter", label: "Converter" },
 ];
 
-export function Header({ showSearch = true }: HeaderProps) {
+export function Header({ showSearch = true, currentPath }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const { toggleHaptic } = useHaptics();
   const mobileNavRef = useRef<HTMLDivElement>(null);
+
+  const isActive = (href: string) =>
+    currentPath === href || currentPath?.startsWith(`${href}/`);
 
   // Close mobile menu on escape
   useEffect(() => {
@@ -135,33 +87,55 @@ export function Header({ showSearch = true }: HeaderProps) {
 
   return (
     <header className="glass-header sticky top-0 z-50 w-full">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4">
         {/* Logo */}
         <a
           aria-label="DFIRHub home"
-          className="group focus-ring flex items-center gap-2 rounded-sm"
+          className="focus-ring flex shrink-0 items-center gap-2 rounded-sm"
           href="/"
         >
           <HatGlasses aria-hidden="true" className="h-5 w-5 text-primary" />
-          <span className="font-semibold text-lg tracking-tight">
-            dfir<span className="text-primary">hub</span>
+          <span className="font-semibold text-base tracking-tight">
+            DFIRHub
           </span>
         </a>
 
+        {/* Desktop navigation */}
+        <nav aria-label="Main navigation" className="hidden md:block">
+          <ul className="flex items-center gap-1">
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <a
+                  aria-current={isActive(item.href) ? "page" : undefined}
+                  className={`focus-ring rounded-md px-3 py-1.5 text-sm transition-colors ${
+                    isActive(item.href)
+                      ? "font-medium text-foreground"
+                      : "text-muted-foreground hover:bg-overlay/[0.05] hover:text-foreground"
+                  }`}
+                  href={item.href}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
         {/* Right side controls */}
-        <div className="flex items-center gap-2">
-          {/* Desktop-only converter link */}
+        <div className="ml-auto flex items-center gap-2">
           <a
-            className="focus-ring hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground md:flex"
-            href="/converter"
+            aria-label="DFIRHub on GitHub (opens in new tab)"
+            className="focus-ring hidden h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-overlay/[0.05] hover:text-foreground md:flex"
+            href="https://github.com/LasCC/DFIRHub"
+            rel="noopener noreferrer"
+            target="_blank"
           >
-            <SigmaLogo className="h-3.5 w-3.5" />
-            <span>Sigma Converter</span>
+            <GitHubMark className="h-4.5 w-4.5" />
           </a>
 
-          <ThemeToggle />
-
           {showSearch && <Search />}
+
+          <ThemeToggle />
 
           {/* Mobile menu button */}
           <button
@@ -170,11 +144,8 @@ export function Header({ showSearch = true }: HeaderProps) {
             aria-label={
               mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"
             }
-            className="glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-overlay/[0.06] text-muted-foreground transition-all duration-200 hover:border-overlay/[0.1] hover:text-foreground md:hidden"
-            onClick={() => {
-              toggleHaptic();
-              setMobileMenuOpen((prev) => !prev);
-            }}
+            className="focus-ring flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-overlay/[0.05] hover:text-foreground md:hidden"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
             ref={menuButtonRef}
             type="button"
           >
@@ -191,7 +162,7 @@ export function Header({ showSearch = true }: HeaderProps) {
       <div
         aria-hidden={!mobileMenuOpen}
         aria-label="Mobile navigation"
-        className={`glass-strong overflow-hidden border-overlay/[0.06] border-t transition-all duration-300 ease-out md:hidden ${
+        className={`glass-strong overflow-hidden border-t transition-all duration-300 ease-out md:hidden ${
           mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
         id="mobile-menu"
@@ -199,32 +170,26 @@ export function Header({ showSearch = true }: HeaderProps) {
         role="menu"
       >
         <nav className="space-y-1 px-4 py-3">
-          {navItems.map((item, index) => (
+          {navItems.map((item) => (
             <a
-              className="focus-ring flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground text-sm transition-all duration-200 hover:bg-overlay/[0.04] hover:text-foreground"
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className={`focus-ring flex items-center rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-overlay/[0.04] ${
+                isActive(item.href)
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
               href={item.href}
               key={item.href}
               onClick={() => setMobileMenuOpen(false)}
               role="menuitem"
-              style={{ animationDelay: `${index * 50}ms` }}
               tabIndex={mobileMenuOpen ? 0 : -1}
             >
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-lg border ${item.badgeClass}`}
-              >
-                <span aria-hidden="true">{item.icon}</span>
-              </div>
-              <span className="font-medium">{item.label}</span>
-              <ChevronRight
-                aria-hidden="true"
-                className="ml-auto h-4 w-4 text-muted-foreground/30"
-              />
+              {item.label}
             </a>
           ))}
 
-          {/* Mobile GitHub link */}
           <a
-            className="focus-ring flex items-center gap-3 rounded-lg px-3 py-3 text-muted-foreground text-sm transition-all duration-200 hover:bg-overlay/[0.04] hover:text-foreground"
+            className="focus-ring flex items-center rounded-lg px-3 py-2.5 text-muted-foreground text-sm transition-colors hover:bg-overlay/[0.04] hover:text-foreground"
             href="https://github.com/LasCC/DFIRHub"
             onClick={() => setMobileMenuOpen(false)}
             rel="noopener noreferrer"
@@ -232,21 +197,10 @@ export function Header({ showSearch = true }: HeaderProps) {
             tabIndex={mobileMenuOpen ? 0 : -1}
             target="_blank"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-500/20 bg-zinc-500/10">
-              <GitHubMark className="h-4 w-4 text-zinc-400" />
-            </div>
-            <span className="font-medium">GitHub</span>
-            <span className="ml-auto text-muted-foreground/40 text-xs">↗</span>
+            GitHub
+            <span className="sr-only">(opens in new tab)</span>
           </a>
         </nav>
-
-        {/* Keyboard hints */}
-        <div className="border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5">
-          <p className="flex items-center gap-2 text-[10px] text-muted-foreground/50">
-            <kbd className="kbd text-[9px]">⌘K</kbd>
-            <span>to search & navigate</span>
-          </p>
-        </div>
       </div>
     </header>
   );

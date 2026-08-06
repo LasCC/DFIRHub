@@ -34,7 +34,6 @@ export function ThemeToggle() {
                 ? "bg-overlay/[0.1] text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
-            data-haptic
             key={value}
             onClick={() => setTheme(value)}
             role="radio"

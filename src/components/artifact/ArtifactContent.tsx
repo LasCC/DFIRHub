@@ -93,37 +93,3 @@ export function ArtifactListItem({
 }) {
   return <div className={className}>{children}</div>;
 }
-
-// Scroll reveal wrapper - no animation, instant display
-export function ScrollReveal({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  return <div className={className}>{children}</div>;
-}
-
-// Scroll reveal container - no animation
-export function ScrollRevealStagger({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={className}>{children}</div>;
-}
-
-// Child item for ScrollRevealStagger - no animation
-export function ScrollRevealItem({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={className}>{children}</div>;
-}

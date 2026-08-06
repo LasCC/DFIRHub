@@ -174,7 +174,7 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
       aria-label="Sigma rule editor with file drop support"
     >
       {isDragging && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 backdrop-blur-sm">
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed border-primary/50 bg-primary/5">
           <span className="text-sm text-primary">Drop .yml file here</span>
         </div>
       )}
@@ -183,7 +183,7 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
           Sigma Rule (YAML)
         </span>
         <span className="rounded-md border border-overlay/[0.06] bg-overlay/[0.04] px-2 py-1 text-muted-foreground text-xs">
-          ⌘↵ convert
+          ⌘↵ Convert
         </span>
       </div>
       <div className="flex-1">

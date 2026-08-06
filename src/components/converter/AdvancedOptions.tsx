@@ -65,13 +65,13 @@ export function AdvancedOptions({
     <div className="space-y-4 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] p-4">
       {/* Header with docs links */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Advanced pySigma conversion options. These settings are passed
           directly to the conversion engine.
         </p>
         <div className="flex items-center gap-3">
           <a
-            className="flex items-center gap-1 text-xs text-muted-foreground/60 transition-colors hover:text-primary"
+            className="flex items-center gap-1 text-muted-foreground text-xs transition-colors hover:text-primary"
             href={DOCS.filters}
             rel="noopener noreferrer"
             target="_blank"
@@ -80,7 +80,7 @@ export function AdvancedOptions({
             Filters docs
           </a>
           <a
-            className="flex items-center gap-1 text-xs text-muted-foreground/60 transition-colors hover:text-primary"
+            className="flex items-center gap-1 text-muted-foreground text-xs transition-colors hover:text-primary"
             href={DOCS.correlations}
             rel="noopener noreferrer"
             target="_blank"
@@ -89,7 +89,7 @@ export function AdvancedOptions({
             Correlations docs
           </a>
           <a
-            className="flex items-center gap-1 text-xs text-muted-foreground/60 transition-colors hover:text-primary"
+            className="flex items-center gap-1 text-muted-foreground text-xs transition-colors hover:text-primary"
             href={DOCS.backends}
             rel="noopener noreferrer"
             target="_blank"
@@ -105,23 +105,23 @@ export function AdvancedOptions({
         <div className="lg:col-span-2">
           <div className="mb-1.5 flex items-center gap-2">
             <label
-              className="text-xs font-medium text-muted-foreground"
+              className="font-medium text-muted-foreground text-xs"
               htmlFor="sigma-filter"
             >
               Sigma Filter (YAML)
             </label>
             <a
-              className="text-[10px] text-muted-foreground/40 transition-colors hover:text-primary"
+              className="text-muted-foreground text-xs transition-colors hover:text-primary"
               href={DOCS.filtersSpec}
               rel="noopener noreferrer"
               target="_blank"
               title="View the Sigma Filters specification"
             >
-              spec
+              Spec
             </a>
           </div>
           <textarea
-            className="w-full rounded-md border border-overlay/[0.06] bg-secondary px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
+            className="w-full rounded-md border border-overlay/[0.06] bg-secondary px-3 py-2 font-mono text-foreground text-xs placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
             id="sigma-filter"
             name="sigma-filter"
             onChange={(e) => onFilterChange(e.target.value)}
@@ -137,23 +137,23 @@ export function AdvancedOptions({
           <div>
             <div className="mb-1.5 flex items-center gap-2">
               <label
-                className="text-xs font-medium text-muted-foreground"
+                className="font-medium text-muted-foreground text-xs"
                 htmlFor="correlation-method"
               >
                 Correlation Method
               </label>
               <a
-                className="text-[10px] text-muted-foreground/40 transition-colors hover:text-primary"
+                className="text-muted-foreground text-xs transition-colors hover:text-primary"
                 href={DOCS.correlations}
                 rel="noopener noreferrer"
                 target="_blank"
                 title="Learn about Sigma correlation rules"
               >
-                docs
+                Docs
               </a>
             </div>
             <select
-              className="w-full rounded-md border border-overlay/[0.06] bg-secondary px-3 py-2 text-xs text-foreground focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
+              className="w-full rounded-md border border-overlay/[0.06] bg-secondary px-3 py-2 text-foreground text-xs focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
               id="correlation-method"
               name="correlation-method"
               onChange={(e) => onCorrelationMethodChange(e.target.value)}
@@ -163,7 +163,7 @@ export function AdvancedOptions({
               <option value="default">default</option>
               <option value="multisearch">multisearch</option>
             </select>
-            <p className="mt-1 text-[10px] text-muted-foreground/40">
+            <p className="mt-1 text-muted-foreground text-xs">
               Controls how correlation rules are converted. Only applies to
               rules with a correlation section.
             </p>
@@ -172,21 +172,21 @@ export function AdvancedOptions({
           <div>
             <div className="mb-1.5 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-muted-foreground">
+                <label className="font-medium text-muted-foreground text-xs">
                   Backend Options
                 </label>
                 <a
-                  className="text-[10px] text-muted-foreground/40 transition-colors hover:text-primary"
+                  className="text-muted-foreground text-xs transition-colors hover:text-primary"
                   href={DOCS.backendsApi}
                   rel="noopener noreferrer"
                   target="_blank"
                   title="View pySigma backend API documentation"
                 >
-                  api docs
+                  API docs
                 </a>
               </div>
               <button
-                className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-muted-foreground text-xs transition-colors hover:text-foreground"
                 onClick={handleAddOption}
                 title="Add backend option"
                 type="button"
@@ -196,9 +196,9 @@ export function AdvancedOptions({
               </button>
             </div>
             {optionEntries.length === 0 ? (
-              <p className="text-xs text-muted-foreground/40">
+              <p className="text-muted-foreground text-xs">
                 No options set. Backend-specific key-value pairs passed via{" "}
-                <code className="rounded bg-overlay/[0.04] px-1 py-0.5 text-[10px]">
+                <code className="rounded bg-overlay/[0.04] px-1 py-0.5">
                   -O key=value
                 </code>{" "}
                 in sigma-cli.
@@ -209,7 +209,7 @@ export function AdvancedOptions({
                   <div className="flex items-center gap-1.5" key={idx}>
                     <input
                       aria-label={`Backend option key ${idx + 1}`}
-                      className="w-1/2 rounded-md border border-overlay/[0.06] bg-secondary px-2 py-1 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none"
+                      className="w-1/2 rounded-md border border-overlay/[0.06] bg-secondary px-2 py-1 font-mono text-foreground text-xs placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none"
                       name={`backend-key-${idx}`}
                       onChange={(e) =>
                         handleOptionKeyChange(key, e.target.value)
@@ -219,7 +219,7 @@ export function AdvancedOptions({
                     />
                     <input
                       aria-label={`Backend option value ${idx + 1}`}
-                      className="w-1/2 rounded-md border border-overlay/[0.06] bg-secondary px-2 py-1 font-mono text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary/40 focus:outline-none"
+                      className="w-1/2 rounded-md border border-overlay/[0.06] bg-secondary px-2 py-1 font-mono text-foreground text-xs placeholder:text-muted-foreground/60 focus:border-primary/40 focus:outline-none"
                       name={`backend-val-${idx}`}
                       onChange={(e) =>
                         handleOptionValueChange(key, e.target.value)
@@ -228,7 +228,8 @@ export function AdvancedOptions({
                       value={val}
                     />
                     <button
-                      className="shrink-0 rounded-md p-1 text-muted-foreground/60 transition-colors hover:text-red-400"
+                      aria-label={`Remove option ${key || idx + 1}`}
+                      className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:text-destructive"
                       onClick={() => handleRemoveOption(key)}
                       title="Remove option"
                       type="button"

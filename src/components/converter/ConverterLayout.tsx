@@ -1,13 +1,8 @@
 import {
   ArrowRight,
-  Check,
   ChevronDown,
   Columns,
-  Ellipsis,
-  FileDown,
-  Link,
   Search,
-  Settings2,
   Zap,
 } from "lucide-react";
 import {
@@ -29,11 +24,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
-import { useHaptics } from "@/hooks/useHaptics";
 import {
   trackConverterBackendChanged,
   trackConverterConvert,
-  trackConverterExport,
   trackConverterShareLink,
   trackSigmaRuleImported,
 } from "@/lib/analytics";
@@ -46,6 +39,7 @@ import { AdvancedOptions } from "./AdvancedOptions";
 import { DiffView } from "./DiffView";
 import { ExportDialog } from "./ExportDialog";
 import { LoadingOverlay } from "./LoadingOverlay";
+import { MoreActionsMenu } from "./MoreActionsMenu";
 import { OutputPanel } from "./OutputPanel";
 import { PipelineSelector } from "./PipelineSelector";
 import { RelatedArtifacts } from "./RelatedArtifacts";
@@ -128,10 +122,7 @@ export function ConverterLayout() {
   const [initError, setInitError] = useState<string | null>(null);
   const [autoConvert, setAutoConvert] = useState(initial.autoConvert);
   const [shareCopied, triggerShareCopied] = useCopyFeedback();
-  const { errorHaptic } = useHaptics();
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const moreMenuRef = useRef<HTMLDivElement>(null);
   const [filterYml, setFilterYml] = useState(initial.filterYml);
   const [correlationMethod, setCorrelationMethod] = useState(
     initial.correlationMethod
@@ -204,23 +195,6 @@ export function ConverterLayout() {
     backendOptions,
   ]);
 
-  // Close more menu on click outside
-  useEffect(() => {
-    if (!showMoreMenu) {
-      return;
-    }
-    const handleClick = (e: MouseEvent) => {
-      if (
-        moreMenuRef.current &&
-        !moreMenuRef.current.contains(e.target as Node)
-      ) {
-        setShowMoreMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [showMoreMenu]);
-
   // Restore state from shared URL hash
   useEffect(() => {
     const hash = window.location.hash.slice(1);
@@ -267,13 +241,12 @@ export function ConverterLayout() {
         if (!mountedRef.current) {
           return;
         }
-        errorHaptic();
         setInitError(
           error instanceof Error ? error.message : "Failed to initialize"
         );
       });
     return converter;
-  }, [errorHaptic]);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -338,12 +311,6 @@ export function ConverterLayout() {
         return;
       }
       setMultiResults(results);
-      for (const [, val] of results) {
-        if (!val.success) {
-          errorHaptic();
-          break;
-        }
-      }
     } else {
       const res = await converter.convert(
         rule,
@@ -356,9 +323,6 @@ export function ConverterLayout() {
         return;
       }
       setResult(res);
-      if (!res.success) {
-        errorHaptic();
-      }
     }
 
     setIsConverting(false);
@@ -372,7 +336,6 @@ export function ConverterLayout() {
     filterYml,
     correlationMethod,
     backendOptions,
-    errorHaptic,
   ]);
 
   // Auto-convert on first load (one-shot: run immediately when Pyodide is ready)
@@ -480,7 +443,7 @@ export function ConverterLayout() {
             <Popover>
               <PopoverTrigger asChild>
                 <button
-                  className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-overlay/[0.1] hover:text-foreground"
+                  className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-muted-foreground text-sm transition-colors hover:border-overlay/[0.1] hover:text-foreground"
                   title="Load a pre-built Sigma rule example"
                   type="button"
                 >
@@ -499,7 +462,7 @@ export function ConverterLayout() {
                     <div className="font-medium text-foreground">
                       {example.title}
                     </div>
-                    <div className="text-xs text-muted-foreground/60">
+                    <div className="text-muted-foreground text-xs">
                       {example.description}
                     </div>
                   </button>
@@ -509,7 +472,7 @@ export function ConverterLayout() {
 
             {/* Search SigmaHQ */}
             <button
-              className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-overlay/[0.1] hover:text-foreground"
+              className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-muted-foreground text-sm transition-colors hover:border-overlay/[0.1] hover:text-foreground"
               onClick={() => setShowSigmaSearch(true)}
               title="Search and import rules from SigmaHQ (⌘⇧K)"
               type="button"
@@ -560,7 +523,7 @@ export function ConverterLayout() {
               aria-pressed={autoConvert}
               className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                 autoConvert
-                  ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
+                  ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
                   : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
               }`}
               onClick={() => setAutoConvert((prev) => !prev)}
@@ -574,12 +537,9 @@ export function ConverterLayout() {
             {/* Desktop-only spacer + split Convert button */}
             <div className="hidden flex-1 md:block" />
 
-            <div
-              className="relative hidden shrink-0 items-center md:flex"
-              ref={moreMenuRef}
-            >
+            <div className="hidden shrink-0 items-center md:flex">
               <button
-                className="flex items-center gap-2 rounded-l-lg bg-primary px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-primary/90 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-l-lg bg-primary px-4 py-2 font-medium text-background text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
                 disabled={!isReady || isConverting || !rule.trim()}
                 onClick={handleConvert}
                 title="Convert Sigma rule to the selected backend (⌘↵)"
@@ -589,81 +549,24 @@ export function ConverterLayout() {
                 <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
               </button>
               <div className="h-5 w-px bg-background/20" />
-              <button
-                className="flex items-center self-stretch rounded-r-lg bg-primary px-2.5 text-background transition-colors hover:bg-primary/90"
-                onClick={() => setShowMoreMenu((prev) => !prev)}
-                title="More actions"
-                type="button"
-              >
-                <Ellipsis aria-hidden="true" className="h-4 w-4" />
-              </button>
-
-              {/* Dropdown menu (desktop) */}
-              {showMoreMenu && (
-                <div className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-overlay/[0.08] bg-popover shadow-xl shadow-black/40">
-                  <div className="p-1">
-                    <button
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground disabled:opacity-40"
-                      disabled={!rule.trim()}
-                      onClick={() => {
-                        handleShare();
-                        setShowMoreMenu(false);
-                      }}
-                      type="button"
-                    >
-                      {shareCopied ? (
-                        <Check className="h-3.5 w-3.5 text-primary" />
-                      ) : (
-                        <Link className="h-3.5 w-3.5" />
-                      )}
-                      {shareCopied ? "Copied!" : "Copy share link"}
-                    </button>
-                    {exportConversions.size > 0 && (
-                      <button
-                        className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground"
-                        onClick={() => {
-                          setShowExport(true);
-                          setShowMoreMenu(false);
-                        }}
-                        type="button"
-                      >
-                        <FileDown className="h-3.5 w-3.5" />
-                        Export as ZIP
-                      </button>
-                    )}
-                    <div className="mx-2 my-1 h-px bg-overlay/[0.06]" />
-                    <button
-                      className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.06] ${
-                        showAdvanced
-                          ? "text-violet-400"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      onClick={() => {
-                        setShowAdvanced((prev) => !prev);
-                        setShowMoreMenu(false);
-                      }}
-                      type="button"
-                    >
-                      <Settings2 className="h-3.5 w-3.5" />
-                      Advanced options
-                      {showAdvanced && (
-                        <Check className="ml-auto h-3 w-3 text-violet-400" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
+              <MoreActionsMenu
+                canExport={exportConversions.size > 0}
+                canShare={rule.trim().length > 0}
+                onExport={() => setShowExport(true)}
+                onShare={handleShare}
+                onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
+                shareCopied={shareCopied}
+                showAdvanced={showAdvanced}
+                variant="desktop"
+              />
             </div>
           </div>
         </div>
 
         {/* Row 2 mobile-only: full-width Convert + More */}
-        <div
-          className="relative flex items-center gap-2 md:hidden"
-          ref={moreMenuRef}
-        >
+        <div className="flex items-center gap-2 md:hidden">
           <button
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-background transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-background text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
             disabled={!isReady || isConverting || !rule.trim()}
             onClick={handleConvert}
             title="Convert Sigma rule to the selected backend (⌘↵)"
@@ -674,70 +577,16 @@ export function ConverterLayout() {
               <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
             )}
           </button>
-          <button
-            className="flex items-center justify-center rounded-lg border border-overlay/[0.08] bg-overlay/[0.03] p-2.5 text-muted-foreground transition-colors hover:border-overlay/[0.12] hover:text-foreground"
-            onClick={() => setShowMoreMenu((prev) => !prev)}
-            title="More actions"
-            type="button"
-          >
-            <Ellipsis aria-hidden="true" className="h-4 w-4" />
-          </button>
-
-          {/* Dropdown menu (mobile) */}
-          {showMoreMenu && (
-            <div className="absolute right-0 top-full z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-overlay/[0.08] bg-popover shadow-xl shadow-black/40">
-              <div className="p-1">
-                <button
-                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground disabled:opacity-40"
-                  disabled={!rule.trim()}
-                  onClick={() => {
-                    handleShare();
-                    setShowMoreMenu(false);
-                  }}
-                  type="button"
-                >
-                  {shareCopied ? (
-                    <Check className="h-3.5 w-3.5 text-primary" />
-                  ) : (
-                    <Link className="h-3.5 w-3.5" />
-                  )}
-                  {shareCopied ? "Copied!" : "Copy share link"}
-                </button>
-                {exportConversions.size > 0 && (
-                  <button
-                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground"
-                    onClick={() => {
-                      setShowExport(true);
-                      setShowMoreMenu(false);
-                    }}
-                    type="button"
-                  >
-                    <FileDown className="h-3.5 w-3.5" />
-                    Export as ZIP
-                  </button>
-                )}
-                <div className="mx-2 my-1 h-px bg-overlay/[0.06]" />
-                <button
-                  className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.06] ${
-                    showAdvanced
-                      ? "text-violet-400"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  onClick={() => {
-                    setShowAdvanced((prev) => !prev);
-                    setShowMoreMenu(false);
-                  }}
-                  type="button"
-                >
-                  <Settings2 className="h-3.5 w-3.5" />
-                  Advanced options
-                  {showAdvanced && (
-                    <Check className="ml-auto h-3 w-3 text-violet-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
+          <MoreActionsMenu
+            canExport={exportConversions.size > 0}
+            canShare={rule.trim().length > 0}
+            onExport={() => setShowExport(true)}
+            onShare={handleShare}
+            onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
+            shareCopied={shareCopied}
+            showAdvanced={showAdvanced}
+            variant="mobile"
+          />
         </div>
       </div>
 
