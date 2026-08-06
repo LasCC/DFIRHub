@@ -179,12 +179,14 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
         </div>
       )}
       <div className="flex items-center justify-between border-overlay/[0.06] border-b px-4 py-2">
-        <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-          Sigma Rule (YAML)
+        {/* bg-editor stays dark in both themes — use explicit dark-on-dark colors here */}
+        <span className="font-medium text-sm text-zinc-100">
+          Sigma rule
+          <span className="ml-2 rounded border border-white/10 bg-white/5 px-1.5 py-0.5 font-mono text-xs text-zinc-400">
+            YAML
+          </span>
         </span>
-        <span className="rounded-md border border-overlay/[0.06] bg-overlay/[0.04] px-2 py-1 text-muted-foreground text-xs">
-          ⌘↵ Convert
-        </span>
+        <kbd className="kbd">⌘↵ Convert</kbd>
       </div>
       <div className="flex-1">
         <Editor

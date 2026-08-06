@@ -62,8 +62,12 @@ export function OutputPanel({
       try {
         const lang = shikiLangMap[language] ?? "text";
         const html = await codeToHtml(query, {
+          defaultColor: false,
           lang,
-          theme: "vesper",
+          themes: {
+            dark: "vesper",
+            light: "github-light",
+          },
         });
         if (!cancelled) {
           setHighlightedHtml(html);
@@ -83,11 +87,10 @@ export function OutputPanel({
   }, [query, language, error, isLoading]);
 
   return (
-    <div className="flex h-full flex-col bg-editor">
+    <div className="flex h-full flex-col bg-sunken">
       <div className="flex items-center justify-between border-overlay/[0.06] border-b px-4 py-2">
-        <span className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
-          {backend}{" "}
-          <span className="text-muted-foreground">({language})</span>
+        <span className="font-medium text-sm text-foreground">
+          {backend} query
         </span>
         {query && (
           <button

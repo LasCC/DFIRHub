@@ -24,22 +24,23 @@ export function RelatedArtifacts({ rule }: RelatedArtifactsProps) {
   }
 
   return (
-    <div className="rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] p-4">
-      <h3 className="mb-3 text-muted-foreground text-xs uppercase tracking-wider">
-        Related KAPE Targets
-      </h3>
-      <div className="flex flex-wrap gap-2">
-        {relatedTargets.map((target) => (
-          <a
-            className="flex items-center gap-1.5 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-1.5 text-sm text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground"
-            href={`/artifact/${target.slug}`}
-            key={target.slug}
-          >
-            {target.name}
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        ))}
-      </div>
+    <div className="flex flex-wrap items-center gap-2 border-overlay/[0.06] border-t bg-overlay/[0.01] px-4 py-3">
+      <span className="mr-1 text-muted-foreground text-sm">
+        <span className="font-medium text-foreground">
+          Collect the evidence
+        </span>
+        {" · "}KAPE targets for this rule's log source:
+      </span>
+      {relatedTargets.map((target) => (
+        <a
+          className="flex items-center gap-1.5 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-1.5 text-sm text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground"
+          href={`/artifact/${target.slug}`}
+          key={target.slug}
+        >
+          {target.name}
+          <ExternalLink className="h-3 w-3" />
+        </a>
+      ))}
     </div>
   );
 }

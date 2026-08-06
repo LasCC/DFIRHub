@@ -667,6 +667,18 @@
   }
 }
 
+/* Shiki dual-theme output: tokens carry --shiki-light/--shiki-dark vars,
+   switched by the site theme class on <html>. */
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+}
+
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    Loading States
    ═══════════════════════════════════════════════════════════════════════════ */

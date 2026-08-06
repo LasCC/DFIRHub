@@ -66,7 +66,7 @@ interface ConverterSettings {
 }
 
 const DEFAULT_SETTINGS: ConverterSettings = {
-  autoConvert: false,
+  autoConvert: true,
   backendOptions: {},
   correlationMethod: "",
   customPipelineYaml: "",
@@ -481,6 +481,12 @@ export function ConverterLayout() {
               <span>Search SigmaHQ</span>
             </button>
 
+            {/* Divider: input sources | output settings */}
+            <div
+              aria-hidden="true"
+              className="mx-1 h-6 w-px shrink-0 bg-border"
+            />
+
             {/* Target selector */}
             <TargetSelector
               multiSelect={multiMode}
@@ -502,7 +508,7 @@ export function ConverterLayout() {
               selectedPipeline={selectedPipeline}
             />
 
-            {/* Multi toggle */}
+            {/* Multi-backend compare toggle */}
             <button
               aria-pressed={multiMode}
               className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
@@ -511,19 +517,19 @@ export function ConverterLayout() {
                   : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
               }`}
               onClick={() => setMultiMode((prev) => !prev)}
-              title="Convert to multiple backends at once"
+              title="Convert to multiple backends at once and compare outputs side-by-side"
               type="button"
             >
               <Columns aria-hidden="true" className="h-3.5 w-3.5" />
-              Multi
+              Compare backends
             </button>
 
-            {/* Auto toggle */}
+            {/* Auto-convert toggle */}
             <button
               aria-pressed={autoConvert}
               className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
                 autoConvert
-                  ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                  ? "border-primary/30 bg-primary/10 text-primary"
                   : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
               }`}
               onClick={() => setAutoConvert((prev) => !prev)}
@@ -531,7 +537,7 @@ export function ConverterLayout() {
               type="button"
             >
               <Zap aria-hidden="true" className="h-3.5 w-3.5" />
-              Auto
+              Auto-convert
             </button>
 
             {/* Desktop-only spacer + split Convert button */}
@@ -602,7 +608,7 @@ export function ConverterLayout() {
         />
       )}
 
-      {/* Editor + Output */}
+      {/* Editor + Output workspace */}
       <div className="grid min-h-[500px] grid-cols-1 gap-0 overflow-hidden rounded-lg border border-overlay/[0.06] lg:grid-cols-2">
         <div className="border-overlay/[0.06] border-b lg:border-r lg:border-b-0">
           <Suspense
@@ -632,10 +638,11 @@ export function ConverterLayout() {
             />
           )}
         </div>
+        {/* Workspace footer: evidence collection links for this rule */}
+        <div className="lg:col-span-2">
+          <RelatedArtifacts rule={rule} />
+        </div>
       </div>
-
-      {/* Related Artifacts */}
-      <RelatedArtifacts rule={rule} />
 
       {/* Export Dialog */}
       {showExport && (
