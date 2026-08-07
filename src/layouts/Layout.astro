@@ -21,7 +21,12 @@ const {
 } = Astro.props;
 
 const siteUrl = "https://dfirhub.com";
-const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
+// Netlify serves flat `.html` build files at clean URLs. Keep the canonical
+// URL aligned with the clean URLs used by links and the sitemap.
+const canonicalPath =
+  Astro.url.pathname.replace(/\/index\.html$/, "/").replace(/\.html$/, "") ||
+  "/";
+const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
 const fullTitle =
   title === "DFIRHub"
     ? "DFIRHub - DFIR Artifact Search & Reference"
