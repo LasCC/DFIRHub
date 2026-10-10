@@ -24,10 +24,7 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      changefreq: "weekly",
       filter: (page) => !page.includes("?"),
-      lastmod: new Date(),
-      priority: 0.7,
     }),
   ],
 

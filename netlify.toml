@@ -4,7 +4,7 @@ publish = "dist"
 
 [build.environment]
 # Astro 7 requires Node >= 22.12
-NODE_VERSION = "22"
+NODE_VERSION = "24"
 
 # Note on trailing slashes: do NOT add `from = "/foo/"` rules here.
 # Netlify treats /foo and /foo/ as equivalent on the match side, so a rule
@@ -144,42 +144,6 @@ status = 301
 [[redirects]]
 from = "/a/*"
 to = "/artifact/:splat"
-status = 301
-
-# Category redirects (legacy URLs)
-[[redirects]]
-from = "/category/windows"
-to = "/artifacts?category=windows"
-status = 301
-
-[[redirects]]
-from = "/category/browsers"
-to = "/artifacts?category=browsers"
-status = 301
-
-[[redirects]]
-from = "/category/apps"
-to = "/artifacts?category=apps"
-status = 301
-
-[[redirects]]
-from = "/category/antivirus"
-to = "/artifacts?category=antivirus"
-status = 301
-
-[[redirects]]
-from = "/category/logs"
-to = "/artifacts?category=logs"
-status = 301
-
-[[redirects]]
-from = "/category/p2p"
-to = "/artifacts?category=p2p"
-status = 301
-
-[[redirects]]
-from = "/category/compound"
-to = "/artifacts?category=compound"
 status = 301
 
 # PostHog reverse proxy (avoids ad blockers)

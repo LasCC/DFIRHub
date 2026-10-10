@@ -5,6 +5,7 @@ import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
 import { getCategoryStyle } from "../lib/categoryStyles";
 import { getCategories, getStats, loadAllTargets } from '../lib/kapefiles';
+import { buildBreadcrumbJsonLd } from '../lib/seo';
 import type { KapeTarget } from '../lib/kapefiles';
 
 const targets = loadAllTargets();
@@ -168,12 +169,21 @@ const filterCategories = [
     label: cat,
   })),
 ];
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Artifacts", path: "/artifacts" },
+]);
+const seoDescription = `Browse and search ${stats.total} Windows forensic artifacts and KAPE targets with collection paths, grouped by category for DFIR investigations.`;
 ---
 
-<Layout
-  title="All Artifacts"
-  description="Browse all KAPE forensic artifact targets"
->
+<Layout title="All Windows Forensic Artifacts & KAPE Targets" description={seoDescription}>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbJsonLd)}
+    slot="head"
+  />
   <Header client:load currentPath={Astro.url.pathname} />
 
   <main id="main-content" class="flex-1 relative" tabindex="-1">
@@ -325,7 +335,7 @@ const filterCategories = [
                                     {targetsByCategory[category].length > 6 && (
                                         <li>
                                             <a
-                                                href={"/artifacts?category=" + category.toLowerCase()}
+                                                href={"/category/" + category.toLowerCase()}
                                                 class="flex items-center justify-between px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                             >
                                                 <span>View all {targetsByCategory[category].length} in {category}</span>

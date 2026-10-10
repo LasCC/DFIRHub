@@ -3,6 +3,7 @@ import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
 import { getCompoundTargets, resolveCompoundReferences } from '../lib/kapefiles';
+import { buildBreadcrumbJsonLd } from '../lib/seo';
 
 const collections = getCompoundTargets();
 
@@ -29,12 +30,21 @@ const others = sortedCollections.filter(
       c.name.toLowerCase().includes(name.toLowerCase())
     )
 );
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Collections", path: "/collections" },
+]);
+const seoDescription = `Browse ${collections.length} pre-built KAPE triage collections, such as KapeTriage and SANS Triage, for rapid forensic acquisition during incident response.`;
 ---
 
-<Layout
-  title="Triage Collections"
-  description="Pre-built KAPE triage collections for rapid forensic acquisition"
->
+<Layout title="KAPE Triage Collections" description={seoDescription}>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbJsonLd)}
+    slot="head"
+  />
   <Header client:load currentPath={Astro.url.pathname} />
 
   <main id="main-content" class="flex-1 relative" tabindex="-1">

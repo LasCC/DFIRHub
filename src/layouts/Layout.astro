@@ -3,11 +3,13 @@ import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import { KeyboardShortcuts } from "../components/layout/KeyboardShortcuts";
 import PostHog from "../components/PostHog.astro";
+import { GITHUB_URL, LOGO_URL, SITE_NAME, SITE_URL } from "../lib/seo";
 
 interface Props {
   title: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
   type?: "website" | "article";
   noindex?: boolean;
 }
@@ -16,11 +18,34 @@ const {
   title,
   description = "Digital Forensics and Incident Response artifact search and reference tool. Search 350+ Windows forensic artifacts, KAPE targets, and collection paths.",
   image = "/og-image.png",
+  imageAlt = "DFIRHub - Windows forensic artifact search and KAPE reference",
   type = "website",
   noindex = false,
 } = Astro.props;
 
-const siteUrl = "https://dfirhub.com";
+const siteUrl = SITE_URL;
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@id": `${siteUrl}/#website`,
+      "@type": "WebSite",
+      description:
+        "Digital Forensics and Incident Response artifact search and reference tool",
+      name: SITE_NAME,
+      publisher: { "@id": `${siteUrl}/#organization` },
+      url: siteUrl,
+    },
+    {
+      "@id": `${siteUrl}/#organization`,
+      "@type": "Organization",
+      logo: { "@type": "ImageObject", url: LOGO_URL },
+      name: SITE_NAME,
+      sameAs: [GITHUB_URL],
+      url: siteUrl,
+    },
+  ],
+};
 // Netlify serves flat `.html` build files at clean URLs. Keep the canonical
 // URL aligned with the clean URLs used by links and the sitemap.
 const canonicalPath =
@@ -122,10 +147,6 @@ const fullTitle =
     <title>{fullTitle}</title>
     <meta name="title" content={fullTitle}>
     <meta name="description" content={description}>
-    <meta
-      name="keywords"
-      content="DFIR, digital forensics, incident response, KAPE, forensic artifacts, Windows forensics, malware analysis, threat hunting, evidence collection"
-    >
     <meta name="author" content="DFIRHub">
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
@@ -142,6 +163,10 @@ const fullTitle =
     <meta property="og:title" content={fullTitle}>
     <meta property="og:description" content={description}>
     <meta property="og:image" content={`${siteUrl}${image}`}>
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content={imageAlt}>
     <meta property="og:site_name" content="DFIRHub">
     <meta property="og:locale" content="en_US">
 
@@ -151,30 +176,18 @@ const fullTitle =
     <meta name="twitter:title" content={fullTitle}>
     <meta name="twitter:description" content={description}>
     <meta name="twitter:image" content={`${siteUrl}${image}`}>
+    <meta name="twitter:image:alt" content={imageAlt}>
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
 
     <!-- Structured Data (JSON-LD) -->
     <script is:inline
       type="application/ld+json"
-      set:html={JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebSite",
-                name: "DFIRHub",
-                url: siteUrl,
-                description:
-                    "Digital Forensics and Incident Response artifact search and reference tool",
-                potentialAction: {
-                    "@type": "SearchAction",
-                    target: {
-                        "@type": "EntryPoint",
-                        urlTemplate: `${siteUrl}/artifacts?q={search_term_string}`,
-                    },
-                    "query-input": "required name=search_term_string",
-                },
-            })}
+      set:html={JSON.stringify(structuredData)}
     />
 
     <!-- Analytics -->

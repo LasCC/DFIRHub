@@ -3,9 +3,41 @@ import { ConverterLayout } from "../components/converter/ConverterLayout";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
+import { buildBreadcrumbJsonLd, SITE_NAME, SITE_URL } from "../lib/seo";
+
+const seoDescription =
+  "Free Sigma rule converter. Convert Sigma detection rules to Splunk, Kusto, Lucene and other SIEM queries in your browser. Your rules never leave your device.";
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Sigma Converter", path: "/converter" },
+]);
+const applicationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  applicationCategory: "SecurityApplication",
+  description: seoDescription,
+  isAccessibleForFree: true,
+  name: "Sigma Rule Converter",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  operatingSystem: "Web",
+  provider: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+  url: `${SITE_URL}/converter`,
+};
 ---
 
-<Layout title="Sigma Rule Converter">
+<Layout title="Sigma Rule Converter" description={seoDescription}>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbJsonLd)}
+    slot="head"
+  />
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(applicationJsonLd)}
+    slot="head"
+  />
   <Header client:load currentPath={Astro.url.pathname} />
 
   <main id="main-content" class="flex-1 relative" tabindex="-1">

@@ -18,6 +18,15 @@ import { Header } from "../../components/layout/Header";
 import Layout from "../../layouts/Layout.astro";
 import { findCollectionsContaining, getResolvedEntries, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
 import type { KapeTarget } from '../../lib/kapefiles';
+import {
+  buildArtifactDescription,
+  buildArtifactTitle,
+  buildBreadcrumbJsonLd,
+  getTargetDates,
+  LOGO_URL,
+  SITE_NAME,
+  SITE_URL,
+} from '../../lib/seo';
 
 export async function getStaticPaths() {
   const targets = loadAllTargets();
@@ -92,21 +101,11 @@ for (const entry of docNotes) {
   }
 }
 
-// SEO description with context
-const pathCount = target.isCompound
-  ? `${target.referencedTargets.length} targets`
-  : `${target.targets.filter((e) => !e.path.endsWith(".tkape")).length} paths`;
-const seoDescription = target.description
-  ? target.description +
-    " KAPE target with " +
-    pathCount +
-    " for Windows forensic collection."
-  : target.name +
-    " - Windows forensic artifact with " +
-    pathCount +
-    ". KAPE collection target for DFIR investigations.";
+const seoTitle = buildArtifactTitle(target);
+const seoDescription = buildArtifactDescription(target);
+const artifactUrl = `${SITE_URL}/artifact/${target.slug}`;
+const targetDates = getTargetDates(target);
 
-// JSON-LD for artifact page
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "TechArticle",
@@ -120,7 +119,9 @@ const jsonLd = {
     name: target.author,
   },
   description: seoDescription,
-  headline: `${target.name} - Windows Forensic Artifact`,
+  headline: `${target.name} - Windows Forensic Artifact`.slice(0, 110),
+  image: `${SITE_URL}/og-image.png`,
+  inLanguage: "en",
   keywords: [
     "DFIR",
     "forensics",
@@ -130,21 +131,38 @@ const jsonLd = {
     "Windows forensics",
   ].join(", "),
   mainEntityOfPage: {
-    "@id": `https://dfirhub.com/artifact/${target.slug}`,
+    "@id": artifactUrl,
     "@type": "WebPage",
   },
   publisher: {
     "@type": "Organization",
-    name: "DFIRHub",
+    logo: { "@type": "ImageObject", url: LOGO_URL },
+    name: SITE_NAME,
+    url: SITE_URL,
   },
+  ...(targetDates && {
+    dateModified: targetDates.modified,
+    datePublished: targetDates.published,
+  }),
 };
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Artifacts", path: "/artifacts" },
+  { name: target.category, path: `/category/${target.category.toLowerCase()}` },
+  { name: target.name, path: `/artifact/${target.slug}` },
+]);
 ---
 
-<Layout title={target.name} description={seoDescription} type="article">
-  <!-- Artifact-specific JSON-LD -->
+<Layout title={seoTitle} description={seoDescription} type="article">
   <script is:inline
     type="application/ld+json"
     set:html={JSON.stringify(jsonLd)}
+    slot="head"
+  />
+  <script is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbJsonLd)}
     slot="head"
   />
 
@@ -174,8 +192,7 @@ const jsonLd = {
             <li class="flex items-center gap-1">
               <span aria-hidden="true">/</span>
               <a
-                href={"/artifacts?category=" +
-                                    target.category.toLowerCase()}
+                href={"/category/" + target.category.toLowerCase()}
                 class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
               >
                 {target.category}

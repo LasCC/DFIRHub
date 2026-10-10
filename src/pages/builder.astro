@@ -4,13 +4,49 @@ import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
 import { getCategories, loadAllTargets } from '../lib/kapefiles';
+import {
+  buildBreadcrumbJsonLd,
+  SITE_NAME,
+  SITE_URL,
+} from '../lib/seo';
 
 // Load data at build time
 const allTargets = loadAllTargets();
 const categories = getCategories();
+
+const seoDescription =
+  "Free KAPE script builder. Select forensic artifact targets and export a ready-to-run KAPE command, PowerShell script or batch file for evidence collection.";
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Script Builder", path: "/builder" },
+]);
+const applicationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  applicationCategory: "SecurityApplication",
+  description: seoDescription,
+  isAccessibleForFree: true,
+  name: "KAPE Script Builder",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  operatingSystem: "Web",
+  provider: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+  url: `${SITE_URL}/builder`,
+};
 ---
 
-<Layout title="Script Builder">
+<Layout title="KAPE Script Builder" description={seoDescription}>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbJsonLd)}
+    slot="head"
+  />
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(applicationJsonLd)}
+    slot="head"
+  />
   <Header client:load currentPath={Astro.url.pathname} />
 
   <main id="main-content" class="flex-1 relative" tabindex="-1">

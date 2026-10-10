@@ -1,0 +1,179 @@
+---
+import Footer from "../../components/layout/Footer.astro";
+import { Header } from "../../components/layout/Header";
+import Layout from "../../layouts/Layout.astro";
+import { getCategoryStyle } from "../../lib/categoryStyles";
+import { getCategories, getTargetsByCategory } from "../../lib/kapefiles";
+import {
+  buildBreadcrumbJsonLd,
+  SITE_URL,
+  truncateAtWord,
+} from "../../lib/seo";
+
+export function getStaticPaths() {
+  return getCategories().map((category) => ({
+    params: { category: category.toLowerCase() },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const style = getCategoryStyle(category);
+const targets = getTargetsByCategory(category);
+const otherCategories = getCategories().filter((name) => name !== category);
+
+const featuredNames = targets
+  .slice(0, 4)
+  .map((target) => target.name)
+  .join(", ");
+const seoDescription = truncateAtWord(
+  `Browse ${targets.length} ${category} KAPE targets for Windows forensic collection and DFIR triage, including ${featuredNames}.`,
+  158
+);
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Artifacts", path: "/artifacts" },
+  { name: category, path: `/category/${category.toLowerCase()}` },
+]);
+
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  description: seoDescription,
+  isPartOf: { "@type": "WebSite", url: SITE_URL },
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: targets.map((target, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${SITE_URL}/artifact/${target.slug}`,
+    })),
+  },
+  name: `${category} KAPE targets`,
+};
+---
+
+<Layout
+  title={`${category} Forensic Artifacts & KAPE Targets`}
+  description={seoDescription}
+>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbJsonLd)}
+    slot="head"
+  />
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(collectionJsonLd)}
+    slot="head"
+  />
+
+  <Header client:load currentPath={Astro.url.pathname} />
+
+  <main id="main-content" class="flex-1 relative" tabindex="-1">
+    <div class="mx-auto max-w-6xl px-4 py-8">
+      <nav class="mb-6 text-xs text-muted-foreground" aria-label="Breadcrumb">
+        <ol class="flex items-center gap-1">
+          <li>
+            <a
+              href="/"
+              class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+              >Home</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <a
+              href="/artifacts"
+              class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+              >Artifacts</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <span class="text-foreground px-1" aria-current="page"
+              >{category}</span
+            >
+          </li>
+        </ol>
+      </nav>
+
+      <header class="mb-8">
+        <h1
+          class="mb-2 flex items-center gap-3 text-2xl font-semibold tracking-tight sm:text-3xl"
+        >
+          <span class={`h-2.5 w-2.5 rounded-full ${style.accent}`}></span>
+          {category} artifacts
+        </h1>
+        <p class="text-sm text-muted-foreground sm:text-base">
+          <span class="font-medium text-foreground">{targets.length}</span> KAPE
+          targets for Windows forensic collection in the {category} category.
+        </p>
+      </header>
+
+      <ul
+        class="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card"
+      >
+        {
+          targets.map((target) => {
+            const pathCount = target.targets.filter(
+              (entry) => !entry.path.endsWith(".tkape")
+            ).length;
+            const countLabel = target.isCompound
+              ? `${target.referencedTargets.length} targets`
+              : `${pathCount} ${pathCount === 1 ? "path" : "paths"}`;
+            return (
+              <li>
+                <a
+                  href={`/artifact/${target.slug}`}
+                  class="group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
+                >
+                  <span
+                    class="w-48 shrink-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-56"
+                  >
+                    {target.name}
+                  </span>
+                  <span
+                    class="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block"
+                  >
+                    {target.description || "No description available"}
+                  </span>
+                  <span
+                    class="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums"
+                  >
+                    {countLabel}
+                  </span>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+
+      <nav class="mt-10" aria-label="Other categories">
+        <h2 class="mb-3 text-sm font-medium text-foreground">
+          Other categories
+        </h2>
+        <ul class="flex flex-wrap gap-2">
+          {
+            otherCategories.map((name) => (
+              <li>
+                <a
+                  href={`/category/${name.toLowerCase()}`}
+                  class="inline-block rounded-md border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  {name}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
