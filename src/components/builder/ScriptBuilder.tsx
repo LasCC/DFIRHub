@@ -9,11 +9,8 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import type { CategoryStyle } from "@/lib/categoryStyles";
-
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 import { trackBuilderCopy, trackBuilderDownload } from "@/lib/analytics";
-import { getCategoryStyle } from "@/lib/categoryStyles";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 
@@ -40,14 +37,8 @@ const categoryIconMap: Record<
   windows: Monitor,
 };
 
-// categoryStyles keys are capitalized ("Windows", "P2P"); normalize lookup.
-const SPECIAL_KEYS: Record<string, string> = { p2p: "P2P" };
-
-function resolveCategoryStyle(category: string): CategoryStyle {
-  const lower = category.toLowerCase();
-  const key =
-    SPECIAL_KEYS[lower] ?? lower.charAt(0).toUpperCase() + lower.slice(1);
-  return getCategoryStyle(key);
+function formatPathCount(count: number): string {
+  return count === 1 ? "1 path" : `${count} paths`;
 }
 
 interface ScriptOptions {
@@ -461,7 +452,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
     <div className="space-y-6">
       {/* Target Selection */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
+        <h2 className="mb-3 flex items-center gap-2 text-muted-foreground text-xs">
           Select targets
           <span className="text-primary">
             ({selectedTargets.size} selected)
@@ -472,16 +463,15 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
         <div className="mb-4 flex flex-wrap gap-2">
           {categories.map((cat) => {
             const Icon = categoryIconMap[cat.toLowerCase()];
-            const style = resolveCategoryStyle(cat);
             const isActive = activeCategory === cat;
 
             return (
               <button
                 aria-pressed={isActive}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs transition-colors ${
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${
                   isActive
-                    ? `border border-current/40 ${style.bg} ${style.text}`
-                    : "border border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/10 hover:bg-overlay/[0.04] hover:text-foreground"
+                    ? "border border-primary bg-primary text-primary-foreground"
+                    : "border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -546,7 +536,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                   <div className="min-w-0 flex-1">
                     <span className="text-sm">{target.name}</span>
                     {target.isCompound && (
-                      <span className="ml-2 rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-700 text-xs uppercase dark:text-cyan-400">
+                      <span className="ml-2 rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-700 text-xs dark:text-cyan-400">
                         Collection
                       </span>
                     )}
@@ -554,7 +544,9 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                   <span className="shrink-0 text-muted-foreground text-xs">
                     {target.isCompound
                       ? `${target.referencedTargets.length} targets`
-                      : `${target.targets.filter((e) => !e.path.endsWith(".tkape")).length} paths`}
+                      : formatPathCount(
+                          target.targets.filter((e) => !e.path.endsWith(".tkape")).length
+                        )}
                   </span>
                 </label>
               ))}
@@ -565,7 +557,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
 
       {/* Export Options */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
+        <h2 className="mb-3 flex items-center gap-2 text-muted-foreground text-xs">
           Export options
         </h2>
         <div className="glass-subtle rounded-xl p-4">
@@ -684,7 +676,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
       {/* Generated Script */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
+          <h2 className="flex items-center gap-2 text-muted-foreground text-xs">
             Generated {options.format === "kape" ? "command" : "script"}
           </h2>
           {generatedScript && (

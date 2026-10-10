@@ -305,7 +305,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
               {uniqueCategories.map((cat) => (
                 <button
                   aria-pressed={activeCategories.has(cat)}
-                  className={`inline-flex cursor-pointer items-center rounded-full border px-2 py-0.5 font-medium text-xs uppercase tracking-wider transition-opacity ${getCategoryClasses(cat)} ${
+                  className={`inline-flex cursor-pointer items-center rounded-md border px-2 py-0.5 font-medium text-xs transition-opacity ${getCategoryClasses(cat)} ${
                     activeCategories.size > 0 && !activeCategories.has(cat)
                       ? "opacity-30"
                       : ""

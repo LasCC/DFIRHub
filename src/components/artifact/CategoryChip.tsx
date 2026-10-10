@@ -50,22 +50,22 @@ export function CategoryChip({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <a
-        className={`group inline-flex items-center gap-2 rounded-full border border-current/40 px-4 py-2 font-medium text-xs transition-colors ${style.bg} ${style.text}`}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-foreground text-sm transition-colors hover:bg-muted"
         href={`/artifacts?category=${categoryLower}`}
       >
-        <Icon className="h-3.5 w-3.5" />
+        <Icon className={`h-3.5 w-3.5 ${style.text}`} />
         <span>{category}</span>
       </a>
 
       {isCompound && categoryLower !== "compound" && (
-        <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/5 px-4 py-2 font-medium text-cyan-800 text-xs dark:text-cyan-400">
-          <Layers className="h-3.5 w-3.5" />
+        <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-foreground text-sm">
+          <Layers className="h-3.5 w-3.5 text-cyan-800 dark:text-cyan-400" />
           <span>Compound</span>
         </span>
       )}
 
-      <span className="inline-flex items-center rounded-full border border-overlay/[0.08] bg-overlay/[0.04] px-3 py-2 font-medium text-muted-foreground text-xs">
-        v{version}
+      <span className="inline-flex items-center rounded-md px-1 py-1 text-muted-foreground text-sm">
+        Version {version}
       </span>
     </div>
   );

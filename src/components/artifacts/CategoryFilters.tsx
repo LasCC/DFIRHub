@@ -11,7 +11,6 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { trackCategoryFilterUsed } from "@/lib/analytics";
-import { getCategoryStyle } from "@/lib/categoryStyles";
 
 interface Category {
   id: string;
@@ -35,20 +34,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   windows: Monitor,
 };
 
-const categoryNameById: Record<string, string> = {
-  antivirus: "Antivirus",
-  apps: "Apps",
-  browsers: "Browsers",
-  compound: "Compound",
-  logs: "Logs",
-  p2p: "P2P",
-  windows: "Windows",
-};
-
 const allActiveClasses =
-  "data-[active=true]:!border-primary/70 data-[active=true]:!bg-primary/10 data-[active=true]:!text-primary";
+  "data-[active=true]:!border-primary data-[active=true]:!bg-primary data-[active=true]:!text-primary-foreground";
 const categoryActiveClasses =
-  "data-[active=true]:!border-foreground/40 data-[active=true]:!bg-overlay/[0.06] data-[active=true]:!text-foreground";
+  "data-[active=true]:!border-primary data-[active=true]:!bg-primary data-[active=true]:!text-primary-foreground";
 
 export function CategoryFilters({ categories }: CategoryFiltersProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -91,14 +80,12 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
       >
         {categories.map((cat) => {
           const Icon = iconMap[cat.id.toLowerCase()] || LayoutGrid;
-          const categoryName = categoryNameById[cat.id.toLowerCase()];
-          const style = categoryName ? getCategoryStyle(categoryName) : null;
           const activeClasses =
             cat.id === "all" ? allActiveClasses : categoryActiveClasses;
 
           return (
             <a
-              className={`group category-filter-btn inline-flex shrink-0 items-center gap-2 rounded-full border border-overlay/[0.06] bg-overlay/[0.02] px-4 py-2 font-medium text-xs text-muted-foreground transition-all duration-300 hover:border-overlay/10 hover:bg-overlay/[0.04] hover:text-foreground ${activeClasses}`}
+              className={`group category-filter-btn inline-flex shrink-0 items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 font-medium text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground ${activeClasses}`}
               data-filter-id={cat.id}
               data-special={cat.special ? "true" : undefined}
               href={
@@ -114,10 +101,10 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
               }}
             >
               <Icon
-                className={`h-3.5 w-3.5 transition-colors ${style ? style.text : "text-muted-foreground"}`}
+                className="h-3.5 w-3.5"
               />
               <span>{cat.label}</span>
-              <span className="rounded-full border border-transparent bg-overlay/[0.06] px-1.5 py-0.5 text-xs tabular-nums">
+              <span className="rounded-sm bg-muted px-1.5 text-xs tabular-nums group-data-[active=true]:bg-primary-foreground/20 group-data-[active=true]:text-primary-foreground">
                 {cat.count}
               </span>
             </a>

@@ -204,11 +204,9 @@ const jsonLd = {
                 isCompound={target.isCompound}
               />
             </div>
-            <div class="text-xs text-muted-foreground sm:text-right sm:shrink-0 sm:max-w-[50%]">
-              <p class="break-words">
-                Author: <span class="text-foreground">{target.author}</span>
-              </p>
-            </div>
+            <p class="text-sm text-muted-foreground break-words sm:text-right sm:shrink-0 sm:max-w-[50%]">
+              By <span class="text-foreground">{target.author}</span>
+            </p>
           </div>
         </ArtifactHeader>
 
@@ -227,14 +225,14 @@ const jsonLd = {
                         >
                             <h2
                                 id="includes-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
+                                class="text-sm font-medium text-foreground mb-3"
                             >
                                 Includes
                                 <span class="text-primary">
                                     ({referencedResolved.length})
                                 </span>
                             </h2>
-                            <ArtifactList className="glass-subtle rounded-xl divide-y divide-overlay/[0.04]">
+                            <ArtifactList className="glass-subtle rounded-lg divide-y divide-overlay/[0.04]">
                                 {target.referencedTargets
                                     .slice(0, 20)
                                     .map((ref) => {
@@ -303,7 +301,7 @@ const jsonLd = {
         <ArtifactSection className="mb-8" ariaLabel="paths-heading">
           <h2
             id="paths-heading"
-            class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
+            class="text-sm font-medium text-foreground mb-3"
           >
             Paths
           </h2>
@@ -327,7 +325,7 @@ const jsonLd = {
                         >
                             <h2
                                 id="references-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
+                                class="text-sm font-medium text-foreground mb-3"
                             >
                                 References
                             </h2>
@@ -343,9 +341,9 @@ const jsonLd = {
                                                 href={url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                class="group flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-overlay/[0.03] focus-ring"
+                                                class="group flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-muted focus-ring"
                                             >
-                                                <span class="shrink-0 rounded bg-overlay/[0.05] px-1.5 py-0.5 font-mono text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+                                                <span class="shrink-0 rounded border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground group-hover:text-foreground transition-colors">
                                                     {host}
                                                 </span>
                                                 <span class="truncate text-primary group-hover:underline">
@@ -383,11 +381,11 @@ const jsonLd = {
                         >
                             <h2
                                 id="notes-heading"
-                                class="text-xs uppercase tracking-wider text-muted-foreground mb-3"
+                                class="text-sm font-medium text-foreground mb-3"
                             >
                                 Notes
                             </h2>
-                            <div class="glass-subtle rounded-xl p-5 space-y-4 text-sm leading-relaxed text-foreground/80">
+                            <div class="glass-subtle rounded-lg p-5 space-y-4 text-sm leading-relaxed text-foreground/80">
                                 {noteBlocks.map((block) => (
                                     block.type === "text" ? (
                                         <p class="break-words">{block.value}</p>
@@ -404,7 +402,7 @@ const jsonLd = {
           <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-overlay/[0.03] focus-ring [&::-webkit-details-marker]:hidden">
             <h2
               id="commands-heading"
-              class="text-xs uppercase tracking-wider text-muted-foreground"
+              class="text-sm font-medium text-foreground"
             >
               Collection commands
             </h2>
