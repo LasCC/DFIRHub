@@ -1,19 +1,22 @@
 # DFIRHub
 
-A web application for searching Windows forensic artifacts, converting Sigma rules, and generating collection scripts.
+DFIRHub is a reference for Windows forensic artifacts. It lists the KAPE targets from Eric Zimmerman's KapeFiles repository, shows what each one collects, and gives you the command to run. It also converts Sigma rules into queries for your SIEM.
 
-![DFIRHub Screenshot](public/og-image.png)
+![DFIRHub landing page](docs/screenshot.png)
 
-## Features
+## What it does
 
-- **Artifact Search** — Browse and search Windows forensic artifacts with KAPE integration
-- **Sigma Converter** — Convert Sigma rules to 17+ backends (Splunk, Elastic, KQL, Loki, CrowdStrike, etc.) using pySigma in-browser via Pyodide
-- **SigmaHQ Search** — Search and import rules directly from the SigmaHQ repository
-- **Collection Commands** — Generate PowerShell, Batch, and WSL collection scripts
-- **Script Builder** — Build custom multi-artifact collection scripts
-- **Keyboard Navigation** — Full shortcut support (`/`, `Cmd+K`, `Cmd+Shift+K`, vim-style `g` sequences)
+You can search artifacts by name, or start from a question on the home page, such as "Did this program run?". Each artifact page lists the paths KAPE collects, adds notes, and links to CyberChef recipes for the data inside. A side panel builds the collection command for KAPE, PowerShell, Batch, or WSL.
 
-## Quick Start
+Collections group related artifacts, and the script builder combines several artifacts into one collection script. Short links open an artifact directly: `/prefetch` works for popular ones, and `/a/<slug>` works for every artifact.
+
+The converter turns a Sigma rule into one of 17 backends, including Splunk, Elastic, KQL, Loki, and CrowdStrike. It runs pySigma in the browser through Pyodide. You can also search the SigmaHQ repository and import a rule from the results.
+
+The site is dark by default. The header switch also offers a light theme and an auto setting that follows your browser. Every artifact page has its own social preview image, rendered at build time.
+
+## Getting started
+
+You need Node 24 and pnpm 10. The KapeFiles data is a git submodule, so initialize it after you clone.
 
 ```bash
 git clone https://github.com/LasCC/DFIRHub.git
@@ -27,55 +30,67 @@ Open `http://localhost:4321`.
 
 ## Commands
 
-| Command                | Description                            |
-| ---------------------- | -------------------------------------- |
-| `pnpm dev`             | Development server                     |
-| `pnpm build`           | Production build                       |
-| `pnpm preview`         | Preview production build               |
-| `pnpm test`            | Run tests                              |
-| `pnpm run sigma:index` | Rebuild Sigma rules index from SigmaHQ |
+| Command                | Description                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| `pnpm dev`             | Start the development server                                                        |
+| `pnpm build`           | Build the site. It also renders a social image per artifact, about 90 seconds total |
+| `pnpm preview`         | Serve the production build locally                                                  |
+| `pnpm test`            | Run the tests                                                                       |
+| `pnpm astro check`     | Type check the project                                                              |
+| `pnpm check`           | Lint and check formatting with Ultracite                                            |
+| `pnpm fix`             | Fix lint and formatting problems                                                    |
+| `pnpm run sigma:index` | Rebuild the Sigma rules index from SigmaHQ                                          |
 
-## Project Structure
+## Project structure
 
 ```
 src/
 ├── components/
+│   ├── artifact/     # Artifact page: paths, command generator, CyberChef links
+│   ├── artifacts/    # Category filters for the artifact list
+│   ├── builder/      # Script builder
 │   ├── converter/    # Sigma rule converter UI
-│   ├── layout/       # Header, Footer
+│   ├── home/         # Landing page sections
+│   ├── layout/       # Header, footer, shader background, keyboard shortcuts
 │   ├── search/       # Pagefind search
-│   └── ui/           # Shared Radix UI primitives
+│   └── ui/           # Shared UI primitives and code blocks
 ├── content/kapefiles # KapeFiles git submodule
-├── lib/sigma/        # Sigma converter engine (Pyodide worker, backends, pipelines)
-├── pages/            # Astro file-based routing
+├── hooks/            # Theme and clipboard hooks
+├── layouts/          # Base page layout and SEO tags
+├── lib/              # KAPE data, command generators, social card renderer
+│   └── sigma/        # Sigma converter engine (Pyodide worker, backends, pipelines)
+├── pages/            # Astro file-based routing, including /og/<slug>.png
 └── styles/           # Global Tailwind styles
 ```
 
-## CI/CD Pipelines
+## Deployment
 
-Both workflows require a `NETLIFY_BUILD_HOOK` secret (Netlify → Build hooks → copy URL → GitHub → Repo secrets).
+The site deploys to Netlify. Two GitHub Actions workflows keep the data current. Both need a `NETLIFY_BUILD_HOOK` secret, which you create under Build hooks in Netlify and add to the repository secrets in GitHub.
 
-| Workflow                 | Schedule                 | What it does                                                                           |
-| ------------------------ | ------------------------ | -------------------------------------------------------------------------------------- |
-| `update-kapefiles.yml`   | Weekly (Mon 00:00 UTC)   | Triggers Netlify rebuild to pull latest KapeFiles submodule                            |
-| `update-sigma-rules.yml` | Monthly (1st, 02:00 UTC) | Rebuilds Sigma rules index from SigmaHQ API, commits changes, triggers Netlify rebuild |
+| Workflow                 | Schedule                 | What it does                                                                            |
+| ------------------------ | ------------------------ | --------------------------------------------------------------------------------------- |
+| `update-kapefiles.yml`   | Weekly (Mon 00:00 UTC)   | Triggers a Netlify rebuild to pull the latest KapeFiles submodule                       |
+| `update-sigma-rules.yml` | Monthly (1st, 02:00 UTC) | Rebuilds the Sigma rules index from the SigmaHQ API, commits it, and triggers a rebuild |
 
-Both support `workflow_dispatch` for manual triggering.
+You can also start either workflow by hand with `workflow_dispatch`.
 
-## Keyboard Shortcuts
+## Keyboard shortcuts
 
 | Shortcut       | Action                             |
 | -------------- | ---------------------------------- |
 | `/` or `Cmd+K` | Open search                        |
 | `Cmd+Shift+K`  | Open Sigma search (converter page) |
 | `g h`          | Go to home                         |
-| `g a`          | Go to artefacts                    |
+| `g a`          | Go to artifacts                    |
 | `g c`          | Go to collections                  |
 | `g b`          | Go to builder                      |
+| `g s`          | Go to converter                    |
+| `j` / `k`      | Move down / up in a list           |
 | `?`            | Show all shortcuts                 |
 
-## Tech Stack
+## Built with
 
-[Astro](https://astro.build) + React, [Tailwind CSS](https://tailwindcss.com), [Pagefind](https://pagefind.app), [Pyodide](https://pyodide.org), [Netlify](https://netlify.com)
+[Astro](https://astro.build) and React, [Tailwind CSS](https://tailwindcss.com), [Pagefind](https://pagefind.app), [Pyodide](https://pyodide.org), [Satori](https://github.com/vercel/satori) for the social images, and [Netlify](https://netlify.com).
 
 ## License
 
@@ -83,6 +98,6 @@ Both support `workflow_dispatch` for manual triggering.
 
 ## Acknowledgments
 
-- [Eric Zimmerman](https://github.com/EricZimmerman) — KapeFiles and KAPE
-- [SigmaHQ](https://github.com/SigmaHQ/sigma) — Sigma detection rules
-- [pySigma](https://github.com/SigmaHQ/pySigma) — Sigma conversion engine
+- [Eric Zimmerman](https://github.com/EricZimmerman) wrote KAPE and maintains KapeFiles.
+- [SigmaHQ](https://github.com/SigmaHQ/sigma) maintains the Sigma detection rules.
+- [pySigma](https://github.com/SigmaHQ/pySigma) is the conversion engine.

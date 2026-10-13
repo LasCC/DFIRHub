@@ -164,6 +164,8 @@ const chipLinkClass =
 const seoTitle = buildArtifactTitle(target);
 const seoDescription = buildArtifactDescription(target);
 const artifactUrl = `${SITE_URL}/artifact/${target.slug}`;
+const socialImagePath = `/og/${target.slug}.png`;
+const socialImageAlt = `${target.name} KAPE target on DFIRHub`;
 const targetDates = getTargetDates(target);
 
 const jsonLd = {
@@ -180,7 +182,7 @@ const jsonLd = {
   },
   description: seoDescription,
   headline: `${target.name} - Windows Forensic Artifact`.slice(0, 110),
-  image: `${SITE_URL}/og-image.png`,
+  image: `${SITE_URL}${socialImagePath}`,
   inLanguage: "en",
   keywords: [
     "DFIR",
@@ -214,7 +216,13 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 ]);
 ---
 
-<Layout title={seoTitle} description={seoDescription} type="article">
+<Layout
+  title={seoTitle}
+  description={seoDescription}
+  type="article"
+  image={socialImagePath}
+  imageAlt={socialImageAlt}
+>
   <script is:inline
     type="application/ld+json"
     set:html={JSON.stringify(jsonLd)}
