@@ -1,0 +1,40 @@
+---
+interface Props extends astroHTML.JSX.HTMLAttributes {
+  headingId?: string;
+  headingTag?: "h2" | "h3" | "h4";
+  class?: string;
+  cardClass?: string;
+}
+
+const {
+  headingId,
+  headingTag: Heading = "h2",
+  class: className,
+  cardClass,
+  ...rest
+} = Astro.props;
+
+const hasSubtitle = Astro.slots.has("subtitle");
+const hasActions = Astro.slots.has("actions");
+const hasToolbar = Astro.slots.has("toolbar");
+const hasFooter = Astro.slots.has("footer");
+---
+
+<section class:list={["panel", className]} aria-labelledby={headingId} {...rest}>
+  <header class="panel-header" data-pagefind-ignore>
+    <div class="min-w-0">
+      <Heading id={headingId} class="panel-title"><slot name="title" /></Heading>
+      {hasSubtitle && <p class="panel-subtitle"><slot name="subtitle" /></p>}
+    </div>
+    {hasActions && <div class="panel-actions"><slot name="actions" /></div>}
+  </header>
+  <div class:list={["panel-card", cardClass]}>
+    {hasToolbar && (
+      <div class="panel-toolbar" data-pagefind-ignore><slot name="toolbar" /></div>
+    )}
+    <slot />
+    {hasFooter && (
+      <div class="panel-footer" data-pagefind-ignore><slot name="footer" /></div>
+    )}
+  </div>
+</section>

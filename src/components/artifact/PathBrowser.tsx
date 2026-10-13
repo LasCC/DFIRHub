@@ -7,6 +7,7 @@ import type { CategoryStyle } from "../../lib/categoryStyles";
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import { trackCopyPath } from "../../lib/analytics";
 import { getCategoryStyle } from "../../lib/categoryStyles";
+import { Panel } from "../ui/Panel";
 
 interface PathBrowserProps {
   target: KapeTarget;
@@ -257,83 +258,90 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 
   if (pathEntries.length === 0) {
     return (
-      <div className="glass-subtle rounded-xl p-6 text-center">
-        <p className="text-muted-foreground text-sm">
+      <Panel headingId="paths-heading" title="Paths on disk">
+        <p className="p-6 text-center text-muted-foreground text-sm">
           No file paths defined for this target
         </p>
-      </div>
+      </Panel>
     );
   }
 
   return (
-    <div className="glass-subtle overflow-hidden rounded-xl">
-      {/* Header */}
-      <div
-        className="flex items-center justify-between border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-3"
-        data-pagefind-ignore
-      >
-        <div className="text-muted-foreground text-xs">
-          <span className="text-primary">{pathEntries.length}</span> path
-          {pathEntries.length !== 1 ? "s" : ""}
-          {target.isCompound && resolvedTargets && (
-            <span className="ml-2">
-              from{" "}
-              <span className="text-primary">{resolvedTargets.length}</span>{" "}
-              targets
-            </span>
-          )}
-        </div>
+    <Panel
+      actions={
         <button
           aria-label="Copy all paths to clipboard"
-          className="focus-ring rounded-sm px-2 py-1 text-primary text-xs transition-colors hover:text-primary/80"
+          className="panel-action focus-ring"
           onClick={handleCopyAll}
           type="button"
         >
           {copiedPath === "all" ? "Copied!" : "Copy all"}
         </button>
-      </div>
-
-      {/* Filter bar — only shown when > 5 paths */}
-      {showFilter && (
-        <div
-          className="flex flex-wrap items-center gap-2 border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-2"
-          data-pagefind-ignore
-        >
-          <input
-            aria-label="Filter paths"
-            className="h-7 min-w-0 flex-1 rounded border border-border bg-background px-2 text-foreground text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-            onChange={(e) => setFilter(e.target.value)}
-            placeholder="Filter paths..."
-            type="text"
-            value={filter}
-          />
-          {uniqueCategories.length > 1 && (
-            <div className="flex flex-wrap items-center gap-1">
-              {uniqueCategories.map((cat) => (
-                <button
-                  aria-pressed={activeCategories.has(cat)}
-                  className={`inline-flex cursor-pointer items-center rounded-md border px-2 py-0.5 font-medium text-xs transition-opacity ${getCategoryClasses(cat)} ${
-                    activeCategories.size > 0 && !activeCategories.has(cat)
-                      ? "opacity-30"
-                      : ""
-                  }`}
-                  key={cat}
-                  onClick={() => toggleCategory(cat)}
-                  type="button"
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+      }
+      footer={
+        hasEnvironmentVariables ? (
+          <span>Paths use Windows environment variable syntax</span>
+        ) : undefined
+      }
+      headingId="paths-heading"
+      subtitle={
+        <>
+          <span className="font-medium text-foreground">
+            {pathEntries.length}
+          </span>{" "}
+          path{pathEntries.length !== 1 ? "s" : ""}
+          {target.isCompound && resolvedTargets && (
+            <>
+              {" "}
+              from{" "}
+              <span className="font-medium text-foreground">
+                {resolvedTargets.length}
+              </span>{" "}
+              targets
+            </>
           )}
-          {(filter || activeCategories.size > 0) && (
-            <span className="text-muted-foreground text-xs">
-              {visibleCount} / {pathEntries.length}
-            </span>
-          )}
-        </div>
-      )}
-
+        </>
+      }
+      title="Paths on disk"
+      toolbar={
+        showFilter ? (
+          <>
+            <input
+              aria-label="Filter paths"
+              className="h-8 min-w-48 flex-1 rounded-lg border border-border bg-background px-3 text-foreground text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Filter paths..."
+              type="text"
+              value={filter}
+            />
+            {uniqueCategories.length > 1 && (
+              <div className="flex flex-wrap items-center gap-1">
+                {uniqueCategories.map((cat) => (
+                  <button
+                    aria-pressed={activeCategories.has(cat)}
+                    className={`inline-flex cursor-pointer items-center rounded-md border px-2 py-0.5 font-medium text-xs transition-opacity ${getCategoryClasses(cat)} ${
+                      activeCategories.size > 0 && !activeCategories.has(cat)
+                        ? "opacity-30"
+                        : ""
+                    }`}
+                    key={cat}
+                    onClick={() => toggleCategory(cat)}
+                    type="button"
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            )}
+            {(filter || activeCategories.size > 0) && (
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {visibleCount} / {pathEntries.length}
+              </span>
+            )}
+          </>
+        ) : undefined
+      }
+    >
       {/* Paths List */}
       <div className="scrollbar-thin max-h-[480px] overflow-y-auto">
         {target.isCompound && resolvedTargets ? (
@@ -409,12 +417,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
         )}
       </div>
 
-      {hasEnvironmentVariables && (
-        <div className="border-overlay/[0.04] border-t bg-overlay/[0.02] px-4 py-2 text-muted-foreground text-xs">
-          Paths use Windows environment variable syntax
-        </div>
-      )}
-    </div>
+    </Panel>
   );
 }
 

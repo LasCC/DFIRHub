@@ -1,12 +1,17 @@
 ---
+import { ChevronRight } from "lucide-react";
+
 import { CategoryFilters } from "../components/artifacts/CategoryFilters";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
+import Panel from "../components/ui/Panel.astro";
 import Layout from "../layouts/Layout.astro";
 import { getCategoryStyle } from "../lib/categoryStyles";
 import { getCategories, getStats, loadAllTargets } from '../lib/kapefiles';
 import { buildBreadcrumbJsonLd } from '../lib/seo';
 import type { KapeTarget } from '../lib/kapefiles';
+
+const PREVIEW_ROW_COUNT = 6;
 
 const targets = loadAllTargets();
 const categories = getCategories();
@@ -266,11 +271,6 @@ const seoDescription = `Browse and search ${stats.total} Windows forensic artifa
           </button>
         </div>
         <CategoryFilters client:idle categories={filterCategories} />
-        <p
-          id="filter-status"
-          class="hidden mt-3 text-sm text-muted-foreground tabular-nums"
-          aria-live="polite"
-        ></p>
       </div>
 
       <!-- No results state (shown via JS when a search matches nothing) -->
@@ -287,73 +287,76 @@ const seoDescription = `Browse and search ${stats.total} Windows forensic artifa
       </div>
 
       <!-- Default View: Targets by Category (hidden when filtered) -->
-      <div id="default-view">
+      <div id="default-view" class="flex flex-col gap-8">
         {categories.map((category) => {
-                        const style = getCategoryStyle(category);
-                        return (
-                            <section
-                                class="category-section mb-10"
-                                data-category={category.toLowerCase()}
-                                aria-labelledby={"category-" + category.toLowerCase()}
-                            >
-                                <h2
-                                    id={"category-" + category.toLowerCase()}
-                                    class="mb-3 flex items-center gap-2.5 text-sm font-medium"
-                                >
-                                    <span class={`h-2 w-2 rounded-full ${style.accent}`}></span>
-                                    <span class="text-foreground">{category}</span>
-                                    <span class="font-normal text-muted-foreground tabular-nums">
-                                        {targetsByCategory[category].length}
-                                    </span>
-                                </h2>
-                                <ul class="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-                                    {targetsByCategory[category]
-                                        .slice(0, 6)
-                                        .map((target) => {
-                                            const pathCount = target.targets.filter((e) => !e.path.endsWith(".tkape")).length;
-                                            return (
-                                                <li>
-                                                    <a
-                                                        href={"/artifact/" + target.slug}
-                                                        class="artifact-row group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
-                                                    >
-                                                        <span class="w-48 shrink-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-56">
-                                                            {target.name}
-                                                        </span>
-                                                        <span class="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block">
-                                                            {target.description || "No description available"}
-                                                        </span>
-                                                        <span class="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">
-                                                            {target.isCompound
-                                                                ? target.referencedTargets.length + " targets"
-                                                                : pathCount + (pathCount === 1 ? " path" : " paths")}
-                                                        </span>
-                                                    </a>
-                                                </li>
-                                            );
-                                        })}
-                                    {targetsByCategory[category].length > 6 && (
-                                        <li>
-                                            <a
-                                                href={"/category/" + category.toLowerCase()}
-                                                class="flex items-center justify-between px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                            >
-                                                <span>View all {targetsByCategory[category].length} in {category}</span>
-                                                <svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <path d="m9 18 6-6-6-6" />
-                                                </svg>
-                                            </a>
-                                        </li>
-                                    )}
-                                </ul>
-                            </section>
-                        );
-                    })}
+          const style = getCategoryStyle(category);
+          const total = targetsByCategory[category].length;
+          const visibleTargets = targetsByCategory[category].slice(0, PREVIEW_ROW_COUNT);
+          return (
+            <Panel
+              class="category-section"
+              headingId={`category-${category.toLowerCase()}`}
+              data-category={category.toLowerCase()}
+            >
+              <Fragment slot="title">
+                <span class={`h-2 w-2 rounded-full ${style.accent}`}></span>
+                {category}
+              </Fragment>
+              <Fragment slot="subtitle">
+                {`${total} ${total === 1 ? "artifact" : "artifacts"}`}
+              </Fragment>
+              <a
+                slot="actions"
+                href={`/category/${category.toLowerCase()}`}
+                class="panel-action focus-ring"
+              >
+                View all
+                <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
+              </a>
+              <ul class="divide-y divide-border">
+                {visibleTargets.map((target) => {
+                  const pathCount = target.targets.filter((e) => !e.path.endsWith(".tkape")).length;
+                  return (
+                    <li>
+                      <a
+                        href={`/artifact/${target.slug}`}
+                        class="artifact-row group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
+                      >
+                        <span class="w-48 shrink-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-56">
+                          {target.name}
+                        </span>
+                        <span class="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block">
+                          {target.description || "No description available"}
+                        </span>
+                        <span class="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">
+                          {target.isCompound
+                            ? `${target.referencedTargets.length} targets`
+                            : `${pathCount} ${pathCount === 1 ? "path" : "paths"}`}
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+              {total > visibleTargets.length && (
+                <Fragment slot="footer">
+                  <span class="tabular-nums">Showing {visibleTargets.length} of {total}</span>
+                </Fragment>
+              )}
+            </Panel>
+          );
+        })}
       </div>
 
       <!-- Filtered View: rendered client-side when a filter is active -->
       <div id="filtered-view" class="hidden">
-        <ul class="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card"></ul>
+        <Panel headingId="filtered-title">
+          <Fragment slot="title"><span id="filtered-label">Results</span></Fragment>
+          <Fragment slot="subtitle">
+            <span id="filter-status" aria-live="polite"></span>
+          </Fragment>
+          <ul class="divide-y divide-border" id="filtered-list"></ul>
+        </Panel>
       </div>
     </div>
   </main>
@@ -529,33 +532,27 @@ const seoDescription = `Browse and search ${stats.total} Windows forensic artifa
       if (isFiltered) {
         const hasMatches = matchingSlugs.size > 0;
 
-        // Show match count at the end of the sticky bar; prefix with the
-        // scenario label since the pills alone don't convey a scenario filter.
-        // Hidden on zero matches - the empty state below says it already.
-        if (filterStatus) {
+        const filteredLabel = document.querySelector("#filtered-label");
+        if (filterStatus && filteredLabel) {
           if (hasMatches) {
+            filteredLabel.textContent = qParam ? `Results for ${label}` : label;
             filterStatus.textContent =
-              (scenarioParam && label ? label + " · " : "") +
-              matchingSlugs.size +
-              " of " +
-              allTargets.length;
-            filterStatus.classList.remove("hidden");
+              matchingSlugs.size + " of " + allTargets.length + " artifacts";
           } else {
-            filterStatus.classList.add("hidden");
             filterStatus.textContent = "";
           }
         }
 
-        // Switch views and render matching cards client-side
+        // Switch views and render matching rows client-side
         defaultView.classList.add("hidden");
         filteredView.classList.toggle("hidden", !hasMatches);
 
         if (hasMatches) {
-          const grid = filteredView.firstElementChild;
-          grid.textContent = "";
+          const list = filteredView.querySelector("#filtered-list");
+          list.textContent = "";
           allTargets.forEach((t) => {
             if (matchingSlugs.has(t.s.toLowerCase())) {
-              grid.appendChild(createRow(t));
+              list.appendChild(createRow(t));
             }
           });
         }
@@ -570,12 +567,11 @@ const seoDescription = `Browse and search ${stats.total} Windows forensic artifa
       } else {
         // No filter - show default view
         if (filterStatus) {
-          filterStatus.classList.add("hidden");
           filterStatus.textContent = "";
         }
         defaultView.classList.remove("hidden");
         filteredView.classList.add("hidden");
-        filteredView.firstElementChild.textContent = "";
+        filteredView.querySelector("#filtered-list").textContent = "";
         if (filterEmpty) {
           filterEmpty.classList.add("hidden");
         }

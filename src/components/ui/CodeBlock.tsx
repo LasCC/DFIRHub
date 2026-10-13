@@ -4,6 +4,7 @@ import { codeToHtml } from "shiki";
 interface CodeBlockProps {
   code: string;
   language: "powershell" | "batch" | "bash" | "shell" | "text";
+  flush?: boolean;
 }
 
 const languageMap: Record<string, string> = {
@@ -14,7 +15,7 @@ const languageMap: Record<string, string> = {
   text: "text",
 };
 
-export function CodeBlock({ code, language }: CodeBlockProps) {
+export function CodeBlock({ code, language, flush = false }: CodeBlockProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -52,7 +53,9 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 
   if (isLoading) {
     return (
-      <pre className="overflow-x-auto rounded-lg border border-console-line bg-console p-4 text-xs">
+      <pre
+        className={`overflow-x-auto bg-console p-4 text-xs ${flush ? "" : "rounded-lg border border-console-line"}`}
+      >
         <code className="whitespace-pre-wrap font-mono text-console-foreground">
           {code}
         </code>
@@ -61,7 +64,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   }
 
   return (
-    <div className="shiki-wrapper">
+    <div className={flush ? "shiki-wrapper shiki-flush" : "shiki-wrapper"}>
       <div
         className="shiki-content"
         dangerouslySetInnerHTML={{ __html: highlightedHtml }}
@@ -78,6 +81,11 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 					line-height: 1.6;
 					background: var(--console) !important;
 					border: 1px solid var(--console-line);
+				}
+				.shiki-flush .shiki,
+				.shiki-flush pre {
+					border: 0;
+					border-radius: 0;
 				}
 				.shiki-wrapper .shiki code,
 				.shiki-wrapper pre code {

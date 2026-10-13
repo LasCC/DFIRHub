@@ -1,3 +1,4 @@
+import { Check, Copy } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
@@ -10,11 +11,79 @@ import {
 } from "../../lib/generators";
 import type { KapeTarget } from "../../lib/kapefiles";
 import { CodeBlock } from "../ui/CodeBlock";
+import { Panel } from "../ui/Panel";
 
 type CommandFormat = "kape" | "powershell" | "batch" | "wsl";
 
+const COMMAND_TABS: {
+  description: string;
+  id: CommandFormat;
+  label: string;
+}[] = [
+  { description: "KAPE command line", id: "kape", label: "KAPE" },
+  { description: "PowerShell script", id: "powershell", label: "PowerShell" },
+  { description: "Windows batch script", id: "batch", label: "Batch" },
+  { description: "WSL/Linux bash script", id: "wsl", label: "WSL" },
+];
+
 interface CommandGeneratorProps {
   target: KapeTarget;
+}
+
+const CODE_LANGUAGES = {
+  batch: "batch",
+  kape: "powershell",
+  powershell: "powershell",
+  wsl: "bash",
+} as const;
+
+const inputClassName =
+  "h-8 rounded-lg border border-border bg-background px-2.5 font-mono text-xs outline-none focus:border-primary/50";
+
+function FormatHint({ format }: { format: CommandFormat }) {
+  switch (format) {
+    case "kape": {
+      return (
+        <span>
+          Run with administrator privileges.{" "}
+          <a
+            className="text-primary transition-colors hover:text-primary/80"
+            href="https://ericzimmerman.github.io/KapeDocs/"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            KAPE Documentation
+          </a>
+        </span>
+      );
+    }
+    case "powershell": {
+      return (
+        <span>
+          Save as .ps1 and run as Administrator. Use:{" "}
+          <code className="text-primary">
+            powershell -ExecutionPolicy Bypass -File script.ps1
+          </code>
+        </span>
+      );
+    }
+    case "batch": {
+      return (
+        <span>
+          Save as .bat and run as Administrator (right-click → Run as
+          administrator).
+        </span>
+      );
+    }
+    default: {
+      return (
+        <span>
+          Save as .sh and run with{" "}
+          <code className="text-primary">sudo bash script.sh</code> from WSL.
+        </span>
+      );
+    }
+  }
 }
 
 export function CommandGenerator({ target }: CommandGeneratorProps) {
@@ -68,34 +137,47 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
     }
   };
 
+  const activeTab = COMMAND_TABS.find((tab) => tab.id === format);
+  const isCopied = copiedId === format;
+
   return (
-    <div className="overflow-hidden">
-      {/* Format Tabs */}
+    <Panel
+      actions={
+        <button
+          aria-label={isCopied ? "Copied to clipboard" : "Copy command"}
+          className="panel-action focus-ring"
+          onClick={() => handleCopy(currentCommand, format)}
+          type="button"
+        >
+          {isCopied ? (
+            <Check aria-hidden="true" className="h-3.5 w-3.5 text-primary" />
+          ) : (
+            <Copy aria-hidden="true" className="h-3.5 w-3.5" />
+          )}
+          {isCopied ? "Copied!" : "Copy"}
+        </button>
+      }
+      footer={<FormatHint format={format} />}
+      headingId="commands-heading"
+      subtitle={`${activeTab?.description ?? ""} for ${target.name}`}
+      title="Collect it"
+    >
       <div
         aria-label="Command format selection"
-        className="flex overflow-x-auto border-overlay/[0.04] border-b bg-overlay/[0.02]"
+        className="flex overflow-x-auto border-border border-b px-2"
         role="tablist"
       >
-        {[
-          { description: "KAPE command line", id: "kape", label: "KAPE" },
-          {
-            description: "PowerShell script",
-            id: "powershell",
-            label: "PowerShell",
-          },
-          { description: "Windows batch script", id: "batch", label: "Batch" },
-          { description: "WSL/Linux bash script", id: "wsl", label: "WSL" },
-        ].map((tab) => (
+        {COMMAND_TABS.map((tab) => (
           <button
             aria-controls={`${tab.id}-panel`}
             aria-selected={format === tab.id}
-            className={`focus-ring whitespace-nowrap px-4 py-2 text-xs transition-colors ${
+            className={`focus-ring whitespace-nowrap px-3 py-2.5 text-sm transition-colors ${
               format === tab.id
-                ? "border-primary border-b-2 text-foreground"
+                ? "border-primary border-b-2 font-medium text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
             key={tab.id}
-            onClick={() => setFormat(tab.id as CommandFormat)}
+            onClick={() => setFormat(tab.id)}
             role="tab"
             type="button"
           >
@@ -104,134 +186,69 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
         ))}
       </div>
 
-      {/* Configuration Panel */}
-      <div className="border-overlay/[0.04] border-b bg-overlay/[0.02] p-4">
-        <div className="flex flex-wrap items-center gap-4 text-xs">
-          {/* Source Drive */}
-          <div className="flex items-center gap-2">
-            <label className="text-muted-foreground" htmlFor="source-input">
-              Source
-            </label>
-            <input
-              className="h-7 w-16 rounded border border-border bg-background px-2 font-mono text-xs outline-none focus:border-primary/50"
-              id="source-input"
-              onChange={(e) => setSource(e.target.value)}
-              placeholder="C:"
-              type="text"
-              value={source}
-            />
-          </div>
-
-          {/* Destination Path */}
-          <div className="flex items-center gap-2">
-            <label className="text-muted-foreground" htmlFor="dest-input">
-              Destination
-            </label>
-            <input
-              className="h-7 w-40 rounded border border-border bg-background px-2 font-mono text-xs outline-none focus:border-primary/50"
-              id="dest-input"
-              onChange={(e) => setDestination(e.target.value)}
-              placeholder="D:\Evidence"
-              type="text"
-              value={destination}
-            />
-          </div>
-
-          {/* KAPE-specific options */}
-          {format === "kape" && (
-            <>
-              <label className="flex cursor-pointer items-center gap-1.5">
-                <input
-                  checked={useVss}
-                  className="h-3 w-3 accent-primary"
-                  onChange={(e) => setUseVss(e.target.checked)}
-                  type="checkbox"
-                />
-                <span className="text-muted-foreground">--vss</span>
-              </label>
-              <label className="flex cursor-pointer items-center gap-1.5">
-                <input
-                  checked={useVhdx}
-                  className="h-3 w-3 accent-primary"
-                  onChange={(e) => setUseVhdx(e.target.checked)}
-                  type="checkbox"
-                />
-                <span className="text-muted-foreground">--vhdx</span>
-              </label>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Command Display */}
-      <div className="p-4">
-        <div className="relative [&_pre]:max-h-72! [&_pre]:pr-16!">
-          <CodeBlock
-            code={currentCommand}
-            language={
-              format === "kape"
-                ? "powershell"
-                : format === "wsl"
-                  ? "bash"
-                  : format === "powershell"
-                    ? "powershell"
-                    : "batch"
-            }
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-border border-b px-4 py-3 text-xs">
+        <div className="flex items-center gap-2">
+          <label className="text-muted-foreground" htmlFor="source-input">
+            Source
+          </label>
+          <input
+            className={`${inputClassName} w-16`}
+            id="source-input"
+            onChange={(e) => setSource(e.target.value)}
+            placeholder="C:"
+            type="text"
+            value={source}
           />
-          <button
-            aria-label={
-              copiedId === format ? "Copied to clipboard" : "Copy command"
-            }
-            className="focus-ring absolute top-2 right-2 z-20 rounded border border-overlay/[0.1] bg-secondary px-2 py-1 text-muted-foreground text-xs transition-colors hover:text-foreground"
-            onClick={() => handleCopy(currentCommand, format)}
-            type="button"
-          >
-            {copiedId === format ? "Copied!" : "Copy"}
-          </button>
         </div>
 
-        {/* Format description */}
-        <div className="mt-3 text-muted-foreground text-xs">
-          {format === "kape" && (
-            <p>
-              Run with administrator privileges.{" "}
-              <a
-                className="text-primary transition-colors hover:text-primary/80"
-                href="https://ericzimmerman.github.io/KapeDocs/"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                KAPE Documentation
-              </a>
-            </p>
-          )}
-          {format === "powershell" && (
-            <p>
-              Save as .ps1 and run as Administrator. Use:{" "}
-              <code className="text-primary">
-                powershell -ExecutionPolicy Bypass -File script.ps1
-              </code>
-            </p>
-          )}
-          {format === "batch" && (
-            <p>
-              Save as .bat and run as Administrator (right-click → Run as
-              administrator).
-            </p>
-          )}
-          {format === "wsl" && (
-            <p>
-              Save as .sh and run with{" "}
-              <code className="text-primary">sudo bash script.sh</code> from
-              WSL.
-            </p>
-          )}
+        <div className="flex items-center gap-2">
+          <label className="text-muted-foreground" htmlFor="dest-input">
+            Destination
+          </label>
+          <input
+            className={`${inputClassName} w-40`}
+            id="dest-input"
+            onChange={(e) => setDestination(e.target.value)}
+            placeholder="D:\Evidence"
+            type="text"
+            value={destination}
+          />
         </div>
+
+        {format === "kape" && (
+          <>
+            <label className="flex cursor-pointer items-center gap-1.5">
+              <input
+                checked={useVss}
+                className="h-3.5 w-3.5 accent-primary"
+                onChange={(e) => setUseVss(e.target.checked)}
+                type="checkbox"
+              />
+              <span className="font-mono text-muted-foreground">--vss</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-1.5">
+              <input
+                checked={useVhdx}
+                className="h-3.5 w-3.5 accent-primary"
+                onChange={(e) => setUseVhdx(e.target.checked)}
+                type="checkbox"
+              />
+              <span className="font-mono text-muted-foreground">--vhdx</span>
+            </label>
+          </>
+        )}
       </div>
 
-      {/* Target Info */}
+      <div className="[&_pre]:max-h-72!" id={`${format}-panel`} role="tabpanel">
+        <CodeBlock
+          code={currentCommand}
+          flush
+          language={CODE_LANGUAGES[format]}
+        />
+      </div>
+
       {target.isCompound && (
-        <div className="px-4 pb-4">
+        <div className="border-border border-t p-3">
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
             <span className="font-medium text-amber-700 dark:text-amber-400">
               Note:
@@ -246,6 +263,6 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
           </div>
         </div>
       )}
-    </div>
+    </Panel>
   );
 }

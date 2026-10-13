@@ -42,6 +42,7 @@ import { LoadingOverlay } from "./LoadingOverlay";
 import { MoreActionsMenu } from "./MoreActionsMenu";
 import { OutputPanel } from "./OutputPanel";
 import { PipelineSelector } from "./PipelineSelector";
+import { Panel } from "../ui/Panel";
 import { RelatedArtifacts } from "./RelatedArtifacts";
 
 const SigmaEditor = lazy(() =>
@@ -425,227 +426,224 @@ export function ConverterLayout() {
         progress={loadingProgress}
       />
 
-      {/* ── Toolbar ─────────────────────────────────────────────────────────
-           Desktop : scrollable chips on the left, Convert + More on the right
-                     (outside the scroll container so the dropdown isn't clipped)
-           Mobile  : row-1 = scrollable chips, row-2 = full-width Convert
-      ─────────────────────────────────────────────────────────────────── */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          {/* Row 1: all controls — scrollable on mobile */}
-          <div
-            className={`min-w-0 flex-1 scroll-shadow-x${mobileScrollStart ? " scrolled-start" : ""}${mobileScrollEnd ? " scrolled-end" : ""}`}
-          >
-          <div
-            className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
-            ref={mobileScrollRef}
-          >
-            {/* Examples */}
-            <Popover>
-              <PopoverTrigger asChild>
+      <Panel
+        actions={
+          <div className="hidden items-center gap-2 md:flex">
+            <button
+              className="panel-action panel-action-primary focus-ring"
+              disabled={!isReady || isConverting || !rule.trim()}
+              onClick={handleConvert}
+              title="Convert Sigma rule to the selected backend (⌘↵)"
+              type="button"
+            >
+              {isConverting ? "Converting…" : "Convert"}
+              {!isConverting && (
+                <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+              )}
+            </button>
+            <MoreActionsMenu
+              canExport={exportConversions.size > 0}
+              canShare={rule.trim().length > 0}
+              onExport={() => setShowExport(true)}
+              onShare={handleShare}
+              onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
+              shareCopied={shareCopied}
+              showAdvanced={showAdvanced}
+            />
+          </div>
+        }
+        headingId="converter-heading"
+        subtitle="Paste or import a Sigma rule, then pick a backend"
+        title="Rule to query"
+        toolbar={
+          <>
+            <div
+              className={`min-w-0 flex-1 scroll-shadow-x${mobileScrollStart ? " scrolled-start" : ""}${mobileScrollEnd ? " scrolled-end" : ""}`}
+            >
+              <div
+                className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
+                ref={mobileScrollRef}
+              >
+                {/* Examples */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-muted-foreground text-sm transition-colors hover:border-overlay/[0.1] hover:text-foreground"
+                      title="Load a pre-built Sigma rule example"
+                      type="button"
+                    >
+                      Examples
+                      <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    {sigmaExamples.map((example) => (
+                      <button
+                        className="w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.04]"
+                        key={example.title}
+                        onClick={() => handleExampleSelect(example.yaml)}
+                        type="button"
+                      >
+                        <div className="font-medium text-foreground">
+                          {example.title}
+                        </div>
+                        <div className="text-muted-foreground text-xs">
+                          {example.description}
+                        </div>
+                      </button>
+                    ))}
+                  </PopoverContent>
+                </Popover>
+
+                {/* Search SigmaHQ */}
                 <button
                   className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-muted-foreground text-sm transition-colors hover:border-overlay/[0.1] hover:text-foreground"
-                  title="Load a pre-built Sigma rule example"
+                  onClick={() => setShowSigmaSearch(true)}
+                  title="Search and import rules from SigmaHQ (⌘⇧K)"
                   type="button"
                 >
-                  Examples
-                  <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
+                  <Search aria-hidden="true" className="h-3.5 w-3.5" />
+                  <span>Search SigmaHQ</span>
                 </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                {sigmaExamples.map((example) => (
-                  <button
-                    className="w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.04]"
-                    key={example.title}
-                    onClick={() => handleExampleSelect(example.yaml)}
-                    type="button"
-                  >
-                    <div className="font-medium text-foreground">
-                      {example.title}
-                    </div>
-                    <div className="text-muted-foreground text-xs">
-                      {example.description}
-                    </div>
-                  </button>
-                ))}
-              </PopoverContent>
-            </Popover>
 
-            {/* Search SigmaHQ */}
-            <button
-              className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-muted-foreground text-sm transition-colors hover:border-overlay/[0.1] hover:text-foreground"
-              onClick={() => setShowSigmaSearch(true)}
-              title="Search and import rules from SigmaHQ (⌘⇧K)"
-              type="button"
-            >
-              <Search aria-hidden="true" className="h-3.5 w-3.5" />
-              <span>Search SigmaHQ</span>
-            </button>
+                {/* Divider: input sources | output settings */}
+                <div
+                  aria-hidden="true"
+                  className="mx-1 h-6 w-px shrink-0 bg-border"
+                />
 
-            {/* Divider: input sources | output settings */}
-            <div
-              aria-hidden="true"
-              className="mx-1 h-6 w-px shrink-0 bg-border"
+                {/* Target selector */}
+                <TargetSelector
+                  multiSelect={multiMode}
+                  onMultiSelect={setSelectedMulti}
+                  onSelect={(backend) => {
+                    setSelectedBackend(backend);
+                    trackConverterBackendChanged(backend);
+                  }}
+                  selected={selectedBackend}
+                  selectedMulti={selectedMulti}
+                />
+
+                {/* Pipeline selector */}
+                <PipelineSelector
+                  availablePipelines={availablePipelines}
+                  customPipelineYaml={customPipelineYaml}
+                  onCustomPipelineChange={setCustomPipelineYaml}
+                  onPipelineChange={setSelectedPipeline}
+                  selectedPipeline={selectedPipeline}
+                />
+
+                {/* Multi-backend compare toggle */}
+                <button
+                  aria-pressed={multiMode}
+                  className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    multiMode
+                      ? "border-primary/30 bg-primary/10 text-primary"
+                      : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
+                  }`}
+                  onClick={() => setMultiMode((prev) => !prev)}
+                  title="Convert to multiple backends at once and compare outputs side-by-side"
+                  type="button"
+                >
+                  <Columns aria-hidden="true" className="h-3.5 w-3.5" />
+                  Compare backends
+                </button>
+
+                {/* Auto-convert toggle */}
+                <button
+                  aria-pressed={autoConvert}
+                  className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    autoConvert
+                      ? "border-primary/30 bg-primary/10 text-primary"
+                      : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
+                  }`}
+                  onClick={() => setAutoConvert((prev) => !prev)}
+                  title="Automatically convert on every change (500ms debounce)"
+                  type="button"
+                >
+                  <Zap aria-hidden="true" className="h-3.5 w-3.5" />
+                  Auto-convert
+                </button>
+
+                {/* Desktop-only spacer */}
+                <div className="hidden flex-1 md:block" />
+              </div>
+            </div>
+
+            <div className="flex w-full items-center gap-2 md:hidden">
+              <button
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
+                disabled={!isReady || isConverting || !rule.trim()}
+                onClick={handleConvert}
+                title="Convert Sigma rule to the selected backend (⌘↵)"
+                type="button"
+              >
+                {isConverting ? "Converting…" : "Convert"}
+                {!isConverting && (
+                  <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+                )}
+              </button>
+              <MoreActionsMenu
+                canExport={exportConversions.size > 0}
+                canShare={rule.trim().length > 0}
+                onExport={() => setShowExport(true)}
+                onShare={handleShare}
+                onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
+                shareCopied={shareCopied}
+                showAdvanced={showAdvanced}
+              />
+            </div>
+          </>
+        }
+      >
+        {showAdvanced && (
+          <div className="border-border border-b p-3">
+            <AdvancedOptions
+              backendOptions={backendOptions}
+              correlationMethod={correlationMethod}
+              filterYml={filterYml}
+              onBackendOptionsChange={setBackendOptions}
+              onCorrelationMethodChange={setCorrelationMethod}
+              onFilterChange={setFilterYml}
             />
+          </div>
+        )}
 
-            {/* Target selector */}
-            <TargetSelector
-              multiSelect={multiMode}
-              onMultiSelect={setSelectedMulti}
-              onSelect={(backend) => {
-                setSelectedBackend(backend);
-                trackConverterBackendChanged(backend);
-              }}
-              selected={selectedBackend}
-              selectedMulti={selectedMulti}
-            />
-
-            {/* Pipeline selector */}
-            <PipelineSelector
-              availablePipelines={availablePipelines}
-              customPipelineYaml={customPipelineYaml}
-              onCustomPipelineChange={setCustomPipelineYaml}
-              onPipelineChange={setSelectedPipeline}
-              selectedPipeline={selectedPipeline}
-            />
-
-            {/* Multi-backend compare toggle */}
-            <button
-              aria-pressed={multiMode}
-              className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                multiMode
-                  ? "border-primary/30 bg-primary/10 text-primary"
-                  : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
-              }`}
-              onClick={() => setMultiMode((prev) => !prev)}
-              title="Convert to multiple backends at once and compare outputs side-by-side"
-              type="button"
+        <div className="grid min-h-[500px] grid-cols-1 lg:grid-cols-2">
+          <div className="border-overlay/[0.06] border-b lg:border-r lg:border-b-0">
+            <Suspense
+              fallback={
+                <div className="flex h-full min-h-[400px] items-center justify-center text-muted-foreground text-sm">
+                  Loading editor…
+                </div>
+              }
             >
-              <Columns aria-hidden="true" className="h-3.5 w-3.5" />
-              Compare backends
-            </button>
-
-            {/* Auto-convert toggle */}
-            <button
-              aria-pressed={autoConvert}
-              className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                autoConvert
-                  ? "border-primary/30 bg-primary/10 text-primary"
-                  : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
-              }`}
-              onClick={() => setAutoConvert((prev) => !prev)}
-              title="Automatically convert on every change (500ms debounce)"
-              type="button"
-            >
-              <Zap aria-hidden="true" className="h-3.5 w-3.5" />
-              Auto-convert
-            </button>
-
-            {/* Desktop-only spacer */}
-            <div className="hidden flex-1 md:block" />
+              <SigmaEditor
+                onChange={setRule}
+                onConvert={handleConvert}
+                value={rule}
+              />
+            </Suspense>
+          </div>
+          <div>
+            {multiMode ? (
+              <DiffView isLoading={isConverting} results={multiResults} />
+            ) : (
+              <OutputPanel
+                backend={backendConfig?.name ?? selectedBackend}
+                error={result?.error}
+                isLoading={isConverting}
+                language={backendConfig?.language ?? "text"}
+                query={result?.query ?? ""}
+              />
+            )}
+          </div>
+          {/* Workspace footer: evidence collection links for this rule */}
+          <div className="lg:col-span-2">
+            <RelatedArtifacts rule={rule} />
           </div>
         </div>
-
-        {/* Desktop actions — outside the scroll container so the dropdown
-            isn't clipped by overflow */}
-        <div className="hidden shrink-0 items-center gap-2 md:flex">
-          <button
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
-            disabled={!isReady || isConverting || !rule.trim()}
-            onClick={handleConvert}
-            title="Convert Sigma rule to the selected backend (⌘↵)"
-            type="button"
-          >
-            {isConverting ? "Converting…" : "Convert"}
-            {!isConverting && (
-              <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
-            )}
-          </button>
-          <MoreActionsMenu
-            canExport={exportConversions.size > 0}
-            canShare={rule.trim().length > 0}
-            onExport={() => setShowExport(true)}
-            onShare={handleShare}
-            onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
-            shareCopied={shareCopied}
-            showAdvanced={showAdvanced}
-          />
-        </div>
-      </div>
-
-        {/* Row 2 mobile-only: full-width Convert + More */}
-        <div className="flex items-center gap-2 md:hidden">
-          <button
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
-            disabled={!isReady || isConverting || !rule.trim()}
-            onClick={handleConvert}
-            title="Convert Sigma rule to the selected backend (⌘↵)"
-            type="button"
-          >
-            {isConverting ? "Converting…" : "Convert"}
-            {!isConverting && (
-              <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
-            )}
-          </button>
-          <MoreActionsMenu
-            canExport={exportConversions.size > 0}
-            canShare={rule.trim().length > 0}
-            onExport={() => setShowExport(true)}
-            onShare={handleShare}
-            onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
-            shareCopied={shareCopied}
-            showAdvanced={showAdvanced}
-          />
-        </div>
-      </div>
-
-      {/* Advanced Options */}
-      {showAdvanced && (
-        <AdvancedOptions
-          backendOptions={backendOptions}
-          correlationMethod={correlationMethod}
-          filterYml={filterYml}
-          onBackendOptionsChange={setBackendOptions}
-          onCorrelationMethodChange={setCorrelationMethod}
-          onFilterChange={setFilterYml}
-        />
-      )}
-
-      {/* Editor + Output workspace */}
-      <div className="grid min-h-[500px] grid-cols-1 gap-0 overflow-hidden rounded-lg border border-overlay/[0.06] lg:grid-cols-2">
-        <div className="border-overlay/[0.06] border-b lg:border-r lg:border-b-0">
-          <Suspense
-            fallback={
-              <div className="flex h-full min-h-[400px] items-center justify-center text-muted-foreground text-sm">
-                Loading editor…
-              </div>
-            }
-          >
-            <SigmaEditor
-              onChange={setRule}
-              onConvert={handleConvert}
-              value={rule}
-            />
-          </Suspense>
-        </div>
-        <div>
-          {multiMode ? (
-            <DiffView isLoading={isConverting} results={multiResults} />
-          ) : (
-            <OutputPanel
-              backend={backendConfig?.name ?? selectedBackend}
-              error={result?.error}
-              isLoading={isConverting}
-              language={backendConfig?.language ?? "text"}
-              query={result?.query ?? ""}
-            />
-          )}
-        </div>
-        {/* Workspace footer: evidence collection links for this rule */}
-        <div className="lg:col-span-2">
-          <RelatedArtifacts rule={rule} />
-        </div>
-      </div>
+      </Panel>
 
       {/* Export Dialog */}
       {showExport && (

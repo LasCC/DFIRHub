@@ -3,10 +3,7 @@ import {
   ArtifactBreadcrumb,
   ArtifactFooter,
   ArtifactHeader,
-  ArtifactList,
-  ArtifactListItem,
   ArtifactPageContainer,
-  ArtifactSection,
 } from "../../components/artifact/ArtifactContent";
 import { ArrowRight, ArrowUpRight, Folder, Tag, User, Users } from "lucide-react";
 import { CategoryChip } from "../../components/artifact/CategoryChip";
@@ -15,6 +12,7 @@ import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
 import { PathBrowser } from "../../components/artifact/PathBrowser";
 import Footer from "../../components/layout/Footer.astro";
 import { Header } from "../../components/layout/Header";
+import Panel from "../../components/ui/Panel.astro";
 import Layout from "../../layouts/Layout.astro";
 import { findCollectionsContaining, getResolvedEntries, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
 import type { KapeTarget } from '../../lib/kapefiles';
@@ -157,8 +155,6 @@ const referenceLinks = docReferences.map((url) => {
   }
 });
 
-const sectionHeadingClass = "mb-4 text-lg font-semibold tracking-tight";
-const asideHeadingClass = "mb-3 text-base font-semibold tracking-tight";
 const chipLinkClass =
   "inline-flex rounded-md border border-border bg-card px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground";
 
@@ -340,28 +336,22 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
         </ArtifactHeader>
 
         <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
-          <div class="flex min-w-0 flex-col gap-12 lg:col-span-7">
-            <ArtifactSection ariaLabel="paths-heading">
-              <h2 id="paths-heading" class={sectionHeadingClass} data-pagefind-ignore>
-                Paths on disk
-              </h2>
-              <div data-pagefind-ignore={target.isCompound ? "all" : undefined}>
-                <PathBrowser
-                  client:idle
-                  target={target}
-                  resolvedTargets={resolvedTargets}
-                />
-              </div>
-            </ArtifactSection>
+          <div class="flex min-w-0 flex-col gap-8 lg:col-span-7">
+            <div data-pagefind-ignore={target.isCompound ? "all" : undefined}>
+              <PathBrowser
+                client:idle
+                target={target}
+                resolvedTargets={resolvedTargets}
+              />
+            </div>
 
             {target.isCompound && (
-              <ArtifactSection ariaLabel="includes-heading">
-                <h2 id="includes-heading" class={sectionHeadingClass} data-pagefind-ignore>
-                  Includes {target.referencedTargets.length} targets
-                </h2>
-                <ArtifactList className="glass-subtle divide-y divide-border overflow-hidden rounded-xl">
+              <Panel headingId="includes-heading">
+                <Fragment slot="title">Includes {target.referencedTargets.length} targets</Fragment>
+                <Fragment slot="subtitle">Each one is collected with this target</Fragment>
+                <ul class="divide-y divide-border">
                   {includedArtifacts.map((included) => (
-                    <ArtifactListItem>
+                    <li>
                       {included.slug ? (
                         <a
                           href={"/artifact/" + included.slug}
@@ -378,25 +368,21 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                           {included.name}
                         </span>
                       )}
-                    </ArtifactListItem>
+                    </li>
                   ))}
-                  {hiddenIncludedCount > 0 && (
-                    <ArtifactListItem>
-                      <p class="px-4 py-2.5 text-xs text-muted-foreground">
-                        and {hiddenIncludedCount} more
-                      </p>
-                    </ArtifactListItem>
-                  )}
-                </ArtifactList>
-              </ArtifactSection>
+                </ul>
+                {hiddenIncludedCount > 0 && (
+                  <Fragment slot="footer">
+                    <span>and {hiddenIncludedCount} more</span>
+                  </Fragment>
+                )}
+              </Panel>
             )}
 
             {docNotes.length > 0 && (
-              <ArtifactSection ariaLabel="notes-heading">
-                <h2 id="notes-heading" class={sectionHeadingClass} data-pagefind-ignore>
-                  Notes
-                </h2>
-                <div class="glass-subtle space-y-4 rounded-xl p-5 text-sm leading-relaxed text-foreground/80">
+              <Panel headingId="notes-heading">
+                <Fragment slot="title">Notes</Fragment>
+                <div class="space-y-4 p-5 text-sm leading-relaxed text-foreground/80">
                   {noteBlocks.map((block) =>
                     block.type === "text" ? (
                       <p class="break-words">{block.value}</p>
@@ -405,17 +391,18 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                     )
                   )}
                 </div>
-              </ArtifactSection>
+              </Panel>
             )}
 
             {referenceLinks.length > 0 && (
-              <ArtifactSection ariaLabel="references-heading">
-                <h2 id="references-heading" class={sectionHeadingClass} data-pagefind-ignore>
-                  References
-                </h2>
-                <ArtifactList className="glass-subtle divide-y divide-border overflow-hidden rounded-xl">
+              <Panel headingId="references-heading">
+                <Fragment slot="title">References</Fragment>
+                <Fragment slot="subtitle">
+                  {`${referenceLinks.length} ${referenceLinks.length === 1 ? "link" : "links"}`}
+                </Fragment>
+                <ul class="divide-y divide-border">
                   {referenceLinks.map((reference) => (
-                    <ArtifactListItem>
+                    <li>
                       <a
                         href={reference.url}
                         target="_blank"
@@ -434,33 +421,27 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                         />
                         <span class="sr-only" data-pagefind-ignore>(opens in new tab)</span>
                       </a>
-                    </ArtifactListItem>
+                    </li>
                   ))}
-                </ArtifactList>
-              </ArtifactSection>
+                </ul>
+              </Panel>
             )}
           </div>
 
           <aside
             aria-label="Collect and related information"
             data-pagefind-ignore
-            class="flex min-w-0 flex-col gap-10 lg:sticky lg:top-20 lg:col-span-5 lg:-mx-2 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto lg:overflow-x-hidden lg:px-2"
+            class="flex min-w-0 flex-col gap-8 lg:sticky lg:top-20 lg:col-span-5 lg:-mx-2 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto lg:overflow-x-hidden lg:px-2"
           >
-            <ArtifactSection ariaLabel="commands-heading">
-              <h2 id="commands-heading" class={sectionHeadingClass}>
-                Collect it
-              </h2>
-              <div class="glass-subtle overflow-hidden rounded-xl">
-                <CommandGenerator client:idle target={commandTarget} />
-              </div>
-            </ArtifactSection>
+            <CommandGenerator client:idle target={commandTarget} />
 
             {includedInCollections.length > 0 && (
-              <section aria-labelledby="collections-heading">
-                <h2 id="collections-heading" class={asideHeadingClass}>
-                  Part of these collections
-                </h2>
-                <ul class="flex flex-wrap gap-2">
+              <Panel headingId="collections-heading">
+                <Fragment slot="title">Part of these collections</Fragment>
+                <Fragment slot="subtitle">
+                  {`${includedInCollections.length} ${includedInCollections.length === 1 ? "collection collects" : "collections collect"} this target`}
+                </Fragment>
+                <ul class="flex flex-wrap gap-2 p-3">
                   {includedInCollections.map((collection) => (
                     <li>
                       <a href={"/artifact/" + collection.slug} class={chipLinkClass}>
@@ -469,7 +450,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                     </li>
                   ))}
                 </ul>
-              </section>
+              </Panel>
             )}
 
             <CyberChefLinks client:idle target={target} />

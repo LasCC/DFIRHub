@@ -3,6 +3,7 @@ import { ChevronRight, FileSearch, Hammer, Layers } from "lucide-react";
 
 import { highlightCodeToHtml } from "../../lib/highlight";
 import { ConverterIcon } from "../ui/ConverterIcon";
+import Panel from "../ui/Panel.astro";
 
 import type {
   CategoryBar,
@@ -24,10 +25,16 @@ const { totalTargets, categoryBars, collection, builderLines, sigma } =
 const BAR_LABEL_RESERVE_PERCENT = 82;
 const numberFormat = new Intl.NumberFormat("en-US");
 
+const collectionTargetCount = collection.featured.length + collection.moreCount;
 const collectionTreeLines = [
   ...collection.featured.map((name) => ({ name, isLast: false })),
   ...(collection.moreCount > 0
-    ? [{ name: `${collection.moreCount} more collections`, isLast: true }]
+    ? [
+        {
+          name: `${collection.moreCount} more ${collection.moreCount === 1 ? "target" : "targets"}`,
+          isLast: true,
+        },
+      ]
     : []),
 ];
 
@@ -39,8 +46,8 @@ const sigmaExcerptHtml = await highlightCodeToHtml(sigma.excerpt, "yaml");
 
 const iconBoxClass =
   "mb-4 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-secondary text-muted-foreground";
-const panelClass =
-  "rounded-lg border border-console-line bg-console p-4 font-mono text-[12.5px] leading-6 text-console-foreground [&_pre]:m-0 [&_pre]:bg-transparent! [&_code]:font-mono";
+const codeStripClass =
+  "bg-console p-4 font-mono text-[12.5px] leading-6 text-console-foreground [&_pre]:m-0 [&_pre]:bg-transparent! [&_code]:font-mono";
 const linkClass =
   "inline-flex items-center gap-1 text-xl font-medium tracking-tight after:absolute after:inset-0 hover:underline hover:underline-offset-4";
 ---
@@ -72,26 +79,27 @@ const linkClass =
         </p>
       </div>
       <div class="md:col-span-7">
-        <div class={panelClass}>
-          <p class="mb-3 font-sans text-xs text-console-muted">
-            Targets per category
-          </p>
-          <ul class="space-y-2.5 font-sans text-[13px]">
-            {categoryBars.map((bar) => (
-              <li>
+        <Panel data-reveal headingId="categories-preview-heading" headingTag="h4">
+          <Fragment slot="title">Targets per category</Fragment>
+          <Fragment slot="subtitle">
+            {`${numberFormat.format(totalTargets)} targets in ${categoryBars.length} categories`}
+          </Fragment>
+          <ul class="space-y-2.5 p-4 font-sans text-[13px]">
+            {categoryBars.map((bar, index) => (
+              <li style={`--reveal-index: ${index}; --reveal-step: 80ms`}>
                 <a
                   class="group relative z-10 grid grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-3"
                   href={`/category/${bar.slug}`}
                 >
-                  <span class="text-console-muted transition-colors group-hover:text-console-foreground">
+                  <span class="reveal-item text-muted-foreground transition-colors group-hover:text-foreground">
                     {bar.name}
                   </span>
                   <span class="flex items-center gap-2">
                     <span
-                      class="h-1.5 rounded-r-[4px] bg-console-accent"
+                      class="reveal-bar h-1.5 rounded-r-[4px] bg-console-accent"
                       style={`width: ${(bar.widthPercent * BAR_LABEL_RESERVE_PERCENT) / 100}%`}
                     />
-                    <span class="tabular-nums text-console-foreground">
+                    <span class="reveal-count tabular-nums text-foreground">
                       {bar.count}
                     </span>
                   </span>
@@ -99,7 +107,7 @@ const linkClass =
               </li>
             ))}
           </ul>
-        </div>
+        </Panel>
       </div>
     </li>
 
@@ -118,12 +126,15 @@ const linkClass =
         </p>
       </div>
       <div class="md:col-span-7">
-        <div aria-hidden="true" class={panelClass}>
-          <pre class="whitespace-pre"><span class="block text-console-accent">{collection.name}</span>{collectionTreeLines.map((line) => (<span class="block"><span class="text-console-muted">{line.isLast ? "└─ " : "├─ "}</span><span class={line.isLast ? "text-console-muted" : ""}>{line.name}</span></span>))}</pre>
-          <p class="mt-3 font-sans text-xs text-console-muted">
-            Resolves to {collection.artifactCount} artifacts and {numberFormat.format(collection.pathCount)} paths.
-          </p>
-        </div>
+        <Panel aria-hidden="true" data-reveal headingTag="h4">
+          <Fragment slot="title">
+            <span class="text-console-accent">{collection.name}</span>
+          </Fragment>
+          <Fragment slot="subtitle">
+            {`${collectionTargetCount} targets, resolving to ${collection.artifactCount} artifacts and ${numberFormat.format(collection.pathCount)} paths`}
+          </Fragment>
+          <pre class="whitespace-pre p-4 font-mono text-[12.5px] leading-6 text-foreground">{collectionTreeLines.map((line, index) => (<span class="reveal-item block" style={`--reveal-index: ${index}; --reveal-step: 90ms`}><span class="text-muted-foreground">{line.isLast ? "└─ " : "├─ "}</span><span class={line.isLast ? "text-muted-foreground" : ""}>{line.name}</span></span>))}</pre>
+        </Panel>
       </div>
     </li>
 
@@ -142,9 +153,11 @@ const linkClass =
         </p>
       </div>
       <div class="md:col-span-7">
-        <div aria-hidden="true" class={panelClass}>
-          <div class="[&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere] [&_code]:whitespace-pre-wrap" set:html={builderScriptHtml} />
-        </div>
+        <Panel aria-hidden="true" data-reveal headingTag="h4">
+          <Fragment slot="title">Generated script</Fragment>
+          <Fragment slot="subtitle">PowerShell</Fragment>
+          <div class:list={[codeStripClass, "[--reveal-step:60ms] [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere] [&_code]:whitespace-pre-wrap"]} data-reveal-lines set:html={builderScriptHtml} />
+        </Panel>
       </div>
     </li>
 
@@ -164,13 +177,67 @@ const linkClass =
         </p>
       </div>
       <div class="md:col-span-7">
-        <div aria-hidden="true" class={panelClass}>
-          <div class="[&_pre]:overflow-x-auto" set:html={sigmaExcerptHtml} />
-          <p class="mt-3 border-t border-console-line pt-3 font-sans text-xs text-console-muted">
-            {sigma.credit}. Converts to {sigma.featuredBackends.join(", ")} and {sigma.moreBackendCount} more.
-          </p>
-        </div>
+        <Panel aria-hidden="true" data-reveal headingTag="h4">
+          <Fragment slot="title">Sigma rule</Fragment>
+          <Fragment slot="subtitle">YAML</Fragment>
+          <div class:list={[codeStripClass, "[--reveal-step:55ms] [&_pre]:overflow-x-auto"]} data-reveal-lines set:html={sigmaExcerptHtml} />
+          <Fragment slot="footer">
+            <span>{sigma.credit}. Converts to {sigma.featuredBackends.join(", ")} and {sigma.moreBackendCount} more.</span>
+          </Fragment>
+        </Panel>
       </div>
     </li>
   </ul>
 </section>
+
+<script>
+  const REVEAL_VISIBLE_RATIO = 0.25;
+
+  const indexCodeLines = (panel: HTMLElement) => {
+    for (const block of panel.querySelectorAll<HTMLElement>(
+      "[data-reveal-lines]"
+    )) {
+      const lines = block.querySelectorAll<HTMLElement>(".line");
+      for (const [index, line] of [...lines].entries()) {
+        line.classList.add("reveal-item");
+        line.style.setProperty("--reveal-index", String(index));
+      }
+    }
+  };
+
+  const armRevealPanels = () => {
+    const panels = document.querySelectorAll<HTMLElement>(
+      "[data-reveal]:not([data-armed])"
+    );
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (
+      panels.length === 0 ||
+      prefersReducedMotion ||
+      !("IntersectionObserver" in window)
+    ) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.target instanceof HTMLElement) {
+            entry.target.dataset.revealed = "";
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: REVEAL_VISIBLE_RATIO }
+    );
+
+    for (const panel of panels) {
+      indexCodeLines(panel);
+      panel.dataset.armed = "";
+      observer.observe(panel);
+    }
+  };
+
+  document.addEventListener("astro:page-load", armRevealPanels);
+</script>

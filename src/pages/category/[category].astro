@@ -1,6 +1,7 @@
 ---
 import Footer from "../../components/layout/Footer.astro";
 import { Header } from "../../components/layout/Header";
+import Panel from "../../components/ui/Panel.astro";
 import Layout from "../../layouts/Layout.astro";
 import { getCategoryStyle } from "../../lib/categoryStyles";
 import { getCategories, getTargetsByCategory } from "../../lib/kapefiles";
@@ -114,44 +115,63 @@ const collectionJsonLd = {
         </p>
       </header>
 
-      <ul
-        class="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card"
-      >
-        {
-          targets.map((target) => {
-            const pathCount = target.targets.filter(
-              (entry) => !entry.path.endsWith(".tkape")
-            ).length;
-            const countLabel = target.isCompound
-              ? `${target.referencedTargets.length} targets`
-              : `${pathCount} ${pathCount === 1 ? "path" : "paths"}`;
-            return (
-              <li>
-                <a
-                  href={`/artifact/${target.slug}`}
-                  class="group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
-                >
-                  <span
-                    class="w-48 shrink-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-56"
+      <Panel headingId="targets-heading">
+        <Fragment slot="title">Targets</Fragment>
+        <Fragment slot="subtitle">
+          {targets.length} in the {category} category
+        </Fragment>
+        <a href="/artifacts" slot="actions" class="panel-action focus-ring">
+          All artifacts
+        </a>
+        <ul class="divide-y divide-border">
+          {
+            targets.map((target) => {
+              const pathCount = target.targets.filter(
+                (entry) => !entry.path.endsWith(".tkape")
+              ).length;
+              const countLabel = target.isCompound
+                ? `${target.referencedTargets.length} targets`
+                : `${pathCount} ${pathCount === 1 ? "path" : "paths"}`;
+              return (
+                <li>
+                  <a
+                    href={`/artifact/${target.slug}`}
+                    class="group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
                   >
-                    {target.name}
-                  </span>
-                  <span
-                    class="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block"
-                  >
-                    {target.description || "No description available"}
-                  </span>
-                  <span
-                    class="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums"
-                  >
-                    {countLabel}
-                  </span>
-                </a>
-              </li>
-            );
-          })
-        }
-      </ul>
+                    <span
+                      class="w-48 shrink-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-56"
+                    >
+                      {target.name}
+                    </span>
+                    <span
+                      class="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block"
+                    >
+                      {target.description || "No description available"}
+                    </span>
+                    <span
+                      class="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums"
+                    >
+                      {countLabel}
+                    </span>
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+        <Fragment slot="footer">
+          <span class="tabular-nums">{targets.length} targets</span>
+          <a
+            href={`https://github.com/EricZimmerman/KapeFiles/tree/master/Targets/${category}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="focus-ring rounded-sm text-primary transition-colors hover:underline"
+          >
+            KapeFiles/Targets/{category}
+            <span class="sr-only">(opens in new tab)</span>
+          </a>
+        </Fragment>
+      </Panel>
 
       <nav class="mt-10" aria-label="Other categories">
         <h2 class="mb-3 text-sm font-medium text-foreground">

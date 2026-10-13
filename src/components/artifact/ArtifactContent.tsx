@@ -34,34 +34,6 @@ export function ArtifactHeader({
   return <header className={className}>{children}</header>;
 }
 
-// Generic section
-export function ArtifactSection({
-  children,
-  className = "",
-  ariaLabel,
-}: {
-  children: ReactNode;
-  className?: string;
-  ariaLabel?: string;
-}) {
-  return (
-    <section aria-labelledby={ariaLabel} className={className}>
-      {children}
-    </section>
-  );
-}
-
-// Card/Box section
-export function ArtifactCard({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={className}>{children}</div>;
-}
-
 // Footer section
 export function ArtifactFooter({
   children,
@@ -71,25 +43,4 @@ export function ArtifactFooter({
   className?: string;
 }) {
   return <footer className={className}>{children}</footer>;
-}
-
-// List container
-export function ArtifactList({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={className}>{children}</div>;
-}
-
-export function ArtifactListItem({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return <div className={className}>{children}</div>;
 }

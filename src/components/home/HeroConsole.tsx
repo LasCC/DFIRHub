@@ -1,4 +1,4 @@
-import { Check, Copy } from "lucide-react";
+import { ArrowRight, Check, Copy } from "lucide-react";
 import { useId, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
@@ -6,6 +6,8 @@ import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 import { trackCopyCommand } from "@/lib/analytics";
 import type { ConsolePreview } from "@/lib/homepage";
 import { cn } from "@/lib/utils";
+
+import { Panel } from "../ui/Panel";
 
 interface HeroConsoleProps {
   previews: ConsolePreview[];
@@ -120,10 +122,23 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-console-line bg-console text-console-foreground">
+    <Panel
+      actions={
+        <a
+          className="panel-action focus-ring"
+          href={`/artifact/${active.slug}`}
+        >
+          Open {active.name}
+          <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
+        </a>
+      }
+      headingId={`${idPrefix}-heading`}
+      subtitle={describePreview(active)}
+      title={active.name}
+    >
       <div
         aria-label="Example artifacts"
-        className="scrollbar-hide flex overflow-x-auto border-b border-console-line px-2"
+        className="scrollbar-hide flex overflow-x-auto border-b border-border px-2"
         role="tablist"
       >
         {previews.map((preview, index) => {
@@ -133,11 +148,11 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
               aria-controls={panelId}
               aria-selected={isActive}
               className={cn(
-                "relative shrink-0 px-3 py-3 text-sm font-medium transition-colors",
+                "relative shrink-0 px-3 py-2.5 text-sm transition-colors",
                 "after:absolute after:inset-x-3 after:bottom-[-1px] after:h-0.5",
                 isActive
-                  ? "text-console-foreground after:bg-console-accent"
-                  : "text-console-muted hover:text-console-foreground"
+                  ? "font-medium text-foreground after:bg-primary"
+                  : "text-muted-foreground hover:text-foreground"
               )}
               id={`${idPrefix}-tab-${preview.slug}`}
               key={preview.slug}
@@ -163,7 +178,7 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
         role="tabpanel"
       >
         <ul
-          className="space-y-1 px-5 pt-5 pb-3 font-mono text-[13px] leading-6"
+          className="space-y-1 px-5 pt-5 pb-4 font-mono text-[13px] leading-6"
           style={{ minHeight: `${getListMinHeightRem(previews)}rem` }}
         >
           {active.rows.map((row, index) => (
@@ -172,7 +187,7 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
               key={`${row.directory}${row.mask ?? ""}`}
               style={{ animationDelay: `${index * LINE_STAGGER_MS}ms` }}
             >
-              <span className="text-console-foreground">{row.directory}</span>
+              <span className="text-foreground">{row.directory}</span>
               {row.mask && (
                 <span className="text-console-accent">{row.mask}</span>
               )}
@@ -180,7 +195,7 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
           ))}
           {active.hiddenPathCount > 0 && (
             <li
-              className="console-line text-console-muted"
+              className="console-line text-muted-foreground"
               style={{
                 animationDelay: `${active.rows.length * LINE_STAGGER_MS}ms`,
               }}
@@ -190,7 +205,7 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
           )}
         </ul>
 
-        <div className="flex items-center gap-2.5 border-t border-console-line px-5 py-2.5">
+        <div className="flex items-center gap-2.5 border-t border-console-line bg-console px-5 py-2.5 text-console-foreground">
           <span
             aria-hidden="true"
             className="select-none font-mono text-[13px] text-console-muted"
@@ -210,7 +225,7 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
             </code>
           </div>
           <button
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-console-line text-console-muted transition-colors hover:border-console-muted hover:text-console-foreground"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-console-line bg-background text-console-muted transition-colors hover:border-console-muted hover:text-console-foreground"
             onClick={copyCommand}
             title={copied ? "Copied" : "Copy command"}
             type="button"
@@ -229,17 +244,7 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
             {copied ? "Command copied to clipboard" : ""}
           </span>
         </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-console-line px-5 py-3 text-[13px] text-console-muted">
-          <p>{describePreview(active)}</p>
-          <a
-            className="text-console-foreground underline-offset-4 hover:underline"
-            href={`/artifact/${active.slug}`}
-          >
-            Open {active.name}
-          </a>
-        </div>
       </div>
-    </div>
+    </Panel>
   );
 }

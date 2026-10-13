@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { generateCyberChefUrl, getRecipesForTarget } from "../../lib/cyberchef";
 import type { KapeTarget } from "../../lib/kapefiles";
+import { Panel } from "../ui/Panel";
 
 interface CyberChefLinksProps {
   target: KapeTarget;
@@ -19,21 +20,19 @@ export function CyberChefLinks({ target }: CyberChefLinksProps) {
   }
 
   return (
-    <section aria-labelledby="cyberchef-heading">
-      <h2
-        className="mb-3 font-semibold text-base tracking-tight"
-        id="cyberchef-heading"
-      >
-        Decode with CyberChef
-      </h2>
+    <Panel
+      headingId="cyberchef-heading"
+      subtitle={`${applicableRecipes.length} ${applicableRecipes.length === 1 ? "recipe" : "recipes"} for this artifact`}
+      title="Decode with CyberChef"
+    >
       <ul
         aria-label="Available CyberChef recipes"
-        className="-mx-2 list-none space-y-0.5"
+        className="list-none divide-y divide-border"
       >
         {applicableRecipes.map((recipe) => (
           <li key={recipe.id}>
             <a
-              className="group focus-ring flex items-start gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-muted"
+              className="group focus-ring flex items-start gap-2 px-4 py-2.5 transition-colors hover:bg-muted"
               href={generateCyberChefUrl(recipe)}
               rel="noopener noreferrer"
               target="_blank"
@@ -55,6 +54,6 @@ export function CyberChefLinks({ target }: CyberChefLinksProps) {
           </li>
         ))}
       </ul>
-    </section>
+    </Panel>
   );
 }

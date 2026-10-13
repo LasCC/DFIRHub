@@ -87,6 +87,8 @@
   --overlay: #ffffff;
   /* Recessed / code-panel surface */
   --sunken: #0c0c0e;
+  /* Stacked card shell (header strip around an inset card) */
+  --panel: var(--surface-1);
   /* Code editor (Monaco) surface — stays dark in both themes */
   --editor: #101010;
   /* Base color painted on <html> behind everything */
@@ -149,6 +151,7 @@
   /* Dark tint so `bg-overlay/[0.02]` becomes a subtle dark wash */
   --overlay: #18181b;
   --sunken: #f0f0f2;
+  --panel: #f6f6f7;
   /* --editor intentionally inherits the dark value (code editor stays dark) */
   --app-base: #ffffff;
 
@@ -190,6 +193,7 @@
   --color-ring: var(--ring);
   --color-overlay: var(--overlay);
   --color-sunken: var(--sunken);
+  --color-panel: var(--panel);
   --color-editor: var(--editor);
   --color-console: var(--console);
   --color-console-foreground: var(--console-foreground);
@@ -309,6 +313,115 @@
   .glass-subtle {
     background: var(--card);
     border: 1px solid var(--border);
+  }
+
+  /* Stacked card: tinted shell, header strip, inset card (see Panel.astro / Panel.tsx) */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 4px;
+  }
+
+  .panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 10px 12px 12px;
+  }
+
+  .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    color: var(--foreground);
+  }
+
+  .panel-subtitle {
+    margin-top: 2px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+  }
+
+  .panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-card {
+    overflow: hidden;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .panel-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 16px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted-foreground);
+  }
+
+  .panel-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--foreground);
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .panel-action:hover {
+    background: var(--muted);
+  }
+
+  .panel-action-primary {
+    color: var(--primary-foreground);
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .panel-action-primary:hover {
+    background: var(--primary);
+    filter: brightness(1.08);
+  }
+
+  .panel-action[disabled] {
+    opacity: 0.5;
   }
 
   /* Dialogs, command palette, mobile menu */
@@ -606,6 +719,60 @@
     opacity: 1;
     clip-path: none;
   }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+[data-reveal][data-armed] {
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-reveal][data-armed]:not([data-revealed]) {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+[data-reveal][data-armed]:not([data-revealed]) :is(.reveal-item, .reveal-count) {
+  opacity: 0;
+}
+
+[data-reveal][data-armed]:not([data-revealed]) .reveal-bar {
+  clip-path: inset(0 100% 0 0);
+}
+
+[data-reveal][data-revealed] .reveal-item {
+  animation: reveal-in 0.4s ease-out both;
+  animation-delay: calc(0.2s + var(--reveal-index, 0) * var(--reveal-step, 70ms));
+}
+
+[data-reveal][data-revealed] .reveal-count {
+  animation: reveal-in 0.4s ease-out both;
+  animation-delay: calc(0.7s + var(--reveal-index, 0) * var(--reveal-step, 70ms));
+}
+
+[data-reveal][data-revealed] .reveal-bar {
+  animation: reveal-wipe 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.2s + var(--reveal-index, 0) * var(--reveal-step, 70ms));
 }
 
 /* Dialog & modal animations */

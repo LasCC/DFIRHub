@@ -14,6 +14,7 @@ import { trackBuilderCopy, trackBuilderDownload } from "@/lib/analytics";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
 import { CodeBlock } from "../ui/CodeBlock";
+import { Panel } from "../ui/Panel";
 
 type ExportFormat = "kape" | "powershell" | "batch" | "wsl";
 
@@ -447,83 +448,97 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
     trackBuilderDownload(options.format, selectedTargets.size);
   };
 
+  const generatedKind = options.format === "kape" ? "command" : "script";
+  const selectedSummary =
+    selectedTargets.size > 0 ? (
+      <span className="min-w-0">
+        <span className="font-medium text-foreground">Selected:</span>{" "}
+        {selectedTargetObjects.map((t) => t.name).join(", ")}
+      </span>
+    ) : undefined;
+
   return (
-    <div className="space-y-6">
-      {/* Target Selection */}
-      <section>
-        <h2 className="mb-3 flex items-center gap-2 text-muted-foreground text-xs">
-          Select targets
-          <span className="text-primary">
-            ({selectedTargets.size} selected)
-          </span>
-        </h2>
+    <div className="space-y-8">
+      <Panel
+        actions={
+          <>
+            <button
+              className="panel-action focus-ring"
+              onClick={selectAll}
+              type="button"
+            >
+              Select all
+            </button>
+            <button
+              className="panel-action focus-ring text-destructive"
+              onClick={clearAll}
+              type="button"
+            >
+              Clear
+            </button>
+          </>
+        }
+        footer={
+          <>
+            <span className="tabular-nums">{filteredTargets.length} shown</span>
+            <span className="tabular-nums">
+              {selectedTargets.size} selected
+            </span>
+          </>
+        }
+        headingId="select-targets-heading"
+        subtitle="Pick the artifacts to collect"
+        title="Select targets"
+        toolbar={
+          <>
+            <input
+              aria-label="Search targets"
+              className="h-8 min-w-48 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search targets..."
+              type="text"
+              value={searchQuery}
+            />
+            <div className="flex flex-wrap gap-1.5">
+              {categories.map((cat) => {
+                const Icon = categoryIconMap[cat.toLowerCase()];
+                const isActive = activeCategory === cat;
 
-        {/* Category Tabs */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {categories.map((cat) => {
-            const Icon = categoryIconMap[cat.toLowerCase()];
-            const isActive = activeCategory === cat;
-
-            return (
-              <button
-                aria-pressed={isActive}
-                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${
-                  isActive
-                    ? "border border-primary bg-primary text-primary-foreground"
-                    : "border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                type="button"
-              >
-                {Icon && (
-                  <Icon
-                    className={`h-3.5 w-3.5 ${isActive ? "" : "opacity-60"}`}
-                  />
-                )}
-                <span>{cat}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search */}
-        <div className="mb-4 flex items-center gap-4">
-          <input
-            aria-label="Search targets"
-            className="h-9 flex-1 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-sm outline-none focus:border-primary/50"
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search targets..."
-            type="text"
-            value={searchQuery}
-          />
-          <button
-            className="px-3 py-1.5 text-primary text-xs transition-colors hover:text-primary/80"
-            onClick={selectAll}
-            type="button"
-          >
-            Select all
-          </button>
-          <button
-            className="px-3 py-1.5 text-destructive text-xs transition-colors hover:text-destructive/80"
-            onClick={clearAll}
-            type="button"
-          >
-            Clear
-          </button>
-        </div>
-
-        {/* Target Grid */}
-        <div className="glass-subtle max-h-64 overflow-y-auto rounded-xl">
+                return (
+                  <button
+                    aria-pressed={isActive}
+                    className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs transition-colors ${
+                      isActive
+                        ? "border border-primary bg-primary text-primary-foreground"
+                        : "border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    type="button"
+                  >
+                    {Icon && (
+                      <Icon
+                        className={`h-3.5 w-3.5 ${isActive ? "" : "opacity-60"}`}
+                      />
+                    )}
+                    <span>{cat}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        }
+      >
+        <div className="scrollbar-thin max-h-72 overflow-y-auto">
           {filteredTargets.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground text-sm">
               No targets found
             </div>
           ) : (
-            <div className="divide-y divide-overlay/[0.04]">
+            <div className="divide-y divide-border">
               {filteredTargets.map((target) => (
                 <label
-                  className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-overlay/[0.04]"
+                  className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-muted"
                   key={target.slug}
                 >
                   <input
@@ -554,180 +569,168 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
             </div>
           )}
         </div>
-      </section>
+      </Panel>
 
-      {/* Export Options */}
-      <section>
-        <h2 className="mb-3 flex items-center gap-2 text-muted-foreground text-xs">
-          Export options
-        </h2>
-        <div className="glass-subtle rounded-xl p-4">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {/* Format */}
-            <div>
-              <label
-                className="mb-2 block text-muted-foreground text-xs"
-                htmlFor="script-format"
-              >
-                Format
-              </label>
-              <select
-                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-sm outline-none focus:border-primary/50"
-                id="script-format"
-                onChange={(e) =>
-                  setOptions((prev) => ({
-                    ...prev,
-                    format: e.target.value as ExportFormat,
-                  }))
-                }
-                value={options.format}
-              >
-                <option value="kape">KAPE Command</option>
-                <option value="powershell">PowerShell (.ps1)</option>
-                <option value="batch">Batch (.bat)</option>
-                <option value="wsl">WSL/Bash (.sh)</option>
-              </select>
-            </div>
-
-            {/* Source */}
-            <div>
-              <label
-                className="mb-2 block text-muted-foreground text-xs"
-                htmlFor="script-source"
-              >
-                Source
-              </label>
-              <input
-                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-sm outline-none focus:border-primary/50"
-                id="script-source"
-                onChange={(e) =>
-                  setOptions((prev) => ({ ...prev, source: e.target.value }))
-                }
-                type="text"
-                value={options.source}
-              />
-            </div>
-
-            {/* Destination */}
-            <div>
-              <label
-                className="mb-2 block text-muted-foreground text-xs"
-                htmlFor="script-destination"
-              >
-                Destination
-              </label>
-              <input
-                className="h-9 w-full rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 text-sm outline-none focus:border-primary/50"
-                id="script-destination"
-                onChange={(e) =>
-                  setOptions((prev) => ({
-                    ...prev,
-                    destination: e.target.value,
-                  }))
-                }
-                type="text"
-                value={options.destination}
-              />
-            </div>
-
-            {/* KAPE Options */}
-            {options.format === "kape" && (
-              <div className="flex flex-col gap-2">
-                <span className="block text-muted-foreground text-xs">
-                  Options
-                </span>
-                <div className="flex items-center gap-4">
-                  <label className="flex cursor-pointer items-center gap-1.5">
-                    <input
-                      checked={options.useVss}
-                      className="h-3 w-3 accent-primary"
-                      onChange={(e) =>
-                        setOptions((prev) => ({
-                          ...prev,
-                          useVss: e.target.checked,
-                        }))
-                      }
-                      type="checkbox"
-                    />
-                    <span className="text-muted-foreground text-xs">--vss</span>
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-1.5">
-                    <input
-                      checked={options.useVhdx}
-                      className="h-3 w-3 accent-primary"
-                      onChange={(e) =>
-                        setOptions((prev) => ({
-                          ...prev,
-                          useVhdx: e.target.checked,
-                        }))
-                      }
-                      type="checkbox"
-                    />
-                    <span className="text-muted-foreground text-xs">
-                      --vhdx
-                    </span>
-                  </label>
-                </div>
-              </div>
-            )}
+      <Panel
+        headingId="export-options-heading"
+        subtitle="Format, source drive and destination"
+        title="Export options"
+      >
+        <div className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4">
+          <div>
+            <label
+              className="mb-2 block text-muted-foreground text-xs"
+              htmlFor="script-format"
+            >
+              Format
+            </label>
+            <select
+              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
+              id="script-format"
+              onChange={(e) =>
+                setOptions((prev) => ({
+                  ...prev,
+                  format: e.target.value as ExportFormat,
+                }))
+              }
+              value={options.format}
+            >
+              <option value="kape">KAPE Command</option>
+              <option value="powershell">PowerShell (.ps1)</option>
+              <option value="batch">Batch (.bat)</option>
+              <option value="wsl">WSL/Bash (.sh)</option>
+            </select>
           </div>
-        </div>
-      </section>
 
-      {/* Generated Script */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-muted-foreground text-xs">
-            Generated {options.format === "kape" ? "command" : "script"}
-          </h2>
-          {generatedScript && (
-            <div className="flex gap-2">
+          <div>
+            <label
+              className="mb-2 block text-muted-foreground text-xs"
+              htmlFor="script-source"
+            >
+              Source
+            </label>
+            <input
+              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
+              id="script-source"
+              onChange={(e) =>
+                setOptions((prev) => ({ ...prev, source: e.target.value }))
+              }
+              type="text"
+              value={options.source}
+            />
+          </div>
+
+          <div>
+            <label
+              className="mb-2 block text-muted-foreground text-xs"
+              htmlFor="script-destination"
+            >
+              Destination
+            </label>
+            <input
+              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
+              id="script-destination"
+              onChange={(e) =>
+                setOptions((prev) => ({
+                  ...prev,
+                  destination: e.target.value,
+                }))
+              }
+              type="text"
+              value={options.destination}
+            />
+          </div>
+
+          {options.format === "kape" && (
+            <div className="flex flex-col gap-2">
+              <span className="block text-muted-foreground text-xs">
+                Options
+              </span>
+              <div className="flex items-center gap-4">
+                <label className="flex cursor-pointer items-center gap-1.5">
+                  <input
+                    checked={options.useVss}
+                    className="h-3 w-3 accent-primary"
+                    onChange={(e) =>
+                      setOptions((prev) => ({
+                        ...prev,
+                        useVss: e.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  <span className="text-muted-foreground text-xs">--vss</span>
+                </label>
+                <label className="flex cursor-pointer items-center gap-1.5">
+                  <input
+                    checked={options.useVhdx}
+                    className="h-3 w-3 accent-primary"
+                    onChange={(e) =>
+                      setOptions((prev) => ({
+                        ...prev,
+                        useVhdx: e.target.checked,
+                      }))
+                    }
+                    type="checkbox"
+                  />
+                  <span className="text-muted-foreground text-xs">--vhdx</span>
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+      </Panel>
+
+      <Panel
+        actions={
+          generatedScript ? (
+            <>
               <button
-                className="rounded-md border border-border bg-secondary/30 px-3 py-1.5 text-xs transition-colors hover:border-primary/50"
+                className="panel-action focus-ring"
                 onClick={handleCopy}
                 type="button"
               >
                 {copied ? "Copied!" : "Copy"}
               </button>
               <button
-                className="rounded-md border border-primary/50 bg-primary/10 px-3 py-1.5 text-primary text-xs transition-colors hover:bg-primary/20"
+                className="panel-action panel-action-primary focus-ring"
                 onClick={handleDownload}
                 type="button"
               >
                 Download
               </button>
-            </div>
-          )}
-        </div>
-        <div>
-          {generatedScript ? (
-            <CodeBlock
-              code={generatedScript}
-              language={
-                options.format === "kape"
-                  ? "powershell"
-                  : options.format === "wsl"
-                    ? "bash"
-                    : options.format === "powershell"
-                      ? "powershell"
-                      : "batch"
-              }
-            />
-          ) : (
-            <div className="rounded-lg border border-console-line bg-sunken p-4 text-muted-foreground text-sm">
-              Select targets to generate a collection command
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Selected Targets Summary */}
-      {selectedTargets.size > 0 && (
-        <section className="text-muted-foreground text-xs">
-          <span className="font-medium text-foreground">Selected:</span>{" "}
-          {selectedTargetObjects.map((t) => t.name).join(", ")}
-        </section>
-      )}
+            </>
+          ) : undefined
+        }
+        footer={selectedSummary}
+        headingId="generated-heading"
+        subtitle={
+          selectedTargets.size > 0
+            ? `${selectedTargets.size} ${selectedTargets.size === 1 ? "target" : "targets"} selected`
+            : "No targets selected yet"
+        }
+        title={`Generated ${generatedKind}`}
+      >
+        {generatedScript ? (
+          <CodeBlock
+            code={generatedScript}
+            flush
+            language={
+              options.format === "kape"
+                ? "powershell"
+                : options.format === "wsl"
+                  ? "bash"
+                  : options.format === "powershell"
+                    ? "powershell"
+                    : "batch"
+            }
+          />
+        ) : (
+          <div className="bg-console p-4 text-muted-foreground text-sm">
+            Select targets to generate a collection command
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }
