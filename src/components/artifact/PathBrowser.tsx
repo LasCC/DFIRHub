@@ -268,7 +268,10 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   return (
     <div className="glass-subtle overflow-hidden rounded-xl">
       {/* Header */}
-      <div className="flex items-center justify-between border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-3">
+      <div
+        className="flex items-center justify-between border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-3"
+        data-pagefind-ignore
+      >
         <div className="text-muted-foreground text-xs">
           <span className="text-primary">{pathEntries.length}</span> path
           {pathEntries.length !== 1 ? "s" : ""}
@@ -292,7 +295,10 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
 
       {/* Filter bar — only shown when > 5 paths */}
       {showFilter && (
-        <div className="flex flex-wrap items-center gap-2 border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-2">
+        <div
+          className="flex flex-wrap items-center gap-2 border-overlay/[0.04] border-b bg-overlay/[0.02] px-4 py-2"
+          data-pagefind-ignore
+        >
           <input
             aria-label="Filter paths"
             className="h-7 min-w-0 flex-1 rounded border border-border bg-background px-2 text-foreground text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"

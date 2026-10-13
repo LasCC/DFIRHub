@@ -103,6 +103,7 @@ for (const entry of docNotes) {
 
 const resolvedEntries = getResolvedEntries(target);
 const pathCount = resolvedEntries.length;
+const searchKind = target.isCompound ? "Collection" : "Artifact";
 const MAX_FILE_TYPES = 3;
 const LONG_DESCRIPTION_LENGTH = 160;
 const numberFormat = new Intl.NumberFormat("en-US");
@@ -236,11 +237,15 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 
   <Header client:load currentPath={Astro.url.pathname} />
 
-  <main id="main-content" class="relative flex-1" tabindex="-1">
+  <main id="main-content" class="relative flex-1" tabindex="-1" data-pagefind-body>
+    <span hidden data-pagefind-meta={`kind:${searchKind}`}></span>
+    <span hidden data-pagefind-meta={`category:${target.category}`}></span>
+    <span hidden data-pagefind-filter={`category:${target.category}`}></span>
+    <span hidden data-pagefind-meta={`paths:${pathCount}`}></span>
     <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <ArtifactPageContainer client:load>
         <ArtifactBreadcrumb className="mb-8 text-xs text-muted-foreground">
-          <ol class="flex flex-wrap items-center gap-1" role="list">
+          <ol class="flex flex-wrap items-center gap-1" role="list" data-pagefind-ignore>
             <li>
               <a
                 href="/"
@@ -291,7 +296,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
               {target.description}
             </p>
           )}
-          <ul class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
+          <ul class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground" data-pagefind-ignore>
             <li>
               <CategoryChip
                 category={target.category}
@@ -337,19 +342,21 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
         <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
           <div class="flex min-w-0 flex-col gap-12 lg:col-span-7">
             <ArtifactSection ariaLabel="paths-heading">
-              <h2 id="paths-heading" class={sectionHeadingClass}>
+              <h2 id="paths-heading" class={sectionHeadingClass} data-pagefind-ignore>
                 Paths on disk
               </h2>
-              <PathBrowser
-                client:idle
-                target={target}
-                resolvedTargets={resolvedTargets}
-              />
+              <div data-pagefind-ignore={target.isCompound ? "all" : undefined}>
+                <PathBrowser
+                  client:idle
+                  target={target}
+                  resolvedTargets={resolvedTargets}
+                />
+              </div>
             </ArtifactSection>
 
             {target.isCompound && (
               <ArtifactSection ariaLabel="includes-heading">
-                <h2 id="includes-heading" class={sectionHeadingClass}>
+                <h2 id="includes-heading" class={sectionHeadingClass} data-pagefind-ignore>
                   Includes {target.referencedTargets.length} targets
                 </h2>
                 <ArtifactList className="glass-subtle divide-y divide-border overflow-hidden rounded-xl">
@@ -361,7 +368,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                           class="group flex items-center justify-between px-4 py-2.5 transition-colors hover:bg-muted"
                         >
                           <span class="text-sm">{included.name}</span>
-                          <span class="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-foreground">
+                          <span data-pagefind-ignore class="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-foreground">
                             {included.pathCount} {included.pathCount === 1 ? "path" : "paths"}
                             <ArrowRight aria-hidden="true" className="h-3 w-3" />
                           </span>
@@ -386,7 +393,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 
             {docNotes.length > 0 && (
               <ArtifactSection ariaLabel="notes-heading">
-                <h2 id="notes-heading" class={sectionHeadingClass}>
+                <h2 id="notes-heading" class={sectionHeadingClass} data-pagefind-ignore>
                   Notes
                 </h2>
                 <div class="glass-subtle space-y-4 rounded-xl p-5 text-sm leading-relaxed text-foreground/80">
@@ -403,7 +410,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 
             {referenceLinks.length > 0 && (
               <ArtifactSection ariaLabel="references-heading">
-                <h2 id="references-heading" class={sectionHeadingClass}>
+                <h2 id="references-heading" class={sectionHeadingClass} data-pagefind-ignore>
                   References
                 </h2>
                 <ArtifactList className="glass-subtle divide-y divide-border overflow-hidden rounded-xl">
@@ -425,7 +432,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                           aria-hidden="true"
                           className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary"
                         />
-                        <span class="sr-only">(opens in new tab)</span>
+                        <span class="sr-only" data-pagefind-ignore>(opens in new tab)</span>
                       </a>
                     </ArtifactListItem>
                   ))}
@@ -436,6 +443,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 
           <aside
             aria-label="Collect and related information"
+            data-pagefind-ignore
             class="flex min-w-0 flex-col gap-10 lg:sticky lg:top-20 lg:col-span-5 lg:-mx-2 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto lg:overflow-x-hidden lg:px-2"
           >
             <ArtifactSection ariaLabel="commands-heading">
@@ -470,8 +478,9 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
         </div>
 
         <ArtifactFooter className="mt-16 border-t border-border pt-4 text-xs text-muted-foreground">
-          <span>Source: </span>
+          <span data-pagefind-ignore>Source: </span>
           <a
+            data-pagefind-ignore
             href={"https://github.com/EricZimmerman/KapeFiles/blob/master/Targets/" +
                             target.category +
                             "/" +
@@ -481,7 +490,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
             class="focus-ring rounded-sm text-primary transition-colors hover:underline"
           >
             KapeFiles/{target.category}/{target.sourceFile}
-            <span class="sr-only">(opens in new tab)</span>
+            <span class="sr-only" data-pagefind-ignore>(opens in new tab)</span>
           </a>
         </ArtifactFooter>
       </ArtifactPageContainer>

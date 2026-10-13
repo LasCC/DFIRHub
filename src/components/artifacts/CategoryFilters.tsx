@@ -1,16 +1,7 @@
-import {
-  ArrowLeftRight,
-  Box,
-  FileText,
-  Globe,
-  Layers,
-  LayoutGrid,
-  Monitor,
-  ShieldCheck,
-} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { trackCategoryFilterUsed } from "@/lib/analytics";
+import { getCategoryIcon } from "@/lib/categoryIcons";
 
 interface Category {
   id: string;
@@ -22,17 +13,6 @@ interface Category {
 interface CategoryFiltersProps {
   categories: Category[];
 }
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  all: LayoutGrid,
-  antivirus: ShieldCheck,
-  apps: Box,
-  browsers: Globe,
-  compound: Layers,
-  logs: FileText,
-  p2p: ArrowLeftRight,
-  windows: Monitor,
-};
 
 const allActiveClasses =
   "data-[active=true]:!border-primary data-[active=true]:!bg-primary data-[active=true]:!text-primary-foreground";
@@ -79,7 +59,7 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
         ref={scrollRef}
       >
         {categories.map((cat) => {
-          const Icon = iconMap[cat.id.toLowerCase()] || LayoutGrid;
+          const Icon = getCategoryIcon(cat.id);
           const activeClasses =
             cat.id === "all" ? allActiveClasses : categoryActiveClasses;
 
@@ -100,9 +80,7 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
                 trackCategoryFilterUsed(cat.id);
               }}
             >
-              <Icon
-                className="h-3.5 w-3.5"
-              />
+              <Icon className="h-3.5 w-3.5" />
               <span>{cat.label}</span>
               <span className="rounded-sm bg-muted px-1.5 text-xs tabular-nums group-data-[active=true]:bg-primary-foreground/20 group-data-[active=true]:text-primary-foreground">
                 {cat.count}

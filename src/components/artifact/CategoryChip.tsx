@@ -1,31 +1,13 @@
-import {
-  ArrowLeftRight,
-  Box,
-  FileText,
-  Globe,
-  Layers,
-  Monitor,
-  ShieldCheck,
-} from "lucide-react";
+import { Layers, Monitor } from "lucide-react";
 
+import { getCategoryIcon } from "@/lib/categoryIcons";
 import type { CategoryStyle } from "@/lib/categoryStyles";
-
 import { getCategoryStyle } from "@/lib/categoryStyles";
 
 interface CategoryChipProps {
   category: string;
   isCompound?: boolean;
 }
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  antivirus: ShieldCheck,
-  apps: Box,
-  browsers: Globe,
-  compound: Layers,
-  logs: FileText,
-  p2p: ArrowLeftRight,
-  windows: Monitor,
-};
 
 // categoryStyles keys are capitalized ("Windows", "P2P"); normalize lookup.
 const SPECIAL_KEYS: Record<string, string> = { p2p: "P2P" };
@@ -39,7 +21,7 @@ function resolveCategoryStyle(category: string): CategoryStyle {
 
 export function CategoryChip({ category, isCompound }: CategoryChipProps) {
   const categoryLower = category.toLowerCase();
-  const Icon = iconMap[categoryLower] || Monitor;
+  const Icon = getCategoryIcon(categoryLower, Monitor);
   const style = resolveCategoryStyle(category);
 
   return (

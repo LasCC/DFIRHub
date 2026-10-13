@@ -1,53 +1,38 @@
+import { ArrowRight, Search as SearchIcon, X } from "lucide-react";
 import {
-  FileSearch,
-  Hammer,
-  Home,
-  Layers,
-  Search as SearchIcon,
-} from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import {
   CommandDialog,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
 import { trackSearchQuery, trackSearchResultSelected } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
-interface SearchResult {
-  id: string;
-  url: string;
-  meta: {
-    title?: string;
-    image?: string;
-  };
-  excerpt: string;
-}
-
-interface PagefindResult {
-  id: string;
-  data: () => Promise<{
-    url: string;
-    meta: { title?: string; image?: string };
-    excerpt: string;
-  }>;
-}
-
-interface PagefindAPI {
-  init: () => Promise<void>;
-  search: (query: string) => Promise<{ results: PagefindResult[] }>;
-  debouncedSearch: (
-    query: string,
-    options?: { debounceTimeoutMs?: number }
-  ) => Promise<{ results: PagefindResult[] } | null>;
-}
+import { CategoryChips } from "./CategoryChips";
+import type { SearchHit } from "./pagefindClient";
+import { QUICK_LINKS } from "./quickLinks";
+import {
+  BROWSE_ALL_VALUE,
+  SUGGESTED_QUERIES,
+  buildKapeCommand,
+} from "./searchActions";
+import { SearchFooter } from "./SearchFooter";
+import { SearchResultItem } from "./SearchResultItem";
+import { usePagefindSearch } from "./usePagefindSearch";
+import type { RecentArtifact } from "./useRecentArtifacts";
+import { useRecentArtifacts } from "./useRecentArtifacts";
 
 declare global {
   interface Window {
-    pagefind?: PagefindAPI;
     announce?: (message: string) => void;
   }
 }
@@ -56,165 +41,264 @@ interface SearchProps {
   showTrigger?: boolean;
 }
 
+const ANNOUNCEMENT_CLEAR_DELAY_MS = 1000;
+const COPIED_FEEDBACK_MS = 1500;
+const SKELETON_ROW_COUNT = 3;
+
+const subscribeToNothing = () => () => null;
+const detectMacPlatform = () => navigator.userAgent.includes("Mac");
+const assumeNonMacPlatform = () => false;
+
+const toRecentArtifact = ({
+  category,
+  kind,
+  title,
+  url,
+}: RecentArtifact): RecentArtifact => ({ category, kind, title, url });
+
+function SearchSkeleton() {
+  return (
+    <div aria-hidden="true" className="space-y-1 p-2">
+      {Array.from({ length: SKELETON_ROW_COUNT }, (_, row) => (
+        <div
+          className="flex animate-pulse items-start gap-3 rounded-lg px-3 py-3"
+          key={row}
+        >
+          <div className="h-9 w-9 shrink-0 rounded-lg bg-overlay/[0.06]" />
+          <div className="flex-1 space-y-2 pt-1">
+            <div className="h-3 w-1/3 rounded bg-overlay/[0.08]" />
+            <div className="h-2.5 w-4/5 rounded bg-overlay/[0.05]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Search({ showTrigger = true }: SearchProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const pagefindRef = useRef<PagefindAPI | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
+  const [selectedValue, setSelectedValue] = useState("");
+  const [copied, setCopied] = useState(false);
+  const isMac = useSyncExternalStore(
+    subscribeToNothing,
+    detectMacPlatform,
+    assumeNonMacPlatform
+  );
+  const { categoryCounts, hits, reset, search, status, total } =
+    usePagefindSearch();
+  const { recent, refresh, remember } = useRecentArtifacts();
   const announcerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Announce to screen readers
+  const trimmedQuery = query.trim();
+  const hasQuery = trimmedQuery.length > 0;
+  const isLoading = status === "loading";
+  const hasHits = hits.length > 0;
+  const showSkeleton = hasQuery && isLoading && !hasHits;
+  const showNoResults = hasQuery && status === "ready" && !hasHits;
+  const showUnavailable = hasQuery && status === "unavailable";
+  const showChips = hasQuery && status !== "unavailable";
+  const showBrowseAll = hasQuery && hasHits && total > hits.length;
+  const modifierKey = isMac ? "⌘" : "Ctrl";
+  const resultsHeading =
+    total > hits.length
+      ? `Top ${hits.length} of ${total} results`
+      : `${total} ${total === 1 ? "result" : "results"}`;
+  const browseAllHref = `/artifacts?q=${encodeURIComponent(trimmedQuery)}`;
+
+  const selectedArtifact: RecentArtifact | undefined = (
+    hasQuery ? hits : recent
+  ).find((artifact) => artifact.url === selectedValue);
+  const selectedQuickLink = QUICK_LINKS.find(
+    (link) => link.href === selectedValue
+  );
+
+  const getPrimaryActionLabel = (): string => {
+    if (selectedValue === BROWSE_ALL_VALUE) {
+      return "See all results";
+    }
+    if (selectedArtifact) {
+      return selectedArtifact.kind === "Collection"
+        ? "Open collection"
+        : "Open artifact";
+    }
+    return selectedQuickLink ? `Go to ${selectedQuickLink.label}` : "Open";
+  };
+
   const announce = useCallback((message: string) => {
     if (window.announce) {
       window.announce(message);
-    } else if (announcerRef.current) {
-      announcerRef.current.textContent = message;
-      setTimeout(() => {
-        if (announcerRef.current) {
-          announcerRef.current.textContent = "";
-        }
-      }, 1000);
+      return;
     }
+    const announcer = announcerRef.current;
+    if (!announcer) {
+      return;
+    }
+    announcer.textContent = message;
+    setTimeout(() => {
+      announcer.textContent = "";
+    }, ANNOUNCEMENT_CLEAR_DELAY_MS);
   }, []);
 
-  // Initialize Pagefind when dialog opens
-  const loadPagefind = useCallback(async () => {
-    if (pagefindRef.current) {
-      return pagefindRef.current;
-    }
-    if (typeof window === "undefined") {
-      return null;
-    }
+  const changeOpen = useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      if (!nextOpen) {
+        return;
+      }
+      setQuery("");
+      setCategory(null);
+      setSelectedValue("");
+      reset();
+      refresh();
+      announce("Search dialog opened. Type to search artifacts.");
+    },
+    [reset, refresh, announce]
+  );
 
+  const copySelectedCommand = useCallback(async () => {
+    if (!selectedArtifact) {
+      return;
+    }
     try {
-      const pagefind = (await import(
-        // @ts-expect-error -- pagefind.js is generated at build time by Pagefind
-        /* @vite-ignore */ "/pagefind/pagefind.js"
-      )) as unknown as PagefindAPI;
-
-      if (pagefind && typeof pagefind.search === "function") {
-        pagefindRef.current = pagefind;
-        return pagefind;
+      await navigator.clipboard.writeText(
+        buildKapeCommand(selectedArtifact.title)
+      );
+      setCopied(true);
+      announce("KAPE command copied");
+      if (copiedTimerRef.current) {
+        clearTimeout(copiedTimerRef.current);
       }
-      return null;
-    } catch (error) {
-      console.info("Pagefind not available:", error);
-      return null;
+      copiedTimerRef.current = setTimeout(
+        () => setCopied(false),
+        COPIED_FEEDBACK_MS
+      );
+    } catch {
+      announce("Could not copy the KAPE command");
     }
-  }, []);
+  }, [selectedArtifact, announce]);
 
-  // Handle keyboard shortcuts
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      // Ctrl/Cmd+K or / to open
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
+  useEffect(
+    () => () => {
+      if (copiedTimerRef.current) {
+        clearTimeout(copiedTimerRef.current);
       }
-      if (e.key === "/" && !open && !e.defaultPrevented) {
-        const activeEl = document.activeElement;
-        const isInput =
-          activeEl instanceof HTMLInputElement ||
-          activeEl instanceof HTMLTextAreaElement;
-        if (!isInput) {
-          e.preventDefault();
-          setOpen(true);
-          announce("Search dialog opened");
-        }
+    },
+    []
+  );
+
+  useEffect(() => {
+    const hasSelectedInputText = () => {
+      const input = searchInputRef.current;
+      return Boolean(input && input.selectionStart !== input.selectionEnd);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const hasModifier = event.metaKey || event.ctrlKey;
+      if (event.key === "k" && hasModifier) {
+        event.preventDefault();
+        changeOpen(!open);
+        return;
+      }
+      if (open && event.key === "c" && hasModifier && !hasSelectedInputText()) {
+        event.preventDefault();
+        copySelectedCommand();
+        return;
+      }
+      if (event.key !== "/" || open || event.defaultPrevented) {
+        return;
+      }
+      const activeElement = document.activeElement;
+      const isTyping =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement;
+      if (!isTyping) {
+        event.preventDefault();
+        changeOpen(true);
       }
     };
 
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, [open, announce]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, changeOpen, copySelectedCommand]);
 
-  // Reset on open
-  useEffect(() => {
-    if (open) {
-      setQuery("");
-      setResults([]);
-      announce("Search dialog opened. Type to search artifacts.");
-    }
-  }, [open, announce]);
-
-  // Search handler
-  const handleSearch = useCallback(
-    async (searchQuery: string) => {
-      setQuery(searchQuery);
-
-      if (!searchQuery.trim()) {
-        setResults([]);
+  const runSearch = useCallback(
+    async (nextQuery: string, nextCategory: string | null) => {
+      const outcome = await search(nextQuery, nextCategory);
+      if (outcome === null) {
         return;
       }
-
-      setLoading(true);
-      try {
-        const pagefind = await loadPagefind();
-        if (!pagefind) {
-          setResults([]);
-          setLoading(false);
-          return;
-        }
-
-        const response = await pagefind.debouncedSearch(searchQuery, {
-          debounceTimeoutMs: 150,
-        });
-
-        if (!response) {
-          return;
-        }
-
-        const searchResults: SearchResult[] = await Promise.all(
-          response.results.slice(0, 10).map(async (result) => {
-            const data = await result.data();
-            return {
-              excerpt: data.excerpt,
-              id: result.id,
-              meta: data.meta,
-              url: data.url,
-            };
-          })
-        );
-
-        setResults(searchResults);
-        trackSearchQuery(searchQuery, searchResults.length);
-        announce(`${searchResults.length} results found`);
-      } catch (error) {
-        console.error("Search error:", error);
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
+      setSelectedValue(outcome.hits[0]?.url ?? "");
+      trackSearchQuery(nextQuery.trim(), outcome.total);
+      announce(`${outcome.total} results found`);
     },
-    [loadPagefind, announce]
+    [search, announce]
   );
 
-  // Navigate to result
-  const handleSelect = useCallback(
+  const handleQueryChange = useCallback(
+    (nextQuery: string) => {
+      setQuery(nextQuery);
+      if (!nextQuery.trim()) {
+        setSelectedValue("");
+      }
+      return runSearch(nextQuery, category);
+    },
+    [runSearch, category]
+  );
+
+  const handleCategoryChange = useCallback(
+    (nextCategory: string | null) => {
+      setCategory(nextCategory);
+      return runSearch(query, nextCategory);
+    },
+    [runSearch, query]
+  );
+
+  const handleClearQuery = useCallback(() => {
+    handleQueryChange("");
+    searchInputRef.current?.focus();
+  }, [handleQueryChange]);
+
+  const navigateTo = useCallback(
     (url: string) => {
       setOpen(false);
-      trackSearchResultSelected(query, url);
       announce("Navigating to result");
       window.location.href = url;
     },
-    [announce, query]
+    [announce]
   );
 
-  // Extract artifact name from URL
-  const getArtifactName = (url: string): string => {
-    const match = url.match(/\/artifact\/([^/]+)/);
-    return match ? match[1] : url;
-  };
+  const handleSelectHit = useCallback(
+    (hit: SearchHit) => {
+      trackSearchResultSelected(trimmedQuery, hit.url);
+      remember(toRecentArtifact(hit));
+      navigateTo(hit.url);
+    },
+    [navigateTo, remember, trimmedQuery]
+  );
 
-  const [isMac, setIsMac] = useState(false);
-  useEffect(() => {
-    setIsMac(navigator.userAgent.includes("Mac"));
-  }, []);
+  const handleSelectRecent = useCallback(
+    (artifact: RecentArtifact) => {
+      trackSearchResultSelected("", artifact.url);
+      remember(artifact);
+      navigateTo(artifact.url);
+    },
+    [navigateTo, remember]
+  );
+
+  const handleSelectLink = useCallback(
+    (href: string) => {
+      trackSearchResultSelected(trimmedQuery, href);
+      navigateTo(href);
+    },
+    [navigateTo, trimmedQuery]
+  );
 
   return (
     <>
-      {/* Live region for announcements */}
       <div
         aria-atomic="true"
         aria-live="polite"
@@ -222,14 +306,13 @@ export function Search({ showTrigger = true }: SearchProps) {
         ref={announcerRef}
       />
 
-      {/* Trigger button */}
       {showTrigger && (
         <button
           aria-keyshortcuts="Control+K"
           aria-label="Open search dialog"
           className="group glass-subtle focus-ring flex h-9 w-9 items-center justify-center rounded-lg border border-overlay/[0.06] text-muted-foreground text-xs transition-all duration-200 hover:border-primary/30 hover:bg-overlay/[0.04] sm:h-8 sm:w-auto sm:px-3"
           data-search-trigger
-          onClick={() => setOpen(true)}
+          onClick={() => changeOpen(true)}
           type="button"
         >
           <SearchIcon
@@ -245,220 +328,196 @@ export function Search({ showTrigger = true }: SearchProps) {
       )}
 
       <CommandDialog
-        aria-label="Search artifacts"
-        onOpenChange={setOpen}
+        onOpenChange={changeOpen}
+        onSelectionChange={setSelectedValue}
         open={open}
+        selectedValue={selectedValue}
       >
         <CommandInput
           aria-describedby="search-instructions"
           aria-label="Search query"
+          className="text-base sm:text-sm"
           data-search-input
-          onValueChange={handleSearch}
-          placeholder="Search artifacts..."
+          onValueChange={handleQueryChange}
+          placeholder="Search artifacts and collections..."
+          ref={searchInputRef}
+          trailing={
+            <span className="ml-2 flex shrink-0 items-center gap-2">
+              {hasQuery && (
+                <button
+                  aria-label="Clear search"
+                  className="focus-ring flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
+                  onClick={handleClearQuery}
+                  onMouseDown={(event) => event.preventDefault()}
+                  type="button"
+                >
+                  <X aria-hidden="true" className="h-4! w-4!" />
+                </button>
+              )}
+              <kbd className="kbd kbd-compact hidden sm:inline-flex">esc</kbd>
+            </span>
+          }
           value={query}
         />
 
-        {/* Hidden instructions for screen readers */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            "-mt-px h-px origin-left bg-primary/60 transition-opacity duration-200",
+            isLoading ? "animate-pulse opacity-100" : "opacity-0"
+          )}
+        />
+
+        {showChips && (
+          <CategoryChips
+            activeCategory={category}
+            counts={categoryCounts}
+            onChange={handleCategoryChange}
+          />
+        )}
+
         <div className="sr-only" id="search-instructions">
-          Type to search artifacts. Use arrow keys to navigate results, Enter to
-          select.
+          Type to search artifacts and collections. Use arrow keys to navigate
+          results, Enter to select.
         </div>
 
         <CommandList
+          aria-busy={isLoading}
           aria-label="Search results"
-          className="max-h-[400px]"
-          role="listbox"
+          className={cn(
+            "scrollbar-thin max-h-[min(30rem,65dvh)] transition-opacity duration-150",
+            isLoading && hasHits && "opacity-60"
+          )}
         >
-          {loading && (
-            <div
-              aria-live="polite"
-              className="animate-pulse-subtle py-8 text-center text-muted-foreground text-sm"
-              role="status"
-            >
-              <span className="inline-flex items-center gap-2">
-                <span
-                  aria-hidden="true"
-                  className="h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary"
-                />
-                Searching
-                <span className="loading-dots" />
-              </span>
+          {showSkeleton && <SearchSkeleton />}
+
+          {showNoResults && (
+            <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+              <SearchIcon
+                aria-hidden="true"
+                className="h-8 w-8 text-muted-foreground/50"
+              />
+              <output className="block text-muted-foreground text-sm">
+                No results for &ldquo;{trimmedQuery}&rdquo;
+                {category && ` in ${category}`}
+              </output>
+              <p className="text-muted-foreground text-xs">
+                Try an artifact name, a file name, or a path fragment.
+              </p>
+              {category && (
+                <button
+                  className="focus-ring rounded-sm text-primary text-xs hover:underline"
+                  onClick={() => handleCategoryChange(null)}
+                  type="button"
+                >
+                  Search all categories
+                </button>
+              )}
             </div>
           )}
 
-          {!loading && query && results.length === 0 && (
-            <CommandEmpty
-              className="py-8 text-center text-muted-foreground text-sm"
-              role="status"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <SearchIcon
-                  aria-hidden="true"
-                  className="h-8 w-8 text-muted-foreground/50"
-                />
-                <span>No results for "{query}"</span>
-                <span className="text-muted-foreground text-xs">
-                  Try a different search term
-                </span>
-              </div>
-            </CommandEmpty>
+          {showUnavailable && (
+            <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+              <output className="block text-muted-foreground text-sm">
+                The search index is not available right now.
+              </output>
+              <a
+                className="text-primary text-xs hover:underline"
+                href={browseAllHref}
+              >
+                Browse all artifacts
+              </a>
+            </div>
           )}
 
-          {!query && (
-            <CommandGroup
-              heading={
-                <span className="text-xs font-medium text-muted-foreground">
-                  Quick navigation
-                </span>
-              }
-            >
-              <CommandItem
-                className="group my-0.5 rounded-lg text-sm"
-                onSelect={() => handleSelect("/")}
-              >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
-                  <Home
-                    aria-hidden="true"
-                    className="h-3.5 w-3.5 text-muted-foreground"
-                  />
-                </div>
-                <span>Home</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
-                  <kbd className="kbd">g</kbd>
-                  <kbd className="kbd">h</kbd>
-                </span>
-              </CommandItem>
-              <CommandItem
-                className="group my-0.5 rounded-lg text-sm"
-                onSelect={() => handleSelect("/artifacts")}
-              >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
-                  <FileSearch
-                    aria-hidden="true"
-                    className="h-3.5 w-3.5 text-muted-foreground"
-                  />
-                </div>
-                <span>All artifacts</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
-                  <kbd className="kbd">g</kbd>
-                  <kbd className="kbd">a</kbd>
-                </span>
-              </CommandItem>
-              <CommandItem
-                className="group my-0.5 rounded-lg text-sm"
-                onSelect={() => handleSelect("/collections")}
-              >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
-                  <Layers
-                    aria-hidden="true"
-                    className="h-3.5 w-3.5 text-muted-foreground"
-                  />
-                </div>
-                <span>Collections</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
-                  <kbd className="kbd">g</kbd>
-                  <kbd className="kbd">c</kbd>
-                </span>
-              </CommandItem>
-              <CommandItem
-                className="group my-0.5 rounded-lg text-sm"
-                onSelect={() => handleSelect("/builder")}
-              >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
-                  <Hammer
-                    aria-hidden="true"
-                    className="h-3.5 w-3.5 text-muted-foreground"
-                  />
-                </div>
-                <span>Builder</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
-                  <kbd className="kbd">g</kbd>
-                  <kbd className="kbd">b</kbd>
-                </span>
-              </CommandItem>
-              <CommandItem
-                className="group my-0.5 rounded-lg text-sm"
-                onSelect={() => handleSelect("/converter")}
-              >
-                <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
-                  <svg
-                    aria-hidden="true"
-                    className="h-3.5 w-3.5 text-muted-foreground"
-                    fill="currentColor"
-                    viewBox="155 155 750 625"
-                    xmlns="http://www.w3.org/2000/svg"
+          {!hasQuery && (
+            <div className="px-4 pt-3 pb-1">
+              <p className="pb-2 font-medium text-muted-foreground/70 text-xs">
+                Popular searches
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {SUGGESTED_QUERIES.map((suggestion) => (
+                  <button
+                    className="focus-ring rounded-md border border-border bg-secondary/50 px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-primary/40 hover:text-foreground"
+                    key={suggestion}
+                    onClick={() => handleQueryChange(suggestion)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    type="button"
                   >
-                    <path d="m890.394412 165c3.019653 25.589448-5.253407 50.2282-24.819179 73.916253-19.565772 23.688054-45.907539 35.53208-79.025312 35.53208l-62.977337.363397c39.393202 52.779296 59.977836 120.64775 53.603978 194.68827-14.47716 168.170707-162.549778 304.5-330.729454 304.5s-292.780187-136.329293-278.30303-304.5c14.477156-168.170706 162.549776-304.5 330.729452-304.5zm-401.090784 111.166667c-106.780747 0-200.795108 86.558282-209.986954 193.333334s69.91959 193.333333 176.700337 193.333333c106.780746 0 200.795108-86.558281 209.986952-193.333333 9.191849-106.775052-69.919588-193.333334-176.700335-193.333334z" />
-                  </svg>
-                </div>
-                <span>Converter</span>
-                <span className="ml-auto flex items-center gap-1 text-muted-foreground">
-                  <kbd className="kbd">g</kbd>
-                  <kbd className="kbd">s</kbd>
-                </span>
-              </CommandItem>
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!hasQuery && recent.length > 0 && (
+            <CommandGroup heading="Recent">
+              {recent.map((artifact) => (
+                <SearchResultItem
+                  hit={artifact}
+                  key={artifact.url}
+                  onSelect={() => handleSelectRecent(artifact)}
+                />
+              ))}
             </CommandGroup>
           )}
 
-          {results.length > 0 && (
-            <CommandGroup
-              heading={
-                <span className="text-xs font-medium text-muted-foreground">
-                  Results ({results.length})
-                </span>
-              }
-            >
-              {results.map((result) => (
+          {!hasQuery && (
+            <CommandGroup heading="Quick navigation">
+              {QUICK_LINKS.map(({ href, icon: Icon, label, shortcut }) => (
                 <CommandItem
-                  className="group my-0.5 rounded-lg py-3 text-sm"
-                  key={result.id}
-                  onSelect={() => handleSelect(result.url)}
+                  className="group my-0.5 rounded-lg py-2! text-sm"
+                  key={href}
+                  onSelect={() => handleSelectLink(href)}
+                  value={href}
                 >
-                  <div className="flex w-full flex-col gap-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
-                        <FileSearch
-                          aria-hidden="true"
-                          className="h-3.5 w-3.5 text-muted-foreground"
-                        />
-                      </div>
-                      <span className="font-medium">
-                        {result.meta.title || getArtifactName(result.url)}
-                      </span>
-                    </div>
-                    {result.excerpt && (
-                      <p
-                        className="line-clamp-2 pl-9 text-muted-foreground text-xs [&_mark]:rounded-sm [&_mark]:bg-primary/30 [&_mark]:px-0.5 [&_mark]:text-foreground"
-                        dangerouslySetInnerHTML={{ __html: result.excerpt }}
-                      />
-                    )}
+                  <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-secondary transition-colors group-data-[selected=true]:bg-overlay/[0.04]">
+                    <Icon className="h-4! w-4! text-muted-foreground" />
                   </div>
+                  <span>{label}</span>
+                  <span className="ml-auto flex items-center gap-1 text-muted-foreground">
+                    <kbd className="kbd">g</kbd>
+                    <kbd className="kbd">{shortcut}</kbd>
+                  </span>
                 </CommandItem>
               ))}
             </CommandGroup>
           )}
+
+          {hasQuery && hasHits && (
+            <CommandGroup heading={resultsHeading}>
+              {hits.map((hit) => (
+                <SearchResultItem
+                  hit={hit}
+                  key={hit.id}
+                  onSelect={() => handleSelectHit(hit)}
+                  query={trimmedQuery}
+                />
+              ))}
+              {showBrowseAll && (
+                <CommandItem
+                  className="group my-0.5 rounded-lg py-2! text-muted-foreground text-sm"
+                  onSelect={() => handleSelectLink(browseAllHref)}
+                  value={BROWSE_ALL_VALUE}
+                >
+                  <span>See all {total} results</span>
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="ml-auto h-4! w-4! transition-transform group-data-[selected=true]:translate-x-0.5"
+                  />
+                </CommandItem>
+              )}
+            </CommandGroup>
+          )}
         </CommandList>
 
-        {/* Footer with keyboard hints */}
-        <div className="flex items-center justify-between border-overlay/[0.06] border-t bg-overlay/[0.02] px-4 py-2.5 text-muted-foreground text-xs">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <div className="flex items-center gap-0.5">
-                <kbd className="kbd kbd-compact">↑</kbd>
-                <kbd className="kbd kbd-compact">↓</kbd>
-              </div>
-              <span>Navigate</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <kbd className="kbd kbd-compact">↵</kbd>
-              <span>Select</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <kbd className="kbd kbd-compact">esc</kbd>
-              <span>Close</span>
-            </span>
-          </div>
-        </div>
+        <SearchFooter
+          canCopyCommand={Boolean(selectedArtifact)}
+          copied={copied}
+          modifierKey={modifierKey}
+          primaryActionLabel={getPrimaryActionLabel()}
+        />
       </CommandDialog>
     </>
   );

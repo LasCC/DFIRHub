@@ -1,5 +1,4 @@
 import type { DialogProps } from "@radix-ui/react-dialog";
-
 import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
 import * as React from "react";
@@ -28,11 +27,15 @@ const Command = React.forwardRef<
 Command.displayName = CommandPrimitive.displayName;
 
 interface CommandDialogProps extends DialogProps {
+  onSelectionChange?: (value: string) => void;
+  selectedValue?: string;
   shouldFilter?: boolean;
 }
 
 const CommandDialog = ({
   children,
+  onSelectionChange,
+  selectedValue,
   shouldFilter = false,
   ...props
 }: CommandDialogProps) => (
@@ -47,7 +50,9 @@ const CommandDialog = ({
       </DialogDescription>
       <Command
         className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+        onValueChange={onSelectionChange}
         shouldFilter={shouldFilter}
+        value={selectedValue}
       >
         {children}
       </Command>
@@ -55,10 +60,16 @@ const CommandDialog = ({
   </Dialog>
 );
 
+interface CommandInputProps extends React.ComponentPropsWithoutRef<
+  typeof CommandPrimitive.Input
+> {
+  trailing?: React.ReactNode;
+}
+
 const CommandInput = React.forwardRef<
   React.ComponentRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
+  CommandInputProps
+>(({ className, trailing, ...props }, ref) => (
   <div
     className="flex items-center border-overlay/[0.06] border-b bg-overlay/[0.02] px-4"
     cmdk-input-wrapper=""
@@ -72,6 +83,7 @@ const CommandInput = React.forwardRef<
       ref={ref}
       {...props}
     />
+    {trailing}
   </div>
 ));
 CommandInput.displayName = CommandPrimitive.Input.displayName;
