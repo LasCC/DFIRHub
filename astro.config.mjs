@@ -41,7 +41,7 @@ export default defineConfig({
       },
     },
     optimizeDeps: {
-      include: ["lucide-react", "framer-motion", "cmdk"],
+      include: ["lucide-react", "cmdk"],
     },
     plugins: [tailwindcss()],
     resolve: {
