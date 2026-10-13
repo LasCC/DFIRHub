@@ -13,7 +13,6 @@ import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 import { trackBuilderCopy, trackBuilderDownload } from "@/lib/analytics";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
-
 import { CodeBlock } from "../ui/CodeBlock";
 
 type ExportFormat = "kape" | "powershell" | "batch" | "wsl";
@@ -545,7 +544,9 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
                     {target.isCompound
                       ? `${target.referencedTargets.length} targets`
                       : formatPathCount(
-                          target.targets.filter((e) => !e.path.endsWith(".tkape")).length
+                          target.targets.filter(
+                            (e) => !e.path.endsWith(".tkape")
+                          ).length
                         )}
                   </span>
                 </label>
@@ -698,13 +699,13 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
             </div>
           )}
         </div>
-        <div className="glass-subtle overflow-hidden rounded-xl">
+        <div>
           {generatedScript ? (
             <CodeBlock
               code={generatedScript}
               language={
                 options.format === "kape"
-                  ? "shell"
+                  ? "powershell"
                   : options.format === "wsl"
                     ? "bash"
                     : options.format === "powershell"
@@ -713,7 +714,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
               }
             />
           ) : (
-            <div className="bg-sunken p-4 text-muted-foreground text-sm">
+            <div className="rounded-lg border border-console-line bg-sunken p-4 text-muted-foreground text-sm">
               Select targets to generate a collection command
             </div>
           )}

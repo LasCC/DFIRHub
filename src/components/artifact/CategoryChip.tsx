@@ -14,7 +14,6 @@ import { getCategoryStyle } from "@/lib/categoryStyles";
 
 interface CategoryChipProps {
   category: string;
-  version: string;
   isCompound?: boolean;
 }
 
@@ -38,11 +37,7 @@ function resolveCategoryStyle(category: string): CategoryStyle {
   return getCategoryStyle(key);
 }
 
-export function CategoryChip({
-  category,
-  version,
-  isCompound,
-}: CategoryChipProps) {
+export function CategoryChip({ category, isCompound }: CategoryChipProps) {
   const categoryLower = category.toLowerCase();
   const Icon = iconMap[categoryLower] || Monitor;
   const style = resolveCategoryStyle(category);
@@ -63,10 +58,6 @@ export function CategoryChip({
           <span>Compound</span>
         </span>
       )}
-
-      <span className="inline-flex items-center rounded-md px-1 py-1 text-muted-foreground text-sm">
-        Version {version}
-      </span>
     </div>
   );
 }

@@ -1,0 +1,325 @@
+---
+
+---
+
+<div
+  aria-hidden="true"
+  class="shader-background pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] sm:h-[780px]"
+  data-shader-background
+  transition:persist="shader-background"
+>
+  <canvas class="block h-full w-full" data-shader-canvas></canvas>
+</div>
+
+<style>
+  .shader-background {
+    transition: opacity 300ms ease;
+  }
+
+  :global(body[data-shader="soft"]) .shader-background {
+    opacity: 0.5;
+  }
+
+  :global(body[data-shader="off"]) .shader-background {
+    display: none;
+  }
+
+  .shader-background {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 100%);
+  }
+</style>
+
+<script>
+  const CELL_SIZE_CSS_PX = 14;
+  const MAX_PIXEL_RATIO = 1.5;
+  const ANIMATION_SPEED = 1.4;
+  const FRAME_INTERVAL_MS = 1000 / 10;
+  const STILL_FRAME_SECONDS = 14;
+  const POINTER_EASING = 0.12;
+  const DARK_INTENSITY = 1;
+  const LIGHT_INTENSITY = 0.75;
+  const FALLBACK_ACCENT: [number, number, number] = [0.2, 0.83, 0.6];
+  const ACCENT_HEX_PATTERN = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i;
+
+  const VERTEX_SOURCE = `
+    attribute vec2 a_position;
+    void main() {
+      gl_Position = vec4(a_position, 0.0, 1.0);
+    }
+  `;
+
+  const FRAGMENT_SOURCE = `
+    #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+    #else
+    precision mediump float;
+    #endif
+
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    uniform float u_cell;
+    uniform vec2 u_pointer;
+    uniform float u_pointer_strength;
+    uniform vec3 u_color;
+    uniform float u_intensity;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    float valueNoise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(
+        mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+        mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+        u.y
+      );
+    }
+
+    void main() {
+      vec2 pixel = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y);
+      vec2 grid = pixel / u_cell;
+      vec2 cell = floor(grid);
+      vec2 local = fract(grid) - 0.5;
+
+      float field = valueNoise(cell * 0.07 + vec2(u_time * 0.06, -u_time * 0.035));
+      float lit = smoothstep(0.44, 0.78, field);
+      float breathing = 0.7 + 0.3 * sin(u_time * 0.8 + hash(cell) * 6.2831853);
+
+      float diagonal = (pixel.x * 0.45 + pixel.y) / (u_resolution.x * 0.45 + u_resolution.y);
+      float sweepPosition = fract(u_time * 0.06) * 1.5 - 0.25;
+      float sweepOffset = (diagonal - sweepPosition) * 9.0;
+      float sweepBand = exp(-sweepOffset * sweepOffset);
+      float sweep = sweepBand * (0.35 + 0.65 * hash(cell * 1.7));
+
+      float pointerGlow = smoothstep(u_cell * 9.0, 0.0, distance(pixel, u_pointer)) * u_pointer_strength;
+
+      float energy = 0.04 + lit * 0.55 * breathing + sweep * 0.6 + pointerGlow * 0.9;
+      energy = clamp(energy, 0.0, 1.0);
+
+      float squareRadius = mix(0.11, 0.3, energy);
+      float edge = max(abs(local.x), abs(local.y));
+      float shape = 1.0 - smoothstep(squareRadius - 0.07, squareRadius, edge);
+
+      float calmLeft = mix(0.45, 1.0, smoothstep(0.1, 0.9, pixel.x / u_resolution.x));
+      float alpha = shape * energy * u_intensity * calmLeft;
+
+      gl_FragColor = vec4(u_color * alpha, alpha);
+    }
+  `;
+
+  function compileShader(
+    gl: WebGLRenderingContext,
+    type: number,
+    source: string
+  ): WebGLShader | null {
+    const shader = gl.createShader(type);
+    if (!shader) {
+      return null;
+    }
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
+  }
+
+  function createProgram(gl: WebGLRenderingContext): WebGLProgram | null {
+    const vertex = compileShader(gl, gl.VERTEX_SHADER, VERTEX_SOURCE);
+    const fragment = compileShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SOURCE);
+    const program = gl.createProgram();
+    if (!(vertex && fragment && program)) {
+      return null;
+    }
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
+    return gl.getProgramParameter(program, gl.LINK_STATUS) ? program : null;
+  }
+
+  function readAccentColor(): [number, number, number] {
+    const raw = getComputedStyle(document.documentElement)
+      .getPropertyValue("--console-accent")
+      .trim();
+    const match = ACCENT_HEX_PATTERN.exec(raw);
+    if (!match) {
+      return FALLBACK_ACCENT;
+    }
+    return [
+      Number.parseInt(match[1], 16) / 255,
+      Number.parseInt(match[2], 16) / 255,
+      Number.parseInt(match[3], 16) / 255,
+    ];
+  }
+
+  interface ShaderContext {
+    canvas: HTMLCanvasElement;
+    container: HTMLElement;
+    gl: WebGLRenderingContext;
+    program: WebGLProgram;
+  }
+
+  function createShaderContext(): ShaderContext | null {
+    const container = document.querySelector<HTMLElement>(
+      "[data-shader-background]"
+    );
+    const canvas = container?.querySelector<HTMLCanvasElement>(
+      "[data-shader-canvas]"
+    );
+    if (!(container && canvas)) {
+      return null;
+    }
+
+    const gl = canvas.getContext("webgl", {
+      alpha: true,
+      antialias: false,
+      premultipliedAlpha: true,
+    });
+    const program = gl ? createProgram(gl) : null;
+    if (!(gl && program)) {
+      container.remove();
+      return null;
+    }
+    return { canvas, container, gl, program };
+  }
+
+  function startShaderBackground() {
+    const context = createShaderContext();
+    if (!context) {
+      return;
+    }
+    const { canvas, container, gl, program } = context;
+
+    const quad = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+      gl.STATIC_DRAW
+    );
+    const positionLocation = gl.getAttribLocation(program, "a_position");
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.useProgram(program);
+    gl.clearColor(0, 0, 0, 0);
+
+    const uniforms = {
+      cell: gl.getUniformLocation(program, "u_cell"),
+      color: gl.getUniformLocation(program, "u_color"),
+      intensity: gl.getUniformLocation(program, "u_intensity"),
+      pointer: gl.getUniformLocation(program, "u_pointer"),
+      pointerStrength: gl.getUniformLocation(program, "u_pointer_strength"),
+      resolution: gl.getUniformLocation(program, "u_resolution"),
+      time: gl.getUniformLocation(program, "u_time"),
+    };
+
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+    const pointer = { currentX: 0, currentY: 0, strength: 0, targetX: 0, targetY: 0 };
+    let pixelRatio = 1;
+    let isVisible = true;
+    let frameHandle = 0;
+    let lastFrameAt = 0;
+    let elapsedSeconds = 0;
+
+    function applyTheme() {
+      const isDark = document.documentElement.classList.contains("dark");
+      const [red, green, blue] = readAccentColor();
+      gl.uniform3f(uniforms.color, red, green, blue);
+      gl.uniform1f(uniforms.intensity, isDark ? DARK_INTENSITY : LIGHT_INTENSITY);
+    }
+
+    function resize() {
+      pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+      const width = Math.max(1, Math.round(container.clientWidth * pixelRatio));
+      const height = Math.max(1, Math.round(container.clientHeight * pixelRatio));
+      canvas.width = width;
+      canvas.height = height;
+      gl.viewport(0, 0, width, height);
+      gl.uniform2f(uniforms.resolution, width, height);
+      gl.uniform1f(uniforms.cell, CELL_SIZE_CSS_PX * pixelRatio);
+    }
+
+    function draw() {
+      const isStill = reducedMotionQuery.matches;
+      pointer.currentX += (pointer.targetX - pointer.currentX) * POINTER_EASING;
+      pointer.currentY += (pointer.targetY - pointer.currentY) * POINTER_EASING;
+      gl.uniform1f(uniforms.time, isStill ? STILL_FRAME_SECONDS : elapsedSeconds);
+      gl.uniform2f(uniforms.pointer, pointer.currentX, pointer.currentY);
+      gl.uniform1f(uniforms.pointerStrength, isStill ? 0 : pointer.strength);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
+
+    function tick(now: number) {
+      frameHandle = 0;
+      if (!isVisible || document.hidden || reducedMotionQuery.matches) {
+        return;
+      }
+      if (lastFrameAt === 0) {
+        lastFrameAt = now;
+      }
+      const delta = now - lastFrameAt;
+      if (delta >= FRAME_INTERVAL_MS) {
+        elapsedSeconds += (delta / 1000) * ANIMATION_SPEED;
+        lastFrameAt = now;
+        draw();
+      }
+      frameHandle = requestAnimationFrame(tick);
+    }
+
+    function schedule() {
+      if (frameHandle !== 0) {
+        return;
+      }
+      lastFrameAt = 0;
+      draw();
+      if (isVisible && !document.hidden && !reducedMotionQuery.matches) {
+        frameHandle = requestAnimationFrame(tick);
+      }
+    }
+
+    function handlePointerMove(event: PointerEvent) {
+      const bounds = canvas.getBoundingClientRect();
+      pointer.targetX = (event.clientX - bounds.left) * pixelRatio;
+      pointer.targetY = (event.clientY - bounds.top) * pixelRatio;
+      pointer.strength = 1;
+    }
+
+    function handlePointerLeave() {
+      pointer.strength = 0;
+    }
+
+    applyTheme();
+    resize();
+
+    new ResizeObserver(() => {
+      resize();
+      draw();
+    }).observe(container);
+
+    new MutationObserver(() => {
+      applyTheme();
+      draw();
+    }).observe(document.documentElement, {
+      attributeFilter: ["class"],
+      attributes: true,
+    });
+
+    new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      schedule();
+    }).observe(container);
+
+    document.addEventListener("visibilitychange", schedule);
+    reducedMotionQuery.addEventListener("change", schedule);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    document.documentElement.addEventListener("pointerleave", handlePointerLeave);
+
+    schedule();
+  }
+
+  startShaderBackground();
+</script>

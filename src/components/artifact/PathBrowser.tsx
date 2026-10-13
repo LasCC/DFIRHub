@@ -249,6 +249,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
   };
 
   const showFilter = pathEntries.length > 5;
+  const hasEnvironmentVariables = pathEntries.some((e) => e.path.includes("%"));
   const visibleCount =
     target.isCompound && resolvedTargets
       ? filteredGroupedPaths.reduce((n, g) => n + g.entries.length, 0)
@@ -328,7 +329,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
       )}
 
       {/* Paths List */}
-      <div className="scrollbar-thin max-h-[600px] overflow-y-auto">
+      <div className="scrollbar-thin max-h-[480px] overflow-y-auto">
         {target.isCompound && resolvedTargets ? (
           // Grouped view for compound targets
           <div className="divide-y divide-overlay/[0.04]">
@@ -371,6 +372,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                         entry={entry}
                         key={`${group.name}-${entry.path}-${i}`}
                         onCopy={handleCopyPath}
+                        showName={isDistinctName(entry.name, group.name)}
                       />
                     ))}
                   </div>
@@ -387,6 +389,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
                 entry={entry}
                 key={`${entry.name}-${entry.path}-${i}`}
                 onCopy={handleCopyPath}
+                showName={isDistinctName(entry.name, target.name)}
               />
             ))}
           </div>
@@ -400,12 +403,17 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
         )}
       </div>
 
-      {/* Legend */}
-      <div className="border-overlay/[0.04] border-t bg-overlay/[0.02] px-4 py-2 text-muted-foreground text-xs">
-        Paths use Windows environment variable syntax
-      </div>
+      {hasEnvironmentVariables && (
+        <div className="border-overlay/[0.04] border-t bg-overlay/[0.02] px-4 py-2 text-muted-foreground text-xs">
+          Paths use Windows environment variable syntax
+        </div>
+      )}
     </div>
   );
+}
+
+function isDistinctName(entryName: string | undefined, ownerName: string) {
+  return Boolean(entryName) && entryName?.toLowerCase() !== ownerName.toLowerCase();
 }
 
 // ─── PathEntry sub-component ───
@@ -413,9 +421,10 @@ interface PathEntryProps {
   entry: KapeTargetEntry;
   copiedPath: string | null;
   onCopy: (path: string, fileMask?: string) => void;
+  showName: boolean;
 }
 
-function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
+function PathEntry({ entry, copiedPath, onCopy, showName }: PathEntryProps) {
   const fullPath = joinPathAndMask(entry.path, entry.fileMask);
   const isCopied = copiedPath === fullPath;
   const segments = useMemo(
@@ -431,12 +440,12 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
       type="button"
     >
       <div className="min-w-0 flex-1">
-        {entry.name && (
+        {showName && (
           <div className="mb-1 font-medium text-sm leading-5">
             {entry.name}
           </div>
         )}
-        <code className="block break-all font-mono text-xs leading-relaxed">
+        <code className="block break-all font-mono text-[13px] leading-6">
           {segments.map((seg, i) => {
             switch (seg.type) {
               case "drive": {
@@ -466,7 +475,7 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
               case "mask": {
                 return (
                   <span
-                    className="text-amber-700 dark:text-amber-400"
+                    className="text-primary"
                     key={i}
                   >
                     {seg.text}
@@ -491,7 +500,7 @@ function PathEntry({ entry, copiedPath, onCopy }: PathEntryProps) {
         className={`relative ml-2 shrink-0 rounded-md p-1.5 transition-all sm:ml-4 ${
           isCopied
             ? "text-primary"
-            : "text-muted-foreground opacity-100 hover:text-foreground sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100"
+            : "text-muted-foreground opacity-60 hover:text-foreground group-hover:opacity-100 group-focus-visible:opacity-100"
         }`}
         title={isCopied ? "Copied!" : "Copy path"}
       >

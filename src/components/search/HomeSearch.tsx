@@ -146,7 +146,7 @@ export function HomeSearch({ data, popular }: HomeSearchProps) {
             data-search-input
             autoComplete="off"
             spellCheck="false"
-            placeholder="Search artifacts, e.g. prefetch, amcache, srum"
+            placeholder="Search artifacts, e.g. amcache"
             aria-activedescendant={
               open && activeIndex >= 0
                 ? `home-search-option-${activeIndex}`

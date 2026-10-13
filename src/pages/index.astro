@@ -1,14 +1,26 @@
 ---
+import { HeroConsole } from "../components/home/HeroConsole";
+import QuestionIndex from "../components/home/QuestionIndex.astro";
+import ToolShowcase from "../components/home/ToolShowcase.astro";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import { HomeSearch } from "../components/search/HomeSearch";
 import type { HomeSearchItem } from "../components/search/HomeSearch";
 import Layout from "../layouts/Layout.astro";
-import { getIndividualTargets, getStats, getTargetBySlug } from "../lib/kapefiles";
+import { getHomepageData } from "../lib/homepage";
+import { getIndividualTargets, getTargetBySlug } from "../lib/kapefiles";
 
-const stats = getStats();
+const {
+  totalTargets,
+  distinctPathCount,
+  consolePreviews,
+  questions,
+  categoryBars,
+  collection,
+  builderLines,
+  sigma,
+} = getHomepageData();
 
-// Curated entry points shown as one-click links under the search bar
 const popularSlugs = [
   "anydesk",
   "screenconnect",
@@ -37,8 +49,6 @@ const popular: HomeSearchItem[] = popularSlugs.flatMap((slug) => {
     : [];
 });
 
-// Compact artifact index for client-side suggestions (short keys keep the
-// serialized payload small)
 const searchIndex: HomeSearchItem[] = getIndividualTargets().map((target) => ({
   n: target.name,
   s: target.slug,
@@ -46,36 +56,6 @@ const searchIndex: HomeSearchItem[] = getIndividualTargets().map((target) => ({
   d: target.description || "",
   p: target.targets.filter((entry) => !entry.path.endsWith(".tkape")).length,
 }));
-
-const tools = [
-  {
-    title: "Artifacts",
-    description: `Browse ${stats.total} Windows forensic artifacts with collection paths, categories, and documentation.`,
-    href: "/artifacts",
-    icon: "search",
-  },
-  {
-    title: "Collections",
-    description:
-      "Pre-built collection profiles for common investigation and triage scenarios.",
-    href: "/collections",
-    icon: "layers",
-  },
-  {
-    title: "Script Builder",
-    description:
-      "Pick the artifacts you need and generate a ready-to-run KAPE collection script.",
-    href: "/builder",
-    icon: "wrench",
-  },
-  {
-    title: "Sigma Converter",
-    description:
-      "Convert Sigma detection rules to SIEM query languages, entirely in your browser.",
-    href: "/converter",
-    icon: "sigma",
-  },
-];
 ---
 
 <Layout title="DFIRHub">
@@ -83,79 +63,51 @@ const tools = [
 
   <main id="main-content" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4">
-      <section class="max-w-2xl pt-14 pb-12 sm:pt-20 sm:pb-16">
-        <h1 class="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          Windows forensic artifacts, ready to collect
+      <section class="pt-12 pb-10 sm:pt-16 sm:pb-14">
+        <h1 class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl lg:text-[3.75rem]">
+          Where the evidence lives, and the command to collect it
         </h1>
-        <p class="mt-3 max-w-xl text-base text-muted-foreground">
-          Search {stats.total} KAPE artifact definitions, build collection
-          scripts, and convert Sigma rules.
-        </p>
 
-        <div class="mt-8">
-          <HomeSearch client:load data={searchIndex} popular={popular} />
-        </div>
+        <div class="mt-10 grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
+          <div class="lg:col-span-5">
+            <p class="max-w-md text-base text-muted-foreground">
+              Search {totalTargets} KAPE targets that cover{" "}
+              {distinctPathCount} paths on disk. Copy a ready-to-run command,
+              build a collection script, or convert a Sigma rule for your SIEM.
+            </p>
 
-        <div class="mt-4 flex flex-wrap items-center gap-2">
-          <span class="text-sm text-muted-foreground">Popular</span>
-          {popular.map((item) => (
-            <a
-              href={`/artifact/${item.s}`}
-              class="rounded-md border border-border px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
-            >
-              {item.n}
-            </a>
-          ))}
+            <div class="mt-8">
+              <HomeSearch client:load data={searchIndex} popular={popular} />
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <span class="text-sm text-muted-foreground">Popular</span>
+              {popular.map((item) => (
+                <a
+                  href={`/artifact/${item.s}`}
+                  class="rounded-md border border-border bg-card px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                >
+                  {item.n}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div class="lg:col-span-7">
+            <HeroConsole client:load previews={consolePreviews} />
+          </div>
         </div>
       </section>
 
-      <section class="pb-16 sm:pb-24">
-        <ul class="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
-          {tools.map((tool) => (
-            <li>
-              <a
-                href={tool.href}
-                class="group flex items-start gap-4 p-5 transition-colors hover:bg-muted sm:items-center sm:px-6"
-              >
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted-foreground group-hover:text-primary">
-                  {tool.icon === "search" && (
-                    <svg aria-hidden="true" class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <path d="m21 21-4.3-4.3"></path>
-                    </svg>
-                  )}
-                  {tool.icon === "layers" && (
-                    <svg aria-hidden="true" class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
-                      <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" />
-                      <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" />
-                    </svg>
-                  )}
-                  {tool.icon === "wrench" && (
-                    <svg aria-hidden="true" class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9" />
-                      <path d="m18 15 4-4" />
-                      <path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5" />
-                    </svg>
-                  )}
-                  {tool.icon === "sigma" && (
-                    <svg aria-hidden="true" class="h-4.5 w-4.5" viewBox="155 155 750 625" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                      <path d="m890.394412 165c3.019653 25.589448-5.253407 50.2282-24.819179 73.916253-19.565772 23.688054-45.907539 35.53208-79.025312 35.53208l-62.977337.363397c39.393202 52.779296 59.977836 120.64775 53.603978 194.68827-14.47716 168.170707-162.549778 304.5-330.729454 304.5s-292.780187-136.329293-278.30303-304.5c14.477156-168.170706 162.549776-304.5 330.729452-304.5zm-401.090784 111.166667c-106.780747 0-200.795108 86.558282-209.986954 193.333334s69.91959 193.333333 176.700337 193.333333c106.780746 0 200.795108-86.558281 209.986952-193.333333 9.191849-106.775052-69.919588-193.333334-176.700335-193.333334z" />
-                    </svg>
-                  )}
-                </span>
-                <span class="min-w-0 flex-1">
-                  <span class="block text-base font-medium text-foreground">{tool.title}</span>
-                  <span class="block text-sm text-muted-foreground">{tool.description}</span>
-                </span>
-                <svg aria-hidden="true" class="hidden h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <QuestionIndex questions={questions} />
+
+      <ToolShowcase
+        totalTargets={totalTargets}
+        categoryBars={categoryBars}
+        collection={collection}
+        builderLines={builderLines}
+        sigma={sigma}
+      />
     </div>
   </main>
 

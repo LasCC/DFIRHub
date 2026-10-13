@@ -6,7 +6,6 @@ interface CodeBlockProps {
   language: "powershell" | "batch" | "bash" | "shell" | "text";
 }
 
-// Map our formats to Shiki language identifiers
 const languageMap: Record<string, string> = {
   bash: "bash",
   batch: "bat",
@@ -25,8 +24,12 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     async function highlight() {
       try {
         const html = await codeToHtml(code, {
+          defaultColor: false,
           lang: languageMap[language] || "text",
-          theme: "github-dark-default",
+          themes: {
+            dark: "vesper",
+            light: "github-light",
+          },
         });
         if (mounted) {
           setHighlightedHtml(html);
@@ -47,15 +50,10 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     };
   }, [code, language]);
 
-  // Loading state - show plain code on the same solid dark surface Shiki uses,
-  // so the light code text stays readable in both app themes.
   if (isLoading) {
     return (
-      <pre
-        className="overflow-x-auto rounded-lg border border-overlay/[0.08] p-4 text-xs"
-        style={{ background: "#0d1117" }}
-      >
-        <code className="whitespace-pre-wrap font-mono text-[#7ee787]">
+      <pre className="overflow-x-auto rounded-lg border border-console-line bg-console p-4 text-xs">
+        <code className="whitespace-pre-wrap font-mono text-console-foreground">
           {code}
         </code>
       </pre>
@@ -69,18 +67,6 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         dangerouslySetInnerHTML={{ __html: highlightedHtml }}
       />
       <style>{`
-				/* Code blocks use Shiki's github-dark theme (light text), so they
-				   keep a solid dark surface in both light and dark app themes. */
-				.code-block-pre {
-					padding: 1rem;
-					background: #0d1117;
-					color: #e6edf3;
-					border-radius: 0.5rem;
-					border: 1px solid rgba(255, 255, 255, 0.08);
-					font-size: 0.75rem;
-					overflow-x: auto;
-					max-height: 24rem;
-				}
 				.shiki-wrapper .shiki,
 				.shiki-wrapper pre {
 					margin: 0;
@@ -90,12 +76,12 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 					max-height: 24rem;
 					font-size: 0.75rem;
 					line-height: 1.6;
-					background: #0d1117 !important;
-					border: 1px solid rgba(255, 255, 255, 0.08);
+					background: var(--console) !important;
+					border: 1px solid var(--console-line);
 				}
 				.shiki-wrapper .shiki code,
 				.shiki-wrapper pre code {
-					font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+					font-family: var(--font-mono);
 					white-space: pre-wrap;
 					word-break: break-word;
 					background: transparent !important;

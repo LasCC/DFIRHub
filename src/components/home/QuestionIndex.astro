@@ -1,0 +1,56 @@
+---
+import type { QuestionRow } from "../../lib/homepage";
+
+interface Props {
+  questions: QuestionRow[];
+}
+
+const { questions } = Astro.props;
+---
+
+<section
+  aria-labelledby="questions-heading"
+  class="py-10 sm:py-14"
+>
+  <div class="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+    <div class="lg:col-span-4">
+      <div class="lg:sticky lg:top-24">
+        <h2
+          id="questions-heading"
+          class="max-w-sm text-2xl font-semibold tracking-tight text-balance sm:text-3xl"
+        >
+          Start with the question you need answered
+        </h2>
+        <p class="mt-4 max-w-sm text-muted-foreground">
+          Evidence only matters when it answers something. Pick a question to
+          see which artifacts hold the answer.
+        </p>
+      </div>
+    </div>
+
+    <ul class="divide-y divide-border lg:col-span-8">
+      {questions.map((row) => (
+        <li class="grid grid-cols-1 gap-4 py-6 first:pt-0 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:gap-8">
+          <div>
+            <h3 class="text-lg font-medium tracking-tight">{row.question}</h3>
+            <p class="mt-1 max-w-md text-sm text-muted-foreground">
+              {row.note}
+            </p>
+          </div>
+          <ul class="flex flex-wrap content-start gap-2">
+            {row.artifacts.map((artifact) => (
+              <li>
+                <a
+                  href={`/artifact/${artifact.slug}`}
+                  class="inline-flex rounded-md border border-border bg-card px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                >
+                  {artifact.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

@@ -92,6 +92,13 @@
   /* Base color painted on <html> behind everything */
   --app-base: #09090b;
 
+  /* Console panels (landing page, artifact page): follow the theme */
+  --console: #0d1117;
+  --console-foreground: #e6edf3;
+  --console-muted: #8b949e;
+  --console-line: #30363d;
+  --console-accent: #34d399;
+
   --scrollbar-thumb: #3f3f46;
   --scrollbar-thumb-hover: #52525b;
   --skeleton-from: #18181b;
@@ -145,6 +152,12 @@
   /* --editor intentionally inherits the dark value (code editor stays dark) */
   --app-base: #ffffff;
 
+  --console: #f6f6f7;
+  --console-foreground: #18181b;
+  --console-muted: #52525b;
+  --console-line: #e0e0e4;
+  --console-accent: #047857;
+
   --scrollbar-thumb: #c4c4cc;
   --scrollbar-thumb-hover: #a1a1aa;
   --skeleton-from: #e4e4e7;
@@ -178,6 +191,11 @@
   --color-overlay: var(--overlay);
   --color-sunken: var(--sunken);
   --color-editor: var(--editor);
+  --color-console: var(--console);
+  --color-console-foreground: var(--console-foreground);
+  --color-console-muted: var(--console-muted);
+  --color-console-line: var(--console-line);
+  --color-console-accent: var(--console-accent);
 }
 
 @theme {
@@ -547,6 +565,46 @@
   }
   50% {
     opacity: 0.7;
+  }
+}
+
+@keyframes console-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes console-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.console-line {
+  opacity: 0;
+  animation: console-line-in 0.28s ease-out forwards;
+}
+
+.console-command {
+  clip-path: inset(0 100% 0 0);
+  animation-name: console-type;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .console-line,
+  .console-command {
+    animation: none;
+    opacity: 1;
+    clip-path: none;
   }
 }
 

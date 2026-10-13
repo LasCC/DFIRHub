@@ -8,7 +8,7 @@ import {
   ArtifactPageContainer,
   ArtifactSection,
 } from "../../components/artifact/ArtifactContent";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Folder, Tag, User, Users } from "lucide-react";
 import { CategoryChip } from "../../components/artifact/CategoryChip";
 import { CommandGenerator } from "../../components/artifact/CommandGenerator";
 import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
@@ -101,6 +101,66 @@ for (const entry of docNotes) {
   }
 }
 
+const resolvedEntries = getResolvedEntries(target);
+const pathCount = resolvedEntries.length;
+const MAX_FILE_TYPES = 3;
+const LONG_DESCRIPTION_LENGTH = 160;
+const numberFormat = new Intl.NumberFormat("en-US");
+const hasLongDescription = target.description.length > LONG_DESCRIPTION_LENGTH;
+const allFileTypes = target.isCompound
+  ? []
+  : [
+      ...new Set(
+        resolvedEntries.flatMap((entry) => (entry.fileMask ? [entry.fileMask] : []))
+      ),
+    ];
+const visibleFileTypes =
+  allFileTypes.length <= MAX_FILE_TYPES ? allFileTypes : [];
+const hasPerUserData = resolvedEntries.some((entry) =>
+  /%user%/i.test(entry.path)
+);
+
+const MAX_INCLUDED_LINKS = 20;
+const includedArtifacts = target.referencedTargets
+  .slice(0, MAX_INCLUDED_LINKS)
+  .map((reference) => {
+    const name = reference.replace(/\.tkape$/, "");
+    const found = referencedResolved.find(
+      (candidate) =>
+        candidate.sourceFile.replace(/\.tkape$/, "").toLowerCase() ===
+        name.toLowerCase()
+    );
+    return {
+      name,
+      slug: found?.slug,
+      pathCount: found
+        ? found.targets.filter((entry) => !entry.path.endsWith(".tkape")).length
+        : 0,
+    };
+  });
+const hiddenIncludedCount = Math.max(
+  0,
+  target.referencedTargets.length - MAX_INCLUDED_LINKS
+);
+
+const referenceLinks = docReferences.map((url) => {
+  try {
+    const parsed = new URL(url);
+    return {
+      url,
+      host: parsed.hostname.replace(/^www\./, ""),
+      detail: `${parsed.pathname}${parsed.search}`.replace(/^\/$/, ""),
+    };
+  } catch {
+    return { url, host: url, detail: "" };
+  }
+});
+
+const sectionHeadingClass = "mb-4 text-lg font-semibold tracking-tight";
+const asideHeadingClass = "mb-3 text-base font-semibold tracking-tight";
+const chipLinkClass =
+  "inline-flex rounded-md border border-border bg-card px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground";
+
 const seoTitle = buildArtifactTitle(target);
 const seoDescription = buildArtifactDescription(target);
 const artifactUrl = `${SITE_URL}/artifact/${target.slug}`;
@@ -168,16 +228,15 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 
   <Header client:load currentPath={Astro.url.pathname} />
 
-  <main id="main-content" class="flex-1 relative" tabindex="-1">
-    <div class="mx-auto max-w-6xl px-4 py-8">
+  <main id="main-content" class="relative flex-1" tabindex="-1">
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <ArtifactPageContainer client:load>
-        <!-- Breadcrumb Navigation -->
-        <ArtifactBreadcrumb className="mb-6 text-xs text-muted-foreground">
-          <ol class="flex items-center flex-wrap gap-1" role="list">
+        <ArtifactBreadcrumb className="mb-8 text-xs text-muted-foreground">
+          <ol class="flex flex-wrap items-center gap-1" role="list">
             <li>
               <a
                 href="/"
-                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
                 >Home</a
               >
             </li>
@@ -185,7 +244,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
               <span aria-hidden="true">/</span>
               <a
                 href="/artifacts"
-                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
                 >Artifacts</a
               >
             </li>
@@ -193,271 +252,216 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
               <span aria-hidden="true">/</span>
               <a
                 href={"/category/" + target.category.toLowerCase()}
-                class="hover:text-foreground transition-colors focus-ring rounded-sm px-1"
+                class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
               >
                 {target.category}
               </a>
             </li>
             <li class="flex items-center gap-1">
               <span aria-hidden="true">/</span>
-              <span class="text-foreground px-1" aria-current="page"
+              <span class="px-1 text-foreground" aria-current="page"
                 >{target.slug}</span
               >
             </li>
           </ol>
         </ArtifactBreadcrumb>
 
-        <!-- Header -->
-        <ArtifactHeader className="mb-8">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-            <div class="min-w-0">
-              <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-3" id="artifact-title">
-                {target.name}
-              </h1>
+        <ArtifactHeader className="mb-12">
+          <h1
+            id="artifact-title"
+            class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl"
+          >
+            {target.name}
+          </h1>
+          {target.description && (
+            <p
+              class:list={[
+                "mt-4 whitespace-pre-line text-muted-foreground",
+                hasLongDescription ? "max-w-3xl text-base" : "max-w-2xl text-lg",
+              ]}
+            >
+              {target.description}
+            </p>
+          )}
+          <ul class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
+            <li>
               <CategoryChip
-                client:load
                 category={target.category}
-                version={target.version}
                 isCompound={target.isCompound}
               />
-            </div>
-            <p class="text-sm text-muted-foreground break-words sm:text-right sm:shrink-0 sm:max-w-[50%]">
-              By <span class="text-foreground">{target.author}</span>
-            </p>
-          </div>
+            </li>
+            <li class="inline-flex items-center gap-1.5">
+              <Folder aria-hidden="true" className="h-4 w-4" />
+              <span>
+                {numberFormat.format(pathCount)} {pathCount === 1 ? "path" : "paths"}
+                {target.isCompound && ` from ${numberFormat.format(referencedResolved.length)} artifacts`}
+              </span>
+            </li>
+            {visibleFileTypes.length > 0 && (
+              <li class="flex flex-wrap items-center gap-1.5">
+                {visibleFileTypes.map((fileType) => (
+                  <code class="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+                    {fileType}
+                  </code>
+                ))}
+              </li>
+            )}
+            {hasPerUserData && (
+              <li
+                class="inline-flex items-center gap-1.5"
+                title="Paths contain %user%, so every user profile is collected"
+              >
+                <Users aria-hidden="true" className="h-4 w-4" />
+                Per-user data
+              </li>
+            )}
+            <li class="inline-flex items-center gap-1.5">
+              <Tag aria-hidden="true" className="h-4 w-4" />
+              Version {target.version}
+            </li>
+            <li class="inline-flex items-center gap-1.5">
+              <User aria-hidden="true" className="h-4 w-4" />
+              {target.author}
+            </li>
+          </ul>
         </ArtifactHeader>
 
-        <!-- Description -->
-        {target.description && (
-          <p class="mb-8 max-w-3xl text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
-            {target.description}
-          </p>
-        )}
-
-        <!-- Compound Target Info -->
-        {target.isCompound && resolvedTargets && (
-                        <ArtifactSection
-                            className="mb-8"
-                            ariaLabel="includes-heading"
-                        >
-                            <h2
-                                id="includes-heading"
-                                class="text-sm font-medium text-foreground mb-3"
-                            >
-                                Includes
-                                <span class="text-primary">
-                                    ({referencedResolved.length})
-                                </span>
-                            </h2>
-                            <ArtifactList className="glass-subtle rounded-lg divide-y divide-overlay/[0.04]">
-                                {target.referencedTargets
-                                    .slice(0, 20)
-                                    .map((ref) => {
-                                        const refName = ref.replace(
-                                            /\.tkape$/,
-                                            "",
-                                        );
-                                        const foundTarget =
-                                            referencedResolved.find(
-                                                (t) =>
-                                                    t.sourceFile
-                                                        .replace(/\.tkape$/, "")
-                                                        .toLowerCase() ===
-                                                    refName.toLowerCase(),
-                                            );
-                                        return (
-                                            <ArtifactListItem>
-                                                <a
-                                                    href={
-                                                        foundTarget
-                                                            ? "/artifact/" +
-                                                              foundTarget.slug
-                                                            : "#"
-                                                    }
-                                                    class="flex items-center justify-between px-4 py-2 hover:bg-primary/5 transition-colors group"
-                                                >
-                                                    <span class="text-sm">
-                                                        {refName}
-                                                    </span>
-                                                    {foundTarget && (
-                                                        <span class="inline-flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                                                            {
-                                                                foundTarget.targets.filter(
-                                                                    (e) =>
-                                                                        !e.path.endsWith(
-                                                                            ".tkape",
-                                                                        ),
-                                                                ).length
-                                                            }{" "}
-                                                            paths
-                                                            <ArrowRight
-                                                                aria-hidden="true"
-                                                                className="h-3 w-3"
-                                                            />
-                                                        </span>
-                                                    )}
-                                                </a>
-                                            </ArtifactListItem>
-                                        );
-                                    })}
-                                {target.referencedTargets.length > 20 && (
-                                    <ArtifactListItem>
-                                        <div class="px-4 py-2 text-xs text-muted-foreground">
-                                            +
-                                            {target.referencedTargets.length -
-                                                20}{" "}
-                                            more targets
-                                        </div>
-                                    </ArtifactListItem>
-                                )}
-                            </ArtifactList>
-                        </ArtifactSection>
-                    )}
-
-        <!-- Paths -->
-        <ArtifactSection className="mb-8" ariaLabel="paths-heading">
-          <h2
-            id="paths-heading"
-            class="text-sm font-medium text-foreground mb-3"
-          >
-            Paths
-          </h2>
-          <PathBrowser
-            client:idle
-            target={target}
-            resolvedTargets={resolvedTargets}
-          />
-        </ArtifactSection>
-
-        <!-- CyberChef Links -->
-        <ArtifactSection className="mb-8">
-          <CyberChefLinks client:idle target={target} />
-        </ArtifactSection>
-
-        <!-- References (URLs only) -->
-        {docReferences.length > 0 && (
-                        <ArtifactSection
-                            className="mb-8"
-                            ariaLabel="references-heading"
-                        >
-                            <h2
-                                id="references-heading"
-                                class="text-sm font-medium text-foreground mb-3"
-                            >
-                                References
-                            </h2>
-                            <ArtifactList className="space-y-1">
-                                {docReferences.map((url) => {
-                                    let host = url;
-                                    try {
-                                        host = new URL(url).hostname.replace(/^www\./, "");
-                                    } catch { /* keep original */ }
-                                    return (
-                                        <ArtifactListItem>
-                                            <a
-                                                href={url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                class="group flex items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-muted focus-ring"
-                                            >
-                                                <span class="shrink-0 rounded border border-border px-1.5 py-0.5 font-mono text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                                                    {host}
-                                                </span>
-                                                <span class="truncate text-primary group-hover:underline">
-                                                    {url}
-                                                </span>
-                                                <svg
-                                                    aria-hidden="true"
-                                                    class="ml-auto h-3 w-3 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    stroke-width="2"
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                >
-                                                    <path d="M7 17L17 7" />
-                                                    <path d="M8 7h9v9" />
-                                                </svg>
-                                                <span class="sr-only">
-                                                    (opens in new tab)
-                                                </span>
-                                            </a>
-                                        </ArtifactListItem>
-                                    );
-                                })}
-                            </ArtifactList>
-                        </ArtifactSection>
-                    )}
-
-        <!-- Notes (free-text documentation) -->
-        {docNotes.length > 0 && (
-                        <ArtifactSection
-                            className="mb-8"
-                            ariaLabel="notes-heading"
-                        >
-                            <h2
-                                id="notes-heading"
-                                class="text-sm font-medium text-foreground mb-3"
-                            >
-                                Notes
-                            </h2>
-                            <div class="glass-subtle rounded-lg p-5 space-y-4 text-sm leading-relaxed text-foreground/80">
-                                {noteBlocks.map((block) => (
-                                    block.type === "text" ? (
-                                        <p class="break-words">{block.value}</p>
-                                    ) : (
-                                        <pre class="scrollbar-thin overflow-x-auto rounded-lg border border-overlay/[0.06] bg-sunken px-3 py-2.5 text-xs leading-5 text-foreground/80"><code class="font-mono">{block.lines.join("\n")}</code></pre>
-                                    )
-                                ))}
-                            </div>
-                        </ArtifactSection>
-                    )}
-
-        <!-- Collection Commands (collapsed by default) -->
-        <details class="group glass-subtle mb-8 overflow-hidden rounded-xl" aria-labelledby="commands-heading">
-          <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-overlay/[0.03] focus-ring [&::-webkit-details-marker]:hidden">
-            <h2
-              id="commands-heading"
-              class="text-sm font-medium text-foreground"
-            >
-              Collection commands
-            </h2>
-            <span class="flex items-center gap-2 text-xs text-muted-foreground">
-              <span class="hidden sm:inline">KAPE, PowerShell, Batch, WSL</span>
-              <ChevronDown
-                aria-hidden="true"
-                className="h-4 w-4 transition-transform group-open:rotate-180"
+        <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
+          <div class="flex min-w-0 flex-col gap-12 lg:col-span-7">
+            <ArtifactSection ariaLabel="paths-heading">
+              <h2 id="paths-heading" class={sectionHeadingClass}>
+                Paths on disk
+              </h2>
+              <PathBrowser
+                client:idle
+                target={target}
+                resolvedTargets={resolvedTargets}
               />
-            </span>
-          </summary>
-          <div class="border-t border-overlay/[0.04]">
-            <CommandGenerator client:idle target={commandTarget} />
+            </ArtifactSection>
+
+            {target.isCompound && (
+              <ArtifactSection ariaLabel="includes-heading">
+                <h2 id="includes-heading" class={sectionHeadingClass}>
+                  Includes {target.referencedTargets.length} targets
+                </h2>
+                <ArtifactList className="glass-subtle divide-y divide-border overflow-hidden rounded-xl">
+                  {includedArtifacts.map((included) => (
+                    <ArtifactListItem>
+                      {included.slug ? (
+                        <a
+                          href={"/artifact/" + included.slug}
+                          class="group flex items-center justify-between px-4 py-2.5 transition-colors hover:bg-muted"
+                        >
+                          <span class="text-sm">{included.name}</span>
+                          <span class="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-foreground">
+                            {included.pathCount} {included.pathCount === 1 ? "path" : "paths"}
+                            <ArrowRight aria-hidden="true" className="h-3 w-3" />
+                          </span>
+                        </a>
+                      ) : (
+                        <span class="block px-4 py-2.5 text-sm text-muted-foreground">
+                          {included.name}
+                        </span>
+                      )}
+                    </ArtifactListItem>
+                  ))}
+                  {hiddenIncludedCount > 0 && (
+                    <ArtifactListItem>
+                      <p class="px-4 py-2.5 text-xs text-muted-foreground">
+                        and {hiddenIncludedCount} more
+                      </p>
+                    </ArtifactListItem>
+                  )}
+                </ArtifactList>
+              </ArtifactSection>
+            )}
+
+            {docNotes.length > 0 && (
+              <ArtifactSection ariaLabel="notes-heading">
+                <h2 id="notes-heading" class={sectionHeadingClass}>
+                  Notes
+                </h2>
+                <div class="glass-subtle space-y-4 rounded-xl p-5 text-sm leading-relaxed text-foreground/80">
+                  {noteBlocks.map((block) =>
+                    block.type === "text" ? (
+                      <p class="break-words">{block.value}</p>
+                    ) : (
+                      <pre class="scrollbar-thin overflow-x-auto rounded-lg border border-overlay/[0.06] bg-sunken px-3 py-2.5 text-xs leading-5 text-foreground/80"><code class="font-mono">{block.lines.join("\n")}</code></pre>
+                    )
+                  )}
+                </div>
+              </ArtifactSection>
+            )}
+
+            {referenceLinks.length > 0 && (
+              <ArtifactSection ariaLabel="references-heading">
+                <h2 id="references-heading" class={sectionHeadingClass}>
+                  References
+                </h2>
+                <ArtifactList className="glass-subtle divide-y divide-border overflow-hidden rounded-xl">
+                  {referenceLinks.map((reference) => (
+                    <ArtifactListItem>
+                      <a
+                        href={reference.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="group focus-ring flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted"
+                      >
+                        <span class="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-64 sm:shrink-0" title={reference.host}>
+                          {reference.host}
+                        </span>
+                        <span class="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground sm:block">
+                          {reference.detail}
+                        </span>
+                        <ArrowUpRight
+                          aria-hidden="true"
+                          className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary"
+                        />
+                        <span class="sr-only">(opens in new tab)</span>
+                      </a>
+                    </ArtifactListItem>
+                  ))}
+                </ArtifactList>
+              </ArtifactSection>
+            )}
           </div>
-        </details>
 
-        <!-- Included In Collections -->
-        {includedInCollections.length > 0 && (
-          <p class="mb-8 text-sm text-muted-foreground">
-            Included in collections:{" "}
-            {includedInCollections.map((collection, i) => (
-              <>
-                {i > 0 && <span aria-hidden="true"> · </span>}
-                <a
-                  href={"/artifact/" + collection.slug}
-                  class="text-primary hover:underline transition-colors focus-ring rounded-sm"
-                >
-                  {collection.name}
-                </a>
-              </>
-            ))}
-          </p>
-        )}
+          <aside
+            aria-label="Collect and related information"
+            class="flex min-w-0 flex-col gap-10 lg:sticky lg:top-20 lg:col-span-5 lg:-mx-2 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto lg:overflow-x-hidden lg:px-2"
+          >
+            <ArtifactSection ariaLabel="commands-heading">
+              <h2 id="commands-heading" class={sectionHeadingClass}>
+                Collect it
+              </h2>
+              <div class="glass-subtle overflow-hidden rounded-xl">
+                <CommandGenerator client:idle target={commandTarget} />
+              </div>
+            </ArtifactSection>
 
-        <!-- Source File -->
-        <ArtifactFooter
-          className="text-xs text-muted-foreground pt-4 border-t border-border/30"
-        >
+            {includedInCollections.length > 0 && (
+              <section aria-labelledby="collections-heading">
+                <h2 id="collections-heading" class={asideHeadingClass}>
+                  Part of these collections
+                </h2>
+                <ul class="flex flex-wrap gap-2">
+                  {includedInCollections.map((collection) => (
+                    <li>
+                      <a href={"/artifact/" + collection.slug} class={chipLinkClass}>
+                        {collection.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            <CyberChefLinks client:idle target={target} />
+
+          </aside>
+        </div>
+
+        <ArtifactFooter className="mt-16 border-t border-border pt-4 text-xs text-muted-foreground">
           <span>Source: </span>
           <a
             href={"https://github.com/EricZimmerman/KapeFiles/blob/master/Targets/" +
@@ -466,7 +470,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                             target.sourceFile}
             target="_blank"
             rel="noopener noreferrer"
-            class="text-primary hover:underline transition-colors focus-ring rounded-sm"
+            class="focus-ring rounded-sm text-primary transition-colors hover:underline"
           >
             KapeFiles/{target.category}/{target.sourceFile}
             <span class="sr-only">(opens in new tab)</span>

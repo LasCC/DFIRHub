@@ -1,6 +1,8 @@
 // CyberChef URL generator for DFIRHub
 // Generates deep links to CyberChef with pre-configured recipes
 
+import type { KapeTarget } from "./kapefiles";
+
 const CYBERCHEF_BASE = "https://gchq.github.io/CyberChef";
 
 export interface CyberChefRecipe {
@@ -127,6 +129,18 @@ export function getRecipesForArtifact(artifactName: string): CyberChefRecipe[] {
   return recipes.filter((recipe) =>
     recipe.patterns.some((pattern) => pattern.test(artifactName))
   );
+}
+
+export function getRecipesForTarget(target: KapeTarget): CyberChefRecipe[] {
+  const searchText = [
+    target.name,
+    target.description,
+    target.category,
+    ...target.targets.map(
+      (entry) => `${entry.name} ${entry.path} ${entry.fileMask || ""}`
+    ),
+  ].join(" ");
+  return getRecipesForArtifact(searchText);
 }
 
 // Generate CyberChef URL with recipe

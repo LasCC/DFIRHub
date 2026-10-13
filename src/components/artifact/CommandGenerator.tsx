@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
 
-import type { KapeTarget } from "../../lib/kapefiles";
-
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import { trackCopyCommand } from "../../lib/analytics";
 import {
@@ -10,6 +8,7 @@ import {
   generatePowerShell,
   generateWsl,
 } from "../../lib/generators";
+import type { KapeTarget } from "../../lib/kapefiles";
 import { CodeBlock } from "../ui/CodeBlock";
 
 type CommandFormat = "kape" | "powershell" | "batch" | "wsl";
@@ -19,7 +18,7 @@ interface CommandGeneratorProps {
 }
 
 export function CommandGenerator({ target }: CommandGeneratorProps) {
-  const [format, setFormat] = useState<CommandFormat>("powershell");
+  const [format, setFormat] = useState<CommandFormat>("kape");
   const [source, setSource] = useState("C:");
   const [destination, setDestination] = useState("D:\\Evidence");
   const [useVss, setUseVss] = useState(false);
@@ -114,7 +113,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
               Source
             </label>
             <input
-              className="h-7 w-16 rounded border border-border bg-background px-2 text-xs outline-none focus:border-primary/50"
+              className="h-7 w-16 rounded border border-border bg-background px-2 font-mono text-xs outline-none focus:border-primary/50"
               id="source-input"
               onChange={(e) => setSource(e.target.value)}
               placeholder="C:"
@@ -129,7 +128,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
               Destination
             </label>
             <input
-              className="h-7 w-40 rounded border border-border bg-background px-2 text-xs outline-none focus:border-primary/50"
+              className="h-7 w-40 rounded border border-border bg-background px-2 font-mono text-xs outline-none focus:border-primary/50"
               id="dest-input"
               onChange={(e) => setDestination(e.target.value)}
               placeholder="D:\Evidence"
@@ -166,12 +165,12 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
 
       {/* Command Display */}
       <div className="p-4">
-        <div className="relative">
+        <div className="relative [&_pre]:max-h-72! [&_pre]:pr-16!">
           <CodeBlock
             code={currentCommand}
             language={
               format === "kape"
-                ? "shell"
+                ? "powershell"
                 : format === "wsl"
                   ? "bash"
                   : format === "powershell"
