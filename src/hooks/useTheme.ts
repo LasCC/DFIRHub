@@ -24,7 +24,7 @@ function getController(): ThemeController | undefined {
 }
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<ThemePreference>("auto");
+  const [theme, setThemeState] = useState<ThemePreference>("dark");
 
   useEffect(() => {
     const controller = getController();
@@ -34,7 +34,7 @@ export function useTheme() {
 
     const handleChange = (event: Event) => {
       const next = (event as CustomEvent<ThemePreference>).detail;
-      setThemeState(next ?? getController()?.get() ?? "auto");
+      setThemeState(next ?? getController()?.get() ?? "dark");
     };
 
     window.addEventListener(THEME_EVENT, handleChange);
