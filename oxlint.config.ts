@@ -1,12 +1,12 @@
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "extends": [
-    "./node_modules/ultracite/config/oxlint/core/.oxlintrc.json",
-    "./node_modules/ultracite/config/oxlint/astro/.oxlintrc.json",
-    "./node_modules/ultracite/config/oxlint/react/.oxlintrc.json"
-  ],
-  "ignorePatterns": ["**/*.astro"],
-  "rules": {
+import { defineConfig } from "oxlint";
+import astro from "ultracite/oxlint/astro";
+import core from "ultracite/oxlint/core";
+import react from "ultracite/oxlint/react";
+
+export default defineConfig({
+  extends: [core, astro, react],
+  ignorePatterns: ["**/*.astro"],
+  rules: {
     "unicorn/filename-case": "off",
     "unicorn/no-nested-ternary": "off",
     "unicorn/no-array-reduce": "off",
@@ -48,6 +48,6 @@
     "jsx-a11y/label-has-associated-control": "off",
     "promise/prefer-await-to-then": "off",
     "promise/prefer-await-to-callbacks": "off",
-    "promise/no-nesting": "off"
-  }
-}
+    "promise/no-nesting": "off",
+  },
+});
