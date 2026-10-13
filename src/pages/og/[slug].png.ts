@@ -4,11 +4,15 @@ import { loadAllTargets } from "../../lib/kapefiles";
 import type { KapeTarget } from "../../lib/kapefiles";
 import { renderArtifactCard } from "../../lib/og-card";
 
+const shouldSkipArtifactCards = process.env.SKIP_OG_IMAGES === "1";
+
 export const getStaticPaths: GetStaticPaths = () =>
-  loadAllTargets().map((target) => ({
-    params: { slug: target.slug },
-    props: { target },
-  }));
+  shouldSkipArtifactCards
+    ? []
+    : loadAllTargets().map((target) => ({
+        params: { slug: target.slug },
+        props: { target },
+      }));
 
 export const GET: APIRoute = async ({ props }) => {
   const png = await renderArtifactCard(props.target as KapeTarget);
