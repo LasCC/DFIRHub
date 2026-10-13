@@ -36,7 +36,6 @@
   const ANIMATION_SPEED = 1.4;
   const FRAME_INTERVAL_MS = 1000 / 10;
   const STILL_FRAME_SECONDS = 14;
-  const POINTER_EASING = 0.12;
   const DARK_INTENSITY = 1;
   const LIGHT_INTENSITY = 0.75;
   const FALLBACK_ACCENT: [number, number, number] = [0.2, 0.83, 0.6];
@@ -59,8 +58,6 @@
     uniform vec2 u_resolution;
     uniform float u_time;
     uniform float u_cell;
-    uniform vec2 u_pointer;
-    uniform float u_pointer_strength;
     uniform vec3 u_color;
     uniform float u_intensity;
 
@@ -95,9 +92,7 @@
       float sweepBand = exp(-sweepOffset * sweepOffset);
       float sweep = sweepBand * (0.35 + 0.65 * hash(cell * 1.7));
 
-      float pointerGlow = smoothstep(u_cell * 9.0, 0.0, distance(pixel, u_pointer)) * u_pointer_strength;
-
-      float energy = 0.04 + lit * 0.55 * breathing + sweep * 0.6 + pointerGlow * 0.9;
+      float energy = 0.04 + lit * 0.55 * breathing + sweep * 0.6;
       energy = clamp(energy, 0.0, 1.0);
 
       float squareRadius = mix(0.11, 0.3, energy);
@@ -208,8 +203,6 @@
       cell: gl.getUniformLocation(program, "u_cell"),
       color: gl.getUniformLocation(program, "u_color"),
       intensity: gl.getUniformLocation(program, "u_intensity"),
-      pointer: gl.getUniformLocation(program, "u_pointer"),
-      pointerStrength: gl.getUniformLocation(program, "u_pointer_strength"),
       resolution: gl.getUniformLocation(program, "u_resolution"),
       time: gl.getUniformLocation(program, "u_time"),
     };
@@ -217,8 +210,6 @@
     const reducedMotionQuery = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     );
-    const pointer = { currentX: 0, currentY: 0, strength: 0, targetX: 0, targetY: 0 };
-    let pixelRatio = 1;
     let isVisible = true;
     let frameHandle = 0;
     let lastFrameAt = 0;
@@ -232,7 +223,7 @@
     }
 
     function resize() {
-      pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
       const width = Math.max(1, Math.round(container.clientWidth * pixelRatio));
       const height = Math.max(1, Math.round(container.clientHeight * pixelRatio));
       canvas.width = width;
@@ -244,11 +235,7 @@
 
     function draw() {
       const isStill = reducedMotionQuery.matches;
-      pointer.currentX += (pointer.targetX - pointer.currentX) * POINTER_EASING;
-      pointer.currentY += (pointer.targetY - pointer.currentY) * POINTER_EASING;
       gl.uniform1f(uniforms.time, isStill ? STILL_FRAME_SECONDS : elapsedSeconds);
-      gl.uniform2f(uniforms.pointer, pointer.currentX, pointer.currentY);
-      gl.uniform1f(uniforms.pointerStrength, isStill ? 0 : pointer.strength);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
@@ -281,17 +268,6 @@
       }
     }
 
-    function handlePointerMove(event: PointerEvent) {
-      const bounds = canvas.getBoundingClientRect();
-      pointer.targetX = (event.clientX - bounds.left) * pixelRatio;
-      pointer.targetY = (event.clientY - bounds.top) * pixelRatio;
-      pointer.strength = 1;
-    }
-
-    function handlePointerLeave() {
-      pointer.strength = 0;
-    }
-
     applyTheme();
     resize();
 
@@ -315,8 +291,6 @@
 
     document.addEventListener("visibilitychange", schedule);
     reducedMotionQuery.addEventListener("change", schedule);
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    document.documentElement.addEventListener("pointerleave", handlePointerLeave);
 
     schedule();
   }
