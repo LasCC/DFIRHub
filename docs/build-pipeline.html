@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DFIRHub · Build pipeline</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      :root {
+        color-scheme: light;
+        --color-paper: #f6f6f7;
+        --color-ink: #18181b;
+        --color-muted: #52525b;
+        --color-accent: #047857;
+        --font-sans:
+          system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
+          "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        --font-serif: "Instrument Serif", serif;
+        --font-mono:
+          "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      body {
+        font-family: var(--font-sans);
+        background: var(--color-paper);
+        color: var(--color-ink);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+      }
+
+      .frame {
+        max-width: 1280px;
+        width: 100%;
+      }
+      .diagram-container {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+        margin-bottom: 0.5rem;
+      }
+
+      h1 {
+        font-family: var(--font-serif);
+        font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+        font-weight: 400;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        color: var(--color-ink);
+        margin-bottom: 1.5rem;
+      }
+
+      svg {
+        width: 100%;
+        min-width: 1280px;
+        display: block;
+      }
+      @media print {
+        .diagram-container {
+          overflow-x: visible;
+        }
+        svg {
+          min-width: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <p class="eyebrow">Architecture · DFIRHub</p>
+      <h1>From KapeFiles to a static site</h1>
+
+      <div class="diagram-container">
+        <svg
+          viewBox="0 0 1280 536"
+          xmlns="http://www.w3.org/2000/svg"
+          role="img"
+          aria-labelledby="build-pipeline-title build-pipeline-desc"
+        >
+          <title id="build-pipeline-title">DFIRHub build pipeline</title>
+          <desc id="build-pipeline-desc">
+            Architecture diagram showing KapeFiles and SigmaHQ data reaching a
+            Netlify build of Astro and Pagefind, with GitHub Actions refreshing
+            the data and triggering the build.
+          </desc>
+          <defs>
+            <marker
+              id="arrow"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0, 8 3, 0 6" fill="#52525b" />
+            </marker>
+            <marker
+              id="arrow-accent"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0, 8 3, 0 6" fill="#047857" />
+            </marker>
+            <marker
+              id="arrow-link"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8" />
+            </marker>
+          </defs>
+
+          <rect width="100%" height="100%" fill="#f6f6f7" />
+
+          <rect
+            x="40"
+            y="40"
+            width="208"
+            height="372"
+            rx="8"
+            fill="rgba(24,24,27,0.02)"
+            stroke="rgba(24,24,27,0.1)"
+            stroke-width="0.8"
+          />
+          <rect x="118" y="44" width="52" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="144"
+            y="53"
+            fill="#63636d"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.14em"
+          >
+            UPSTREAM
+          </text>
+          <rect
+            x="292"
+            y="40"
+            width="712"
+            height="148"
+            rx="8"
+            fill="rgba(24,24,27,0.02)"
+            stroke="rgba(24,24,27,0.1)"
+            stroke-width="0.8"
+          />
+          <rect x="608" y="44" width="80" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="648"
+            y="53"
+            fill="#63636d"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.14em"
+          >
+            NETLIFY BUILD
+          </text>
+
+          <line
+            x1="232"
+            y1="116"
+            x2="308"
+            y2="116"
+            stroke="#52525b"
+            stroke-width="1.2"
+            marker-end="url(#arrow)"
+          />
+          <line
+            x1="484"
+            y1="116"
+            x2="560"
+            y2="116"
+            stroke="#047857"
+            stroke-width="1.4"
+            marker-end="url(#arrow-accent)"
+          />
+          <line
+            x1="736"
+            y1="116"
+            x2="812"
+            y2="116"
+            stroke="#52525b"
+            stroke-width="1.2"
+            marker-end="url(#arrow)"
+          />
+          <line
+            x1="988"
+            y1="116"
+            x2="1064"
+            y2="116"
+            stroke="#52525b"
+            stroke-width="1.2"
+            marker-end="url(#arrow)"
+          />
+          <line
+            x1="232"
+            y1="356"
+            x2="308"
+            y2="356"
+            stroke="#2e5aa8"
+            stroke-width="1.2"
+            marker-end="url(#arrow-link)"
+          />
+          <line
+            x1="396"
+            y1="316"
+            x2="396"
+            y2="188"
+            stroke="#2e5aa8"
+            stroke-width="1.2"
+            marker-end="url(#arrow-link)"
+          />
+          <path
+            d="M 484,356 H 640 Q 648,356 648,348 V 156"
+            fill="none"
+            stroke="#52525b"
+            stroke-width="1.2"
+            marker-end="url(#arrow)"
+          />
+
+          <rect x="256" y="98" width="28" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="270"
+            y="107"
+            fill="#63636d"
+            font-size="8"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.06em"
+          >
+            GIT
+          </text>
+          <rect x="494" y="98" width="56" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="522"
+            y="107"
+            fill="#047857"
+            font-size="8"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.06em"
+          >
+            ARTIFACTS
+          </text>
+          <rect x="756" y="98" width="36" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="774"
+            y="107"
+            fill="#63636d"
+            font-size="8"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.06em"
+          >
+            HTML
+          </text>
+          <rect x="1010" y="98" width="48" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="1034"
+            y="107"
+            fill="#63636d"
+            font-size="8"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.06em"
+          >
+            PUBLISH
+          </text>
+          <rect x="260" y="338" width="36" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="278"
+            y="347"
+            fill="#2e5aa8"
+            font-size="8"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.06em"
+          >
+            FETCH
+          </text>
+          <rect x="404" y="246" width="64" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="436"
+            y="255"
+            fill="#2e5aa8"
+            font-size="8"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.06em"
+          >
+            BUILD HOOK
+          </text>
+          <rect x="530" y="338" width="64" height="12" rx="2" fill="#f6f6f7" />
+          <text
+            x="562"
+            y="347"
+            fill="#63636d"
+            font-size="8"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.06em"
+          >
+            SIGMA JSON
+          </text>
+
+          <rect x="56" y="76" width="176" height="80" rx="6" fill="#f6f6f7" />
+          <rect
+            x="56"
+            y="76"
+            width="176"
+            height="80"
+            rx="6"
+            fill="rgba(82,82,91,0.1)"
+            stroke="#63636d"
+            stroke-width="1"
+          />
+          <rect
+            x="64"
+            y="84"
+            width="32"
+            height="12"
+            rx="2"
+            fill="transparent"
+            stroke="rgba(82,82,91,0.5)"
+            stroke-width="0.8"
+          />
+          <text
+            x="80"
+            y="93"
+            fill="#63636d"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.08em"
+          >
+            REPO
+          </text>
+          <text
+            x="144"
+            y="116"
+            fill="#18181b"
+            font-size="12"
+            font-weight="600"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+            text-anchor="middle"
+          >
+            KapeFiles
+          </text>
+          <text
+            x="144"
+            y="132"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            EricZimmerman/KapeFiles
+          </text>
+          <text
+            x="144"
+            y="144"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            git submodule · .tkape
+          </text>
+          <rect x="308" y="76" width="176" height="80" rx="6" fill="#f6f6f7" />
+          <rect
+            x="308"
+            y="76"
+            width="176"
+            height="80"
+            rx="6"
+            fill="#ffffff"
+            stroke="#18181b"
+            stroke-width="1"
+          />
+          <rect
+            x="316"
+            y="84"
+            width="20"
+            height="12"
+            rx="2"
+            fill="transparent"
+            stroke="rgba(24,24,27,0.4)"
+            stroke-width="0.8"
+          />
+          <text
+            x="326"
+            y="93"
+            fill="#63636d"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.08em"
+          >
+            TS
+          </text>
+          <text
+            x="396"
+            y="116"
+            fill="#18181b"
+            font-size="12"
+            font-weight="600"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+            text-anchor="middle"
+          >
+            Target loader
+          </text>
+          <text
+            x="396"
+            y="132"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            src/lib/kapefiles.ts
+          </text>
+          <text
+            x="396"
+            y="144"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            js-yaml → artifacts
+          </text>
+          <rect x="560" y="76" width="176" height="80" rx="6" fill="#f6f6f7" />
+          <rect
+            x="560"
+            y="76"
+            width="176"
+            height="80"
+            rx="6"
+            fill="rgba(4,120,87,0.08)"
+            stroke="#047857"
+            stroke-width="1"
+          />
+          <rect
+            x="568"
+            y="84"
+            width="28"
+            height="12"
+            rx="2"
+            fill="transparent"
+            stroke="rgba(4,120,87,0.5)"
+            stroke-width="0.8"
+          />
+          <text
+            x="582"
+            y="93"
+            fill="#047857"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.08em"
+          >
+            SSG
+          </text>
+          <text
+            x="648"
+            y="116"
+            fill="#18181b"
+            font-size="12"
+            font-weight="600"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+            text-anchor="middle"
+          >
+            Astro build
+          </text>
+          <text
+            x="648"
+            y="132"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            pages · OG cards · sitemap
+          </text>
+          <text
+            x="648"
+            y="144"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            static output → dist/
+          </text>
+          <rect x="812" y="76" width="176" height="80" rx="6" fill="#f6f6f7" />
+          <rect
+            x="812"
+            y="76"
+            width="176"
+            height="80"
+            rx="6"
+            fill="#ffffff"
+            stroke="#18181b"
+            stroke-width="1"
+          />
+          <rect
+            x="820"
+            y="84"
+            width="28"
+            height="12"
+            rx="2"
+            fill="transparent"
+            stroke="rgba(24,24,27,0.4)"
+            stroke-width="0.8"
+          />
+          <text
+            x="834"
+            y="93"
+            fill="#63636d"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.08em"
+          >
+            CLI
+          </text>
+          <text
+            x="900"
+            y="116"
+            fill="#18181b"
+            font-size="12"
+            font-weight="600"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+            text-anchor="middle"
+          >
+            Pagefind
+          </text>
+          <text
+            x="900"
+            y="132"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            pagefind --site dist
+          </text>
+          <text
+            x="900"
+            y="144"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            search index → /pagefind
+          </text>
+          <rect x="1064" y="76" width="176" height="80" rx="6" fill="#f6f6f7" />
+          <rect
+            x="1064"
+            y="76"
+            width="176"
+            height="80"
+            rx="6"
+            fill="rgba(24,24,27,0.03)"
+            stroke="rgba(24,24,27,0.3)"
+            stroke-width="1"
+          />
+          <rect
+            x="1072"
+            y="84"
+            width="28"
+            height="12"
+            rx="2"
+            fill="transparent"
+            stroke="rgba(24,24,27,0.25)"
+            stroke-width="0.8"
+          />
+          <text
+            x="1086"
+            y="93"
+            fill="#63636d"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.08em"
+          >
+            CDN
+          </text>
+          <text
+            x="1152"
+            y="116"
+            fill="#18181b"
+            font-size="12"
+            font-weight="600"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+            text-anchor="middle"
+          >
+            Netlify
+          </text>
+          <text
+            x="1152"
+            y="132"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            dist/ · static files
+          </text>
+          <text
+            x="1152"
+            y="144"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            netlify.toml redirects
+          </text>
+          <rect x="56" y="316" width="176" height="80" rx="6" fill="#f6f6f7" />
+          <rect
+            x="56"
+            y="316"
+            width="176"
+            height="80"
+            rx="6"
+            fill="rgba(82,82,91,0.1)"
+            stroke="#63636d"
+            stroke-width="1"
+          />
+          <rect
+            x="64"
+            y="324"
+            width="32"
+            height="12"
+            rx="2"
+            fill="transparent"
+            stroke="rgba(82,82,91,0.5)"
+            stroke-width="0.8"
+          />
+          <text
+            x="80"
+            y="333"
+            fill="#63636d"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.08em"
+          >
+            REPO
+          </text>
+          <text
+            x="144"
+            y="356"
+            fill="#18181b"
+            font-size="12"
+            font-weight="600"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+            text-anchor="middle"
+          >
+            SigmaHQ
+          </text>
+          <text
+            x="144"
+            y="372"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            github.com/SigmaHQ/sigma
+          </text>
+          <text
+            x="144"
+            y="384"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            core+ release zip
+          </text>
+          <rect x="308" y="316" width="176" height="80" rx="6" fill="#f6f6f7" />
+          <rect
+            x="308"
+            y="316"
+            width="176"
+            height="80"
+            rx="6"
+            fill="rgba(24,24,27,0.02)"
+            stroke="rgba(24,24,27,0.35)"
+            stroke-width="1"
+            stroke-dasharray="4,3"
+          />
+          <rect
+            x="316"
+            y="324"
+            width="32"
+            height="12"
+            rx="2"
+            fill="transparent"
+            stroke="rgba(24,24,27,0.25)"
+            stroke-width="0.8"
+          />
+          <text
+            x="332"
+            y="333"
+            fill="#63636d"
+            font-size="7"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+            letter-spacing="0.08em"
+          >
+            CRON
+          </text>
+          <text
+            x="396"
+            y="356"
+            fill="#18181b"
+            font-size="12"
+            font-weight="600"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+            text-anchor="middle"
+          >
+            GitHub Actions
+          </text>
+          <text
+            x="396"
+            y="372"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            Mon: KapeFiles bump
+          </text>
+          <text
+            x="396"
+            y="384"
+            fill="#52525b"
+            font-size="9"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            text-anchor="middle"
+          >
+            1st: pnpm sigma:index
+          </text>
+
+          <text
+            x="760"
+            y="304"
+            fill="#18181b"
+            font-size="14"
+            font-style="italic"
+            font-family="'Instrument Serif', serif"
+          >
+            build:fast skips OG cards: about 6s, not 90s
+          </text>
+          <path
+            d="M 812 290 Q 804 214 716 156"
+            fill="none"
+            stroke="rgba(24,24,27,0.4)"
+            stroke-width="1"
+            stroke-dasharray="4,3"
+          />
+          <circle cx="716" cy="156" r="2" fill="#18181b" />
+
+          <line
+            x1="40"
+            y1="452"
+            x2="1240"
+            y2="452"
+            stroke="rgba(24,24,27,0.1)"
+            stroke-width="0.8"
+          />
+          <text
+            x="40"
+            y="468"
+            fill="#52525b"
+            font-size="8"
+            font-family="'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, monospace"
+            letter-spacing="0.18em"
+          >
+            LEGEND
+          </text>
+          <rect
+            x="40"
+            y="484"
+            width="14"
+            height="10"
+            rx="2"
+            fill="rgba(4,120,87,0.08)"
+            stroke="#047857"
+            stroke-width="1"
+          />
+          <text
+            x="60"
+            y="492"
+            fill="#52525b"
+            font-size="8.5"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          >
+            Build core
+          </text>
+          <rect
+            x="156"
+            y="484"
+            width="14"
+            height="10"
+            rx="2"
+            fill="#ffffff"
+            stroke="#18181b"
+            stroke-width="1"
+          />
+          <text
+            x="176"
+            y="492"
+            fill="#52525b"
+            font-size="8.5"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          >
+            Build step
+          </text>
+          <rect
+            x="268"
+            y="484"
+            width="14"
+            height="10"
+            rx="2"
+            fill="rgba(82,82,91,0.1)"
+            stroke="#63636d"
+            stroke-width="1"
+          />
+          <text
+            x="288"
+            y="492"
+            fill="#52525b"
+            font-size="8.5"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          >
+            Upstream repo
+          </text>
+          <rect
+            x="396"
+            y="484"
+            width="14"
+            height="10"
+            rx="2"
+            fill="rgba(24,24,27,0.03)"
+            stroke="rgba(24,24,27,0.3)"
+            stroke-width="1"
+          />
+          <text
+            x="416"
+            y="492"
+            fill="#52525b"
+            font-size="8.5"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          >
+            Cloud service
+          </text>
+          <rect
+            x="528"
+            y="484"
+            width="14"
+            height="10"
+            rx="2"
+            fill="rgba(24,24,27,0.02)"
+            stroke="rgba(24,24,27,0.35)"
+            stroke-width="1"
+            stroke-dasharray="4,3"
+          />
+          <text
+            x="548"
+            y="492"
+            fill="#52525b"
+            font-size="8.5"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          >
+            Scheduled job
+          </text>
+          <line
+            x1="668"
+            y1="489"
+            x2="696"
+            y2="489"
+            stroke="#047857"
+            stroke-width="1.4"
+            marker-end="url(#arrow-accent)"
+          />
+          <text
+            x="704"
+            y="492"
+            fill="#52525b"
+            font-size="8.5"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          >
+            Primary flow
+          </text>
+          <line
+            x1="812"
+            y1="489"
+            x2="840"
+            y2="489"
+            stroke="#2e5aa8"
+            stroke-width="1.2"
+            marker-end="url(#arrow-link)"
+          />
+          <text
+            x="848"
+            y="492"
+            fill="#52525b"
+            font-size="8.5"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          >
+            HTTP call
+          </text>
+          <line
+            x1="940"
+            y1="489"
+            x2="968"
+            y2="489"
+            stroke="#52525b"
+            stroke-width="1.2"
+            marker-end="url(#arrow)"
+          />
+          <text
+            x="976"
+            y="492"
+            fill="#52525b"
+            font-size="8.5"
+            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+          >
+            File or git
+          </text>
+        </svg>
+      </div>
+    </div>
+  </body>
+</html>
