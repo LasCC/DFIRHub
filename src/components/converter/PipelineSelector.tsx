@@ -79,7 +79,7 @@ export function PipelineSelector({
         </button>
 
         {availablePipelines.length > 0 && (
-          <div className="max-h-48 space-y-0.5 overflow-y-auto">
+          <div className="fade-y max-h-48 space-y-0.5 overflow-y-auto">
             {availablePipelines.map((pipeline) => (
               <button
                 className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.04] ${

@@ -138,7 +138,7 @@ export function HeroConsole({ previews }: HeroConsoleProps) {
     >
       <div
         aria-label="Example artifacts"
-        className="scrollbar-hide flex overflow-x-auto border-b border-border px-2"
+        className="scrollbar-hide fade-x flex overflow-x-auto border-b border-border px-2"
         role="tablist"
       >
         {previews.map((preview, index) => {

@@ -343,7 +343,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
       }
     >
       {/* Paths List */}
-      <div className="scrollbar-thin max-h-[480px] overflow-y-auto">
+      <div className="scrollbar-thin fade-y max-h-[480px] overflow-y-auto">
         {target.isCompound && resolvedTargets ? (
           // Grouped view for compound targets
           <div className="divide-y divide-overlay/[0.04]">

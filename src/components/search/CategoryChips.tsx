@@ -90,7 +90,7 @@ export function CategoryChips({
     <fieldset className="min-w-0 border-overlay/[0.06] border-b">
       <legend className="sr-only">Filter by category</legend>
       <div
-        className="scrollbar-hide flex gap-1.5 overflow-x-auto px-4 py-2.5"
+        className="scrollbar-hide fade-x flex gap-1.5 overflow-x-auto px-4 py-2.5"
         ref={scrollRef}
         style={{ maskImage: fadeMask, WebkitMaskImage: fadeMask }}
       >

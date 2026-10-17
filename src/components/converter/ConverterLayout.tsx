@@ -461,7 +461,7 @@ export function ConverterLayout() {
               className={`min-w-0 flex-1 scroll-shadow-x${mobileScrollStart ? " scrolled-start" : ""}${mobileScrollEnd ? " scrolled-end" : ""}`}
             >
               <div
-                className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
+                className="fade-x flex items-center gap-2 overflow-x-auto scrollbar-hide"
                 ref={mobileScrollRef}
               >
                 {/* Examples */}

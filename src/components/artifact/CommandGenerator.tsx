@@ -164,7 +164,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
     >
       <div
         aria-label="Command format selection"
-        className="flex overflow-x-auto border-border border-b px-2"
+        className="fade-x flex overflow-x-auto border-border border-b px-2"
         role="tablist"
       >
         {COMMAND_TABS.map((tab) => (

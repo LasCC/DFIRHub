@@ -162,7 +162,7 @@ export function KeyboardShortcuts() {
         </div>
 
         {/* Content */}
-        <div className="scrollbar-thin max-h-[60vh] overflow-y-auto p-5">
+        <div className="scrollbar-thin fade-y max-h-[60vh] overflow-y-auto p-5">
           <div className="grid gap-6">
             {shortcutGroups.map((group) => (
               <div key={group.title}>

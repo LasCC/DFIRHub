@@ -529,7 +529,7 @@ export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
           </>
         }
       >
-        <div className="scrollbar-thin max-h-72 overflow-y-auto">
+        <div className="scrollbar-thin fade-y max-h-72 overflow-y-auto">
           {filteredTargets.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground text-sm">
               No targets found

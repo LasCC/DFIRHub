@@ -54,7 +54,7 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
       className={`scroll-shadow-x${scrolledStart ? " scrolled-start" : ""}${scrolledEnd ? " scrolled-end" : ""}`}
     >
       <div
-        className="flex gap-2 overflow-x-auto scrollbar-hide"
+        className="fade-x flex gap-2 overflow-x-auto scrollbar-hide"
         id="category-filters"
         ref={scrollRef}
       >

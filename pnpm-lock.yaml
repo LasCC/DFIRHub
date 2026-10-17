@@ -89,6 +89,9 @@ importers:
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
+      tw-fade:
+        specifier: ^0.8.0
+        version: 0.8.0(tailwindcss@4.3.3)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -2975,6 +2978,14 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  tw-fade@0.8.0:
+    resolution: {integrity: sha512-9ewfWqOiMaUKrsiN4+jsu1IyFnqzr9coZrVRzGlB0G1HuEPcvpCG2sRo8F1rEoRXxFVmrL6WxT8CRIlmYPV0Qw==}
+    peerDependencies:
+      tailwindcss: '>=4.0.0'
+    peerDependenciesMeta:
+      tailwindcss:
+        optional: true
 
   typesafe-path@0.2.2:
     resolution: {integrity: sha512-OJabfkAg1WLZSqJAJ0Z6Sdt3utnbzr/jh+NAHoyWHJe8CMSy79Gm085094M9nvTPy22KzTVn5Zq5mbapCI/hPA==}
@@ -5951,6 +5962,10 @@ snapshots:
   trough@2.2.0: {}
 
   tslib@2.8.1: {}
+
+  tw-fade@0.8.0(tailwindcss@4.3.3):
+    optionalDependencies:
+      tailwindcss: 4.3.3
 
   typesafe-path@0.2.2: {}
 

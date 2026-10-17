@@ -196,7 +196,7 @@ export function HomeSearch({ data, popular }: HomeSearchProps) {
                 </p>
                 <ul
                   aria-label={hasQuery ? "Search suggestions" : "Popular artifacts"}
-                  className="max-h-80 overflow-y-auto pb-2"
+                  className="fade-y max-h-80 overflow-y-auto pb-2"
                   role="listbox"
                 >
                   {suggestions.map((item, index) => (

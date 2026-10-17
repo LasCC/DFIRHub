@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-fade";
 
 /* Dark variant follows the in-app theme class on <html>, not the OS
    color-scheme media query. The theme bootstrap toggles `.light`/`.dark`
