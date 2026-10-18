@@ -10,8 +10,11 @@ export const sigmaExamples: SigmaExample[] = [
     description:
       "Detects encoded PowerShell execution commonly used by attackers",
     yaml: `title: Suspicious PowerShell Encoded Command
-status: test
+id: 1ada60c6-624a-58ef-b22f-8cc61779b3ba
+status: experimental
 description: Detects execution of PowerShell with encoded commands
+author: DFIRHub
+date: 2026-10-18
 logsource:
     category: process_creation
     product: windows
@@ -32,8 +35,11 @@ tags:
     title: "LSASS Memory Dump via Procdump",
     description: "Detects LSASS credential dumping using Sysinternals Procdump",
     yaml: `title: LSASS Memory Dump via Procdump
-status: test
+id: 50551224-6048-5d5a-98e2-eac99364191d
+status: experimental
 description: Detects usage of procdump to dump LSASS memory for credential theft
+author: DFIRHub
+date: 2026-10-18
 logsource:
     category: process_creation
     product: windows
@@ -52,8 +58,11 @@ tags:
     title: "Suspicious Scheduled Task Creation",
     description: "Detects creation of scheduled tasks via command line",
     yaml: `title: Suspicious Scheduled Task Creation
-status: test
+id: a7d5a9d4-afeb-5b85-88e1-bca2cc982360
+status: experimental
 description: Detects creation of scheduled tasks which is a common persistence technique
+author: DFIRHub
+date: 2026-10-18
 logsource:
     category: process_creation
     product: windows
@@ -71,8 +80,11 @@ tags:
     title: "Registry Run Key Modification",
     description: "Detects modifications to registry Run keys for persistence",
     yaml: `title: Registry Run Key Modification
-status: test
+id: ced3edb1-9310-5955-93c0-2ea0890ea313
+status: experimental
 description: Detects modification of Run and RunOnce registry keys
+author: DFIRHub
+date: 2026-10-18
 logsource:
     category: registry_event
     product: windows
@@ -91,8 +103,11 @@ tags:
     title: "Certutil Download Cradle",
     description: "Detects use of certutil to download files from the internet",
     yaml: `title: Certutil Download Cradle
-status: test
+id: f209b093-8552-5636-82f0-63bf5485a511
+status: experimental
 description: Detects certutil.exe being used to download remote files
+author: DFIRHub
+date: 2026-10-18
 logsource:
     category: process_creation
     product: windows
@@ -102,8 +117,6 @@ detection:
         CommandLine|contains:
             - 'urlcache'
             - 'verifyctl'
-    filter:
-        CommandLine|contains: '/urlcache /split /f'
     condition: selection
 level: high
 tags:

@@ -1,10 +1,9 @@
 import Editor from "@monaco-editor/react";
-import { useCallback, useRef, useState } from "react";
-
-import type { SigmaDiagnostic } from "@/lib/sigma/validate";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { trackSigmaRuleImported } from "@/lib/analytics";
-import { validateSigmaRule } from "@/lib/sigma/validate";
+import type { SigmaDiagnostic } from "@/lib/sigma/validate";
+import { validateSigmaRule, validateYamlSyntax } from "@/lib/sigma/validate";
 
 const EDITOR_OPTIONS = {
   automaticLayout: true,
@@ -23,11 +22,43 @@ interface SigmaEditorProps {
   value: string;
   onChange: (value: string) => void;
   onConvert?: () => void;
+  engineDiagnostics?: SigmaDiagnostic[] | null;
+  lineToReveal?: LineRevealRequest | null;
 }
 
-export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
+export interface LineRevealRequest {
+  line: number;
+  requestId: number;
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: Monaco types are complex
+function toMonacoMarkers(monaco: any, diagnostics: SigmaDiagnostic[]) {
+  return diagnostics.map((d) => ({
+    endColumn: d.endCol,
+    endLineNumber: d.endLine,
+    message: d.message,
+    severity:
+      d.severity === "error"
+        ? monaco.MarkerSeverity.Error
+        : d.severity === "warning"
+          ? monaco.MarkerSeverity.Warning
+          : monaco.MarkerSeverity.Info,
+    startColumn: d.startCol,
+    startLineNumber: d.startLine,
+  }));
+}
+
+export function SigmaEditor({
+  value,
+  onChange,
+  onConvert,
+  engineDiagnostics,
+  lineToReveal,
+}: SigmaEditorProps) {
   const onConvertRef = useRef(onConvert);
   onConvertRef.current = onConvert;
+  const engineDiagnosticsRef = useRef(engineDiagnostics);
+  engineDiagnosticsRef.current = engineDiagnostics;
 
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
@@ -50,23 +81,38 @@ export function SigmaEditor({ value, onChange, onConvert }: SigmaEditorProps) {
       return;
     }
 
-    const diagnostics = validateSigmaRule(content);
-    const markers = diagnostics.map((d: SigmaDiagnostic) => ({
-      endColumn: d.endCol,
-      endLineNumber: d.endLine,
-      message: d.message,
-      severity:
-        d.severity === "error"
-          ? monaco.MarkerSeverity.Error
-          : d.severity === "warning"
-            ? monaco.MarkerSeverity.Warning
-            : monaco.MarkerSeverity.Info,
-      startColumn: d.startCol,
-      startLineNumber: d.startLine,
-    }));
-
-    monaco.editor.setModelMarkers(model, "sigma-validation", markers);
+    const engineDiagnosticsNow = engineDiagnosticsRef.current;
+    const diagnostics = engineDiagnosticsNow
+      ? validateYamlSyntax(content)
+      : validateSigmaRule(content);
+    monaco.editor.setModelMarkers(
+      model,
+      "sigma-validation",
+      toMonacoMarkers(monaco, diagnostics)
+    );
+    monaco.editor.setModelMarkers(
+      model,
+      "pysigma-validation",
+      toMonacoMarkers(monaco, engineDiagnosticsNow ?? [])
+    );
   }, []);
+
+  useEffect(() => {
+    const model = editorRef.current?.getModel();
+    if (model) {
+      runValidation(model.getValue());
+    }
+  }, [engineDiagnostics, runValidation]);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!(editor && lineToReveal)) {
+      return;
+    }
+    editor.revealLineInCenter(lineToReveal.line);
+    editor.setPosition({ column: 1, lineNumber: lineToReveal.line });
+    editor.focus();
+  }, [lineToReveal]);
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();

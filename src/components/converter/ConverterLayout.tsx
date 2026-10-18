@@ -1,10 +1,4 @@
-import {
-  ArrowRight,
-  ChevronDown,
-  Columns,
-  Search,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, ChevronDown, Columns, Search, Zap } from "lucide-react";
 import {
   lazy,
   Suspense,
@@ -14,9 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-
-import type { ConversionResult } from "@/lib/sigma/types";
-import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
 
 import {
   Popover,
@@ -31,28 +22,34 @@ import {
   trackSigmaRuleImported,
 } from "@/lib/analytics";
 import { getBackend } from "@/lib/sigma/backends";
+import { locateRuleChecks, toEditorDiagnostics } from "@/lib/sigma/rule-checks";
 import { decodeShareState, encodeShareState } from "@/lib/sigma/share";
 import { SigmaConverter } from "@/lib/sigma/sigma-converter";
 import { sigmaExamples } from "@/lib/sigma/sigma-examples";
+import type { ConversionResult, RuleCheck } from "@/lib/sigma/types";
+import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
 
+import { Panel } from "../ui/Panel";
 import { AdvancedOptions } from "./AdvancedOptions";
 import { DiffView } from "./DiffView";
 import { ExportDialog } from "./ExportDialog";
 import { LoadingOverlay } from "./LoadingOverlay";
+import { LoggingRequirements } from "./LoggingRequirements";
 import { MoreActionsMenu } from "./MoreActionsMenu";
 import { OutputPanel } from "./OutputPanel";
 import { PipelineSelector } from "./PipelineSelector";
-import { Panel } from "../ui/Panel";
-import { RelatedArtifacts } from "./RelatedArtifacts";
+import { RuleChecks } from "./RuleChecks";
 
 const SigmaEditor = lazy(() =>
   import("./SigmaEditor").then((m) => ({ default: m.SigmaEditor }))
 );
 
+import type { LineRevealRequest } from "./SigmaEditor";
 import { SigmaSearchDialog } from "./SigmaSearchDialog";
 import { TargetSelector } from "./TargetSelector";
 
 const STORAGE_KEY = "dfirhub-converter-settings";
+const RULE_CHECK_DEBOUNCE_MS = 600;
 
 interface ConverterSettings {
   selectedBackend: string;
@@ -130,6 +127,13 @@ export function ConverterLayout() {
   );
   const [backendOptions, setBackendOptions] = useState<Record<string, string>>(
     initial.backendOptions
+  );
+
+  const [ruleChecks, setRuleChecks] = useState<RuleCheck[] | null>(null);
+  const [checkedRule, setCheckedRule] = useState("");
+  const [isCheckingRule, setIsCheckingRule] = useState(false);
+  const [lineToReveal, setLineToReveal] = useState<LineRevealRequest | null>(
+    null
   );
 
   // Pipeline state
@@ -360,6 +364,45 @@ export function ConverterLayout() {
 
     return () => clearTimeout(timer);
   }, [autoConvert, isReady, handleConvert]);
+
+  useEffect(() => {
+    const converter = converterRef.current;
+    if (!(isReady && converter)) {
+      return;
+    }
+    let isStale = false;
+    setIsCheckingRule(true);
+    const timer = setTimeout(async () => {
+      const checks = await converter.validate(rule);
+      if (isStale || !mountedRef.current) {
+        return;
+      }
+      setRuleChecks(checks);
+      setCheckedRule(rule);
+      setIsCheckingRule(false);
+    }, RULE_CHECK_DEBOUNCE_MS);
+    return () => {
+      isStale = true;
+      clearTimeout(timer);
+    };
+  }, [isReady, rule]);
+
+  const locatedRuleChecks = useMemo(
+    () => (ruleChecks ? locateRuleChecks(checkedRule, ruleChecks) : null),
+    [ruleChecks, checkedRule]
+  );
+
+  const engineDiagnostics = useMemo(
+    () => (locatedRuleChecks ? toEditorDiagnostics(locatedRuleChecks) : null),
+    [locatedRuleChecks]
+  );
+
+  const handleRevealLine = useCallback((line: number) => {
+    setLineToReveal((previous) => ({
+      line,
+      requestId: (previous?.requestId ?? 0) + 1,
+    }));
+  }, []);
 
   const handleShare = useCallback(async () => {
     const encoded = encodeShareState({
@@ -619,6 +662,8 @@ export function ConverterLayout() {
               }
             >
               <SigmaEditor
+                engineDiagnostics={engineDiagnostics}
+                lineToReveal={lineToReveal}
                 onChange={setRule}
                 onConvert={handleConvert}
                 value={rule}
@@ -638,10 +683,20 @@ export function ConverterLayout() {
               />
             )}
           </div>
-          {/* Workspace footer: evidence collection links for this rule */}
-          <div className="lg:col-span-2">
-            <RelatedArtifacts rule={rule} />
+        </div>
+        <div className="grid grid-cols-1 border-overlay/[0.06] border-t lg:grid-cols-2">
+          <div className="border-overlay/[0.06] border-b lg:border-r lg:border-b-0">
+            <RuleChecks
+              checks={locatedRuleChecks}
+              isChecking={isCheckingRule}
+              isEngineReady={isReady}
+              onRevealLine={handleRevealLine}
+            />
           </div>
+          <LoggingRequirements
+            rule={rule}
+            selectedPipeline={selectedPipeline}
+          />
         </div>
       </Panel>
 

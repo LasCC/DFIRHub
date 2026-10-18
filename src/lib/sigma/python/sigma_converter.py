@@ -7,6 +7,10 @@ and mocks MITRE ATT&CK data loading (urllib unavailable in WASM).
 """
 
 import json
+import re
+from dataclasses import fields as dataclass_fields
+from importlib import import_module
+from inspect import isclass
 from typing import Any, Dict, List, Optional, Union
 
 import yaml
@@ -41,11 +45,12 @@ sigma.data.mitre_attack.mitre_attack_software = {}
 
 from sigma.collection import SigmaCollection
 from sigma.conversion.base import Backend
-from sigma.exceptions import SigmaError
+from sigma.exceptions import SigmaConditionError, SigmaError
 from sigma.plugins import InstalledSigmaPlugins
 from sigma.processing.pipeline import ProcessingPipeline
 from sigma.processing.resolver import ProcessingPipelineResolver
 from sigma.rule import SigmaRule
+from sigma.validators.base import SigmaValidationIssue
 
 # Discover plugins at module level
 plugins = InstalledSigmaPlugins.autodiscover()
@@ -198,3 +203,163 @@ def convert_rule(
         return result
     else:
         return str(result)
+
+
+VALIDATORS_NEEDING_FILENAME = {
+    "duplicate_filename",
+    "filename_length",
+    "sigmahq_filename_convention",
+    "sigmahq_filename_prefix",
+    "sigmahq_correlation_filename_prefix",
+}
+VALIDATORS_NEEDING_MITRE_DATA = {
+    "attacktag",
+    "d3_fendtag",
+    "sigmahq_tags_techniques_without_tactics",
+}
+VALIDATORS_NEEDING_RULESET = {
+    "duplicate_references",
+    "duplicate_title",
+    "identifier_uniqueness",
+}
+EXCLUDED_VALIDATORS = (
+    VALIDATORS_NEEDING_FILENAME | VALIDATORS_NEEDING_MITRE_DATA | VALIDATORS_NEEDING_RULESET
+)
+ISSUE_BASE_FIELDS = {"rules", "severity", "description"}
+
+
+def load_sigmahq_validator_data(json_by_module):
+    from sigma.validators.sigmahq.data.base import SigmahqDataLoader
+
+    for module_name, json_text in json_by_module.items():
+        module = import_module(f"sigma.validators.sigmahq.data.{module_name}")
+        loader_class = next(
+            value
+            for value in vars(module).values()
+            if isclass(value)
+            and issubclass(value, SigmahqDataLoader)
+            and value is not SigmahqDataLoader
+        )
+        for name, value in loader_class()._parse(json.loads(json_text)).items():
+            setattr(module, name, value)
+
+
+def _to_plain_value(value):
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, (list, tuple, set)):
+        return [_to_plain_value(item) for item in value]
+    return str(value)
+
+
+def _issue_details(issue: SigmaValidationIssue):
+    return {
+        field.name: _to_plain_value(getattr(issue, field.name))
+        for field in dataclass_fields(issue)
+        if field.name not in ISSUE_BASE_FIELDS
+    }
+
+
+def _parse_error_to_check(error):
+    source = getattr(error, "source", None)
+    message = error.args[0] if error.args else str(error)
+    return {
+        "code": type(error).__name__,
+        "severity": "error",
+        "message": str(message),
+        "details": {},
+        "line": getattr(source, "line", None),
+    }
+
+
+def _issue_to_check(issue: SigmaValidationIssue):
+    return {
+        "code": type(issue).__name__,
+        "severity": issue.severity.name.lower(),
+        "message": issue.description,
+        "details": _issue_details(issue),
+        "line": None,
+    }
+
+
+CONDITION_KEYWORDS = {"and", "or", "not", "of", "all", "them"}
+CONDITION_IDENTIFIER_PATTERN = re.compile(r"[A-Za-z_][\w*]*")
+
+
+def _undefined_condition_identifiers(condition_text, detection_names):
+    undefined = []
+    for identifier in CONDITION_IDENTIFIER_PATTERN.findall(condition_text):
+        if identifier.lower() in CONDITION_KEYWORDS:
+            continue
+        identifier_regex = re.compile("^" + re.escape(identifier).replace(r"\*", ".*") + "$")
+        if not any(identifier_regex.match(name) for name in detection_names):
+            undefined.append(identifier)
+    return undefined
+
+
+def _condition_errors(rule):
+    detection = getattr(rule, "detection", None)
+    if detection is None:
+        return []
+    detection_names = list(detection.detections.keys())
+    errors = []
+    for condition in detection.parsed_condition:
+        undefined = _undefined_condition_identifiers(condition.condition, detection_names)
+        if undefined:
+            errors.extend(
+                SigmaConditionError(
+                    f"Condition uses '{identifier}', but no detection has this name"
+                )
+                for identifier in undefined
+            )
+            continue
+        try:
+            condition.parse()
+        except SigmaError as error:
+            errors.append(error)
+        except Exception as error:
+            errors.append(
+                SigmaConditionError(f"Condition '{condition.condition}' is not valid: {error}")
+            )
+    return errors
+
+
+def _collect_parse_errors(collection):
+    errors = list(collection.errors)
+    for rule in collection.rules:
+        errors.extend(getattr(rule, "errors", []))
+        errors.extend(_condition_errors(rule))
+    unique_checks = {}
+    for error in errors:
+        check = _parse_error_to_check(error)
+        unique_checks[(check["code"], check["message"])] = check
+    return list(unique_checks.values())
+
+
+def _run_validators(rules):
+    validator_classes = InstalledSigmaPlugins.autodiscover().validators
+    validators = [
+        validator_class()
+        for name, validator_class in validator_classes.items()
+        if name not in EXCLUDED_VALIDATORS
+    ]
+    issues = []
+    for validator in validators:
+        try:
+            for rule in rules:
+                issues.extend(validator.validate(rule))
+            issues.extend(validator.finalize())
+        except Exception:
+            continue
+    return issues
+
+
+def validate_rule(rule_yaml):
+    try:
+        collection = SigmaCollection.from_yaml(rule_yaml, collect_errors=True)
+    except Exception as error:
+        return [_parse_error_to_check(error)]
+    parse_checks = _collect_parse_errors(collection)
+    if parse_checks:
+        return parse_checks
+    return [_issue_to_check(issue) for issue in _run_validators(collection.rules)]

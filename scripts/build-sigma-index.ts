@@ -30,6 +30,14 @@ const OUTPUT_DIR = join(
   "sigma-rules"
 );
 const GITHUB_API = "https://api.github.com/repos/SigmaHQ/sigma/releases";
+const VALIDATOR_DATA_DIR = join(OUTPUT_DIR, "validators");
+const VALIDATOR_DATA_BASE_URL =
+  "https://raw.githubusercontent.com/SigmaHQ/pySigma-validators-sigmaHQ/refs/heads/main/tools";
+const VALIDATOR_DATA_FILES = [
+  "sigmahq_taxonomy.json",
+  "sigmahq_windows_eventid.json",
+  "sigmahq_windows_provider.json",
+];
 
 async function getLatestRelease(): Promise<{
   tag: string;
@@ -138,7 +146,26 @@ async function checkExistingMeta(): Promise<SigmaMeta | null> {
   }
 }
 
+async function downloadValidatorData(): Promise<void> {
+  await mkdir(VALIDATOR_DATA_DIR, { recursive: true });
+  await Promise.all(
+    VALIDATOR_DATA_FILES.map(async (filename) => {
+      const res = await fetch(`${VALIDATOR_DATA_BASE_URL}/${filename}`);
+      if (!res.ok) {
+        throw new Error(
+          `Failed to download validator data ${filename}: ${res.status}`
+        );
+      }
+      const data = (await res.json()) as unknown;
+      await writeFile(join(VALIDATOR_DATA_DIR, filename), JSON.stringify(data));
+    })
+  );
+  console.log(`Validator data written to ${VALIDATOR_DATA_DIR}`);
+}
+
 async function main() {
+  await downloadValidatorData();
+
   console.log("Fetching latest SigmaHQ release...");
   const { tag, zipUrl } = await getLatestRelease();
   console.log(`Found release: ${tag}`);

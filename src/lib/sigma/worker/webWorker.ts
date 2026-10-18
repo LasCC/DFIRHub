@@ -15,7 +15,12 @@ interface PyodideInterface {
   pyimport: (name: string) => unknown;
 }
 
-type MessageType = "convert" | "install" | "get_pipelines" | "status";
+type MessageType =
+  | "convert"
+  | "validate"
+  | "install"
+  | "get_pipelines"
+  | "status";
 
 interface WorkerMessage {
   type: MessageType;
@@ -31,6 +36,13 @@ interface StatusUpdate {
 
 let pyodide: PyodideInterface | null = null;
 const installedBackends = new Set<string>();
+let sigmahqValidatorsPromise: Promise<void> | null = null;
+
+const SIGMAHQ_VALIDATOR_DATA_MODULES = {
+  data_taxonomy: "sigmahq_taxonomy.json",
+  data_windows_eventid: "sigmahq_windows_eventid.json",
+  data_windows_provider: "sigmahq_windows_provider.json",
+} as const;
 
 function sendStatus(stage: string, progress: number, ready = false) {
   self.postMessage({
@@ -74,7 +86,9 @@ async function initPyodide(): Promise<void> {
   // no pure-Python/Pyodide wasm wheel), which makes micropip fail to resolve
   // in the browser. 1.3.3 is the last jq-free release and satisfies the
   // pipelines (pysigma >=1.0,<2.0) and backends (pysigma >=1).
-  await micropip.install("pySigma<1.4");
+  // pyparsing 3.3 breaks pySigma 1.3.3 condition post-processing: every
+  // condition with `not` fails with "'str' object is not callable".
+  await micropip.install(["pySigma<1.4", "pyparsing>=3.2.5,<3.3"]);
 
   sendStatus("Installing default pipelines", 0.65);
   await micropip.install([
@@ -86,6 +100,54 @@ async function initPyodide(): Promise<void> {
   await pyodide.runPythonAsync(sigmaConverterPy);
 
   sendStatus("Ready", 1, true);
+}
+
+async function fetchSigmahqValidatorData(): Promise<Record<string, string>> {
+  const entries = await Promise.all(
+    Object.entries(SIGMAHQ_VALIDATOR_DATA_MODULES).map(
+      async ([moduleName, filename]) => {
+        const response = await fetch(
+          `${self.location.origin}/sigma-rules/validators/${filename}`
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to load ${filename}: ${response.status}`);
+        }
+        return [moduleName, await response.text()] as const;
+      }
+    )
+  );
+  return Object.fromEntries(entries);
+}
+
+const LOAD_SIGMAHQ_DATA_PYTHON = `
+import json as _json
+load_sigmahq_validator_data(_json.loads(_validator_data_json))
+`;
+
+async function installSigmahqValidators(): Promise<void> {
+  if (!pyodide) {
+    return;
+  }
+  const micropip = pyodide.pyimport("micropip") as {
+    install: (pkg: string) => Promise<void>;
+  };
+  const [validatorData] = await Promise.all([
+    fetchSigmahqValidatorData(),
+    micropip.install("pySigma-validators-sigmahq"),
+  ]);
+  pyodide.globals.set("_validator_data_json", JSON.stringify(validatorData));
+  await pyodide.runPythonAsync(LOAD_SIGMAHQ_DATA_PYTHON);
+}
+
+function continueWithCoreValidatorsOnly(): void {
+  sigmahqValidatorsPromise = Promise.resolve();
+}
+
+function ensureSigmahqValidators(): Promise<void> {
+  sigmahqValidatorsPromise ??= installSigmahqValidators().catch(
+    continueWithCoreValidatorsOnly
+  );
+  return sigmahqValidatorsPromise;
 }
 
 async function installBackendPackage(packageName: string): Promise<void> {
@@ -146,6 +208,31 @@ async function convert(
   return JSON.parse(resultJson) as Record<string, unknown>;
 }
 
+const VALIDATE_PYTHON = `
+import json as _json
+try:
+    _val_result = _json.dumps({"success": True, "checks": validate_rule(_validate_yaml)})
+except Exception as _e:
+    _val_result = _json.dumps({"success": False, "error": str(_e)})
+_val_result
+`;
+
+async function validate(
+  payload: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  if (!pyodide) {
+    throw new Error("Pyodide not initialized");
+  }
+
+  await ensureSigmahqValidators();
+  pyodide.globals.set(
+    "_validate_yaml",
+    typeof payload.ruleYaml === "string" ? payload.ruleYaml : ""
+  );
+  const resultJson = (await pyodide.runPythonAsync(VALIDATE_PYTHON)) as string;
+  return JSON.parse(resultJson) as Record<string, unknown>;
+}
+
 const GET_PIPELINES_PYTHON = `
 import json as _json
 _json.dumps(get_available_pipelines(_pipeline_backend or ""))
@@ -179,6 +266,9 @@ registerPromiseWorker(async (msg: WorkerMessage) => {
   switch (msg.type) {
     case "convert": {
       return convert(msg.payload ?? {});
+    }
+    case "validate": {
+      return validate(msg.payload ?? {});
     }
     case "install": {
       const pkg = msg.payload?.packageName;

@@ -1,16 +1,16 @@
-import type { ConversionResult } from "./types";
+import { getBackend } from "./backends";
+import type { ConversionResult, RuleCheck } from "./types";
 import type {
   ConvertParams,
   PipelineInfo,
   WorkerStatus,
 } from "./worker/workerApi";
-
-import { getBackend } from "./backends";
 import {
   addStatusListener,
   destroyWorker,
   convert as workerConvert,
   getAvailablePipelines as workerGetPipelines,
+  validate as workerValidate,
 } from "./worker/workerApi";
 
 type ProgressCallback = (progress: number) => void;
@@ -143,6 +143,18 @@ export class SigmaConverter {
       );
     }
     return results;
+  }
+
+  async validate(rule: string): Promise<RuleCheck[] | null> {
+    if (!(this.ready && rule.trim())) {
+      return null;
+    }
+    try {
+      const result = await workerValidate(rule);
+      return result.success ? (result.checks ?? []) : null;
+    } catch {
+      return null;
+    }
   }
 
   async getAvailablePipelines(backend?: string): Promise<PipelineInfo[]> {

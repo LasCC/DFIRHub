@@ -5,6 +5,23 @@ export interface ConversionResult {
   backend: string;
 }
 
+export type RuleCheckSeverity = "error" | "high" | "medium" | "low";
+
+export type RuleCheckDetailValue =
+  | string
+  | number
+  | boolean
+  | null
+  | RuleCheckDetailValue[];
+
+export interface RuleCheck {
+  code: string;
+  severity: RuleCheckSeverity;
+  message: string;
+  details: Record<string, RuleCheckDetailValue>;
+  line: number | null;
+}
+
 export interface BackendConfig {
   id: string;
   name: string;

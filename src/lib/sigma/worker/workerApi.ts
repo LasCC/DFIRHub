@@ -1,5 +1,7 @@
 import PromiseWorker from "promise-worker";
 
+import type { RuleCheck } from "../types";
+
 export interface WorkerStatus {
   stage: string;
   progress: number;
@@ -21,6 +23,12 @@ export interface ConvertParams {
 export interface ConvertResult {
   success: boolean;
   query?: string;
+  error?: string;
+}
+
+export interface ValidateResult {
+  success: boolean;
+  checks?: RuleCheck[];
   error?: string;
 }
 
@@ -89,6 +97,14 @@ export async function convert(params: ConvertParams): Promise<ConvertResult> {
     type: "convert",
     payload: params,
   }) as Promise<ConvertResult>;
+}
+
+export async function validate(ruleYaml: string): Promise<ValidateResult> {
+  const pw = getPromiseWorker();
+  return pw.postMessage({
+    type: "validate",
+    payload: { ruleYaml },
+  }) as Promise<ValidateResult>;
 }
 
 export async function installBackend(packageName: string): Promise<void> {

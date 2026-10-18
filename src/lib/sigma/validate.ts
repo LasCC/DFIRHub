@@ -37,29 +37,29 @@ function findKeyLine(lines: string[], key: string): number {
   return idx !== -1 ? idx + 1 : 1;
 }
 
-export function validateSigmaRule(content: string): SigmaDiagnostic[] {
-  const diagnostics: SigmaDiagnostic[] = [];
+type ParsedRule =
+  | { doc: Record<string, unknown>; diagnostics: [] }
+  | { doc: null; diagnostics: SigmaDiagnostic[] };
 
-  if (!content.trim()) {
-    return diagnostics;
-  }
-
-  // 1. Parse YAML
-  let doc: Record<string, unknown>;
+function parseRuleDocument(content: string): ParsedRule {
   try {
     const parsed = yaml.load(content);
     if (!parsed || typeof parsed !== "object") {
-      diagnostics.push({
-        message: "Document must be a YAML mapping",
-        startLine: 1,
-        startCol: 1,
-        endLine: 1,
-        endCol: 1000,
-        severity: "error",
-      });
-      return diagnostics;
+      return {
+        diagnostics: [
+          {
+            endCol: 1000,
+            endLine: 1,
+            message: "Document must be a YAML mapping",
+            severity: "error",
+            startCol: 1,
+            startLine: 1,
+          },
+        ],
+        doc: null,
+      };
     }
-    doc = parsed as Record<string, unknown>;
+    return { diagnostics: [], doc: parsed as Record<string, unknown> };
   } catch (error: unknown) {
     const yamlError = error as {
       mark?: { line?: number };
@@ -67,16 +67,40 @@ export function validateSigmaRule(content: string): SigmaDiagnostic[] {
       message?: string;
     };
     const line = yamlError.mark?.line ? yamlError.mark.line + 1 : 1;
-    diagnostics.push({
-      message: `YAML parse error: ${yamlError.reason || yamlError.message}`,
-      startLine: line,
-      startCol: 1,
-      endLine: line,
-      endCol: 1000,
-      severity: "error",
-    });
-    return diagnostics;
+    return {
+      diagnostics: [
+        {
+          endCol: 1000,
+          endLine: line,
+          message: `YAML parse error: ${yamlError.reason || yamlError.message}`,
+          severity: "error",
+          startCol: 1,
+          startLine: line,
+        },
+      ],
+      doc: null,
+    };
   }
+}
+
+export function validateYamlSyntax(content: string): SigmaDiagnostic[] {
+  if (!content.trim()) {
+    return [];
+  }
+  return parseRuleDocument(content).diagnostics;
+}
+
+export function validateSigmaRule(content: string): SigmaDiagnostic[] {
+  if (!content.trim()) {
+    return [];
+  }
+
+  const parsedRule = parseRuleDocument(content);
+  if (!parsedRule.doc) {
+    return parsedRule.diagnostics;
+  }
+  const { doc } = parsedRule;
+  const diagnostics: SigmaDiagnostic[] = [];
 
   // 2. Required fields
   for (const field of REQUIRED_FIELDS) {
