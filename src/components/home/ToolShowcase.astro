@@ -143,19 +143,19 @@ const linkClass =
         <span class={iconBoxClass}><Hammer aria-hidden="true" className="h-4 w-4" /></span>
         <h3>
           <a class={linkClass} href="/builder">
-            Script Builder
+            KAPE Command Builder
             <ChevronRight aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
           </a>
         </h3>
         <p class="mt-2 max-w-sm text-muted-foreground">
-          Tick the artifacts you need. Get a PowerShell, batch or WSL script,
-          or a single KAPE command.
+          Start from an incident scenario, or pick targets and modules. Get a
+          KAPE command, a _kape.cli batch file, or a fallback script.
         </p>
       </div>
       <div class="md:col-span-7">
         <Panel aria-hidden="true" data-reveal headingTag="h4">
-          <Fragment slot="title">Generated script</Fragment>
-          <Fragment slot="subtitle">PowerShell</Fragment>
+          <Fragment slot="title">Ransomware scenario</Fragment>
+          <Fragment slot="subtitle">KAPE command</Fragment>
           <div class:list={[codeStripClass, "[--reveal-step:60ms] [&_pre]:whitespace-pre-wrap [&_pre]:[overflow-wrap:anywhere] [&_code]:whitespace-pre-wrap"]} data-reveal-lines set:html={builderScriptHtml} />
         </Panel>
       </div>

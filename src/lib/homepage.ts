@@ -1,5 +1,8 @@
 import sigmaMeta from "../../public/sigma-rules/meta.json";
-import { generateKapeCommand, generatePowerShell } from "./generators";
+import { DEFAULT_CONFIG } from "./builder/config";
+import { buildKapeArguments } from "./builder/kapeCommand";
+import { SCENARIO_PRESETS } from "./builder/presets";
+import { generateKapeCommand } from "./generators";
 import type { KapeTarget, KapeTargetEntry } from "./kapefiles";
 import {
   findCollectionsContaining,
@@ -95,8 +98,8 @@ const COLLECTION_FEATURED_NAMES = [
   "lnkfilesandjumplists",
 ];
 
-const BUILDER_SAMPLE_SLUGS = ["prefetch", "amcache", "eventlogs"];
-const BUILDER_COLLECT_LINE_PREFIX = "Collect-Artifact -SourceDir";
+const BUILDER_PRESET_ID = "ransomware";
+const POWERSHELL_LINE_CONTINUATION = " `";
 
 const SIGMA_FEATURED_BACKEND_IDS = ["splunk", "esql", "kusto", "log_scale"];
 
@@ -269,19 +272,38 @@ function buildCollectionPreview(): CollectionPreview {
   };
 }
 
-function buildBuilderLines(): string[] {
-  return BUILDER_SAMPLE_SLUGS.flatMap((slug) => {
-    const target = getTargetBySlug(slug);
-    if (!target) {
-      return [];
+function groupArgumentsBySwitch(argumentsList: string[]): string[][] {
+  const groups: string[][] = [];
+  for (const argument of argumentsList) {
+    if (argument.startsWith("--") || groups.length === 0) {
+      groups.push([argument]);
+    } else {
+      groups.at(-1)?.push(argument);
     }
-    const line = generatePowerShell(target, {
-      source: CONSOLE_SOURCE_DRIVE,
-      destination: CONSOLE_DESTINATION,
+  }
+  return groups;
+}
+
+function buildBuilderLines(): string[] {
+  const preset = SCENARIO_PRESETS.find(
+    (candidate) => candidate.id === BUILDER_PRESET_ID
+  );
+  if (!preset) {
+    return [];
+  }
+  const groups = groupArgumentsBySwitch(
+    buildKapeArguments({
+      ...DEFAULT_CONFIG,
+      container: "vhdx",
+      modules: preset.modules,
+      targets: preset.targets,
     })
-      .split("\n")
-      .find((candidate) => candidate.startsWith(BUILDER_COLLECT_LINE_PREFIX));
-    return line ? [line] : [];
+  );
+  const lastIndex = groups.length - 1;
+  return groups.map((group, index) => {
+    const prefix = index === 0 ? ".\\kape.exe " : "  ";
+    const suffix = index < lastIndex ? POWERSHELL_LINE_CONTINUATION : "";
+    return `${prefix}${group.join(" ")}${suffix}`;
   });
 }
 

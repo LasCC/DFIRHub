@@ -3,22 +3,51 @@ import { ScriptBuilder } from "../components/builder/ScriptBuilder";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
-import { getCategories, loadAllTargets } from '../lib/kapefiles';
+import type { BuilderModule, BuilderTarget } from "../lib/builder/config";
+import { loadAllModules } from "../lib/kapeModules";
+import { getCategories, getDirectReferenceSlugs, loadAllTargets } from '../lib/kapefiles';
 import {
   buildBreadcrumbJsonLd,
   SITE_NAME,
   SITE_URL,
 } from '../lib/seo';
 
-// Load data at build time
-const allTargets = loadAllTargets();
-const categories = getCategories();
+const builderTargets: BuilderTarget[] = loadAllTargets().map((target) => ({
+  category: target.category,
+  childSlugs: getDirectReferenceSlugs(target),
+  description: target.description,
+  entries: target.targets
+    .filter((entry) => !entry.path.endsWith(".tkape"))
+    .map(({ name, category, path, fileMask, recursive }) => ({
+      category,
+      fileMask,
+      name,
+      path,
+      recursive,
+    })),
+  isCompound: target.isCompound,
+  kapeName: target.sourceFile.replace(/\.tkape$/, ""),
+  name: target.name,
+  slug: target.slug,
+}));
+const builderModules: BuilderModule[] = loadAllModules().map((module) => ({
+  category: module.category,
+  description: module.description,
+  exportFormats: module.exportFormats,
+  folder: module.folder,
+  isCompound: module.isCompound,
+  name: module.name,
+  referencedModules: module.referencedModules,
+}));
+const moduleFolders = [
+  ...new Set(builderModules.map((module) => module.folder)),
+].toSorted();
 
 const seoDescription =
-  "Free KAPE script builder. Select forensic artifact targets and export a ready-to-run KAPE command, PowerShell script or batch file for evidence collection.";
+  "Free KAPE command builder. Start from an incident scenario, pick targets and modules, set containers and SFTP, S3 or Azure upload, and export a KAPE command, _kape.cli batch file or a PowerShell fallback script.";
 const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   { name: "Home", path: "/" },
-  { name: "Script Builder", path: "/builder" },
+  { name: "KAPE Command Builder", path: "/builder" },
 ]);
 const applicationJsonLd = {
   "@context": "https://schema.org",
@@ -26,7 +55,7 @@ const applicationJsonLd = {
   applicationCategory: "SecurityApplication",
   description: seoDescription,
   isAccessibleForFree: true,
-  name: "KAPE Script Builder",
+  name: "KAPE Command Builder",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   operatingSystem: "Web",
   provider: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
@@ -34,7 +63,7 @@ const applicationJsonLd = {
 };
 ---
 
-<Layout title="KAPE Script Builder" description={seoDescription} shader="off">
+<Layout title="KAPE Command Builder" description={seoDescription} shader="off">
   <script
     is:inline
     type="application/ld+json"
@@ -70,18 +99,23 @@ const applicationJsonLd = {
 
       <!-- Header -->
       <header class="mb-8">
-        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">Script Builder</h1>
+        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">KAPE Command Builder</h1>
         <p class="text-sm sm:text-base text-muted-foreground">
-          Build custom collection scripts by selecting targets. Export as KAPE
-          command, PowerShell, or batch file.
+          Plan a collection from an incident scenario. Pick targets and modules,
+          check what they expand to, then export a KAPE command, a
+          <code class="font-mono text-foreground">_kape.cli</code> batch file or
+          a fallback script. The link keeps every choice, so the whole team runs
+          the same collection.
         </p>
       </header>
 
       <!-- Script Builder Component -->
       <ScriptBuilder
         client:load
-        allTargets={allTargets}
-        categories={categories}
+        moduleFolders={moduleFolders}
+        modules={builderModules}
+        targetCategories={getCategories()}
+        targets={builderTargets}
       />
     </div>
   </main>

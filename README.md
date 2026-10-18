@@ -8,7 +8,7 @@ DFIRHub is a reference for Windows forensic artifacts. It lists the KAPE targets
 
 You can search artifacts by name, or start from a question on the home page, such as "Did this program run?". Each artifact page lists the paths KAPE collects, adds notes, and links to CyberChef recipes for the data inside. A side panel builds the collection command for KAPE, PowerShell, Batch, or WSL.
 
-Collections group related artifacts, and the script builder combines several artifacts into one collection script. Short links open an artifact directly: `/prefetch` works for popular ones, and `/a/<slug>` works for every artifact.
+Collections group related artifacts. The KAPE command builder starts from an incident scenario, combines targets and modules, and exports a KAPE command, a `_kape.cli` batch file or a fallback script; its URL keeps every choice except secrets. Short links open an artifact directly: `/prefetch` works for popular ones, and `/a/<slug>` works for every artifact.
 
 The converter turns a Sigma rule into one of 17 backends, including Splunk, Elastic, KQL, Loki, and CrowdStrike. It runs pySigma in the browser through Pyodide. You can also search the SigmaHQ repository and import a rule from the results.
 
@@ -48,7 +48,7 @@ src/
 ├── components/
 │   ├── artifact/     # Artifact page: paths, command generator, CyberChef links
 │   ├── artifacts/    # Category filters for the artifact list
-│   ├── builder/      # Script builder
+│   ├── builder/      # KAPE command builder
 │   ├── converter/    # Sigma rule converter UI
 │   ├── home/         # Landing page sections
 │   ├── layout/       # Header, footer, shader background, keyboard shortcuts

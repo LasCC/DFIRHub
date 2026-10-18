@@ -171,7 +171,7 @@ function getTargetIndexes(): {
 // Parse a single .tkape file
 function parseKapeFile(filePath: string, category: string): KapeTarget | null {
   try {
-    const content = fs.readFileSync(filePath, "utf8");
+    const content = fs.readFileSync(filePath, "utf-8");
     const filename = path.basename(filePath);
 
     // Extract documentation comments (lines starting with #)
@@ -317,42 +317,46 @@ export function getIndividualTargets(): KapeTarget[] {
   return targets.filter((t) => !t.isCompound);
 }
 
+function findTargetByReference(ref: string): KapeTarget | undefined {
+  const { slugMap, sourceMap } = getTargetIndexes();
+  const refName = path
+    .basename(ref.replaceAll("\\", "/"))
+    .replace(/\.tkape$/, "")
+    .replace(/^!/, "");
+  const sourceCandidates = sourceMap.get(refName.toLowerCase()) ?? [];
+  return (
+    slugMap.get(createSlug(refName)) ||
+    sourceCandidates.toSorted((left, right) =>
+      `${left.category}/${left.sourceFile}`.localeCompare(
+        `${right.category}/${right.sourceFile}`
+      )
+    )[0]
+  );
+}
+
+export function getDirectReferenceSlugs(target: KapeTarget): string[] {
+  const slugs = target.referencedTargets
+    .map((ref) => findTargetByReference(ref)?.slug)
+    .filter((slug): slug is string => slug !== undefined);
+  return [...new Set(slugs)];
+}
+
 // Resolve compound target to its individual targets
 export function resolveCompoundReferences(target: KapeTarget): KapeTarget[] {
   if (!target.isCompound) {
     return [target];
   }
 
-  const { slugMap, sourceMap } = getTargetIndexes();
   const resolved: KapeTarget[] = [];
   const seen = new Set<string>();
 
   function resolve(refs: string[]) {
     for (const ref of refs) {
-      // Normalize the reference
-      const refName = path
-        .basename(ref)
-        .replace(/\.tkape$/, "")
-        .replace(/^!/, "");
-      const refSlug = createSlug(refName);
-
-      if (seen.has(refSlug)) {
+      const foundTarget = findTargetByReference(ref);
+      if (!foundTarget || seen.has(foundTarget.slug)) {
         continue;
       }
-      seen.add(refSlug);
-
-      const sourceCandidates = sourceMap.get(refName.toLowerCase()) ?? [];
-      const foundTarget =
-        slugMap.get(refSlug) ||
-        sourceCandidates.toSorted((left, right) =>
-          `${left.category}/${left.sourceFile}`.localeCompare(
-            `${right.category}/${right.sourceFile}`
-          )
-        )[0];
-
-      if (!foundTarget) {
-        continue;
-      }
+      seen.add(foundTarget.slug);
 
       // A hybrid target (compound with its own direct paths) contributes
       // those paths as a leaf AND continues to forward its references.

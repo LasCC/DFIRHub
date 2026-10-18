@@ -11,7 +11,8 @@ import {
   generatePowerShell,
   generateWsl,
 } from "../generators";
-import { getResolvedEntries, type KapeTarget } from "../kapefiles";
+import { getResolvedEntries } from "../kapefiles";
+import type { KapeTarget } from "../kapefiles";
 
 // Fixture mirroring the real AnyDesk.tkape — covers:
 //   * %user% expansion (multi-user iteration)
@@ -118,7 +119,7 @@ describe("generatePowerShell — AnyDesk", () => {
       source: "E:",
     });
     expect(mounted).toContain('$SourceRoot = "E:"');
-    expect(mounted).toContain('"E:\\ProgramData\\AnyDesk"');
+    expect(mounted).toContain("'E:\\ProgramData\\AnyDesk'");
     expect(mounted).not.toContain("C:\\ProgramData\\AnyDesk");
     expect(mounted).not.toContain("C:\\Users");
   });
@@ -231,7 +232,7 @@ describe("wildcard expansion in path segments", () => {
     const out = generateWsl(wildcardTarget, defaultOpts);
     const dir = mkdtempSync(join(tmpdir(), "dfirhub-wsl-wc-"));
     const file = join(dir, "collect.sh");
-    writeFileSync(file, out, "utf8");
+    writeFileSync(file, out, "utf-8");
     try {
       execFileSync("bash", ["-n", file], { stdio: "pipe" });
     } finally {
@@ -297,7 +298,7 @@ describe("generateWsl — AnyDesk", () => {
   it("passes bash -n syntax check", () => {
     const dir = mkdtempSync(join(tmpdir(), "dfirhub-wsl-"));
     const file = join(dir, "collect.sh");
-    writeFileSync(file, script, "utf8");
+    writeFileSync(file, script, "utf-8");
     try {
       execFileSync("bash", ["-n", file], { stdio: "pipe" });
     } finally {
@@ -309,11 +310,164 @@ describe("generateWsl — AnyDesk", () => {
     const out = generateWsl(compound, defaultOpts);
     const dir = mkdtempSync(join(tmpdir(), "dfirhub-wsl-"));
     const file = join(dir, "collect.sh");
-    writeFileSync(file, out, "utf8");
+    writeFileSync(file, out, "utf-8");
     try {
       execFileSync("bash", ["-n", file], { stdio: "pipe" });
     } finally {
       rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+const mixedTarget: KapeTarget = {
+  ...anyDesk,
+  name: "Mixed",
+  slug: "mixed",
+  sourceFile: "!Mixed.tkape",
+  targets: [
+    {
+      category: "FileSystem",
+      fileMask: "$MFT",
+      name: "$MFT",
+      path: "C:\\",
+    },
+    {
+      category: "Executables",
+      fileMask: "*.pf",
+      name: "Prefetch",
+      path: "C:\\Windows\\prefetch\\",
+    },
+    {
+      category: "Logs",
+      fileMask: "*.log",
+      name: "Recursive logs",
+      path: "C:\\ProgramData\\Vendor\\",
+      recursive: true,
+    },
+    {
+      category: "SQLiteDatabases",
+      fileMask: "regex:*.+\\.(db|db-wal)",
+      name: "SQLite",
+      path: "C:\\Users\\%user%\\AppData\\Local\\App\\",
+      recursive: true,
+    },
+  ],
+};
+
+const custodyOpts = {
+  ...defaultOpts,
+  caseId: "IR-'42'",
+  chainOfCustody: true,
+  examiner: "Analyst",
+};
+
+describe("KAPE target naming", () => {
+  it("keeps the leading ! that KAPE needs to find compound targets", () => {
+    expect(generateKapeCommand(mixedTarget, defaultOpts)).toContain(
+      "--target !Mixed"
+    );
+  });
+});
+
+describe("Recursive and regex file masks", () => {
+  it("PowerShell recurses only for entries marked Recursive", () => {
+    const out = generatePowerShell(mixedTarget, defaultOpts);
+    expect(out).toContain(
+      "Collect-Artifact -SourceDir 'C:\\Windows\\prefetch' -FileMask '*.pf' -FolderName 'Prefetch'\n"
+    );
+    expect(out).toContain("-FolderName 'Recursive_logs' -Recurse");
+    expect(out).toContain('if ($Recurse) { $RoboFlags += "/E" }');
+  });
+
+  it("strips the KAPE regex prefix into a pattern every script can use", () => {
+    const out = generatePowerShell(mixedTarget, defaultOpts);
+    expect(out).toContain("-FileMask 'regex:.+\\.(db|db-wal)'");
+    expect(out).toContain("Where-Object { $_.Name -match $Pattern }");
+  });
+
+  it("Batch adds /E only for recursive entries and filters regex masks with PowerShell", () => {
+    const out = generateBatch(mixedTarget, defaultOpts);
+    expect(out).toMatch(
+      /robocopy "C:\\Windows\\prefetch\\" "%DEST%\\Prefetch" "\*\.pf" \/COPY:DAT/
+    );
+    expect(out).toMatch(/"\*\.log" \/E \/COPY:DAT/);
+    expect(out).toContain("-match '.+\\.(db|db-wal)'");
+  });
+
+  it("WSL passes the recursion flag and handles regex masks with find -regex", () => {
+    const out = generateWsl(mixedTarget, defaultOpts);
+    expect(out).toContain(
+      "copy_artifact '/mnt/c/Windows/prefetch' 'Prefetch' '*.pf' 0"
+    );
+    expect(out).toContain("'Recursive_logs' '*.log' 1");
+    expect(out).toContain("-regextype posix-extended");
+  });
+});
+
+describe("dollar signs in KAPE paths", () => {
+  it("keeps $MFT and $Recycle.Bin literal instead of expanding them as variables", () => {
+    const ps = generatePowerShell(mixedTarget, defaultOpts);
+    const wsl = generateWsl(mixedTarget, defaultOpts);
+    expect(ps).toContain("-FileMask '$MFT'");
+    expect(ps).not.toContain('"$MFT"');
+    expect(wsl).toContain("'$MFT'");
+    expect(wsl).not.toContain('"$MFT"');
+  });
+});
+
+describe("locked file warning", () => {
+  it("lists paths a live copy cannot read in every script", () => {
+    for (const out of [
+      generatePowerShell(mixedTarget, defaultOpts),
+      generateBatch(mixedTarget, defaultOpts),
+      generateWsl(mixedTarget, defaultOpts),
+    ]) {
+      expect(out).toContain("WARNING: 1 path is locked by Windows");
+      expect(out).toContain("- $MFT");
+    }
+  });
+
+  it("stays silent when nothing is locked", () => {
+    expect(generatePowerShell(anyDesk, defaultOpts)).not.toContain("WARNING");
+  });
+});
+
+describe("chain of custody", () => {
+  it("PowerShell writes a transcript, case info and a SHA-256 manifest", () => {
+    const out = generatePowerShell(mixedTarget, custodyOpts);
+    expect(out).toContain("Start-Transcript");
+    expect(out).toContain("'Case: IR-''42'''");
+    expect(out).toContain("Get-FileHash -Algorithm SHA256");
+    expect(out.indexOf("Stop-Transcript")).toBeLessThan(
+      out.indexOf("Get-FileHash")
+    );
+  });
+
+  it("Batch strips characters that would break echo", () => {
+    const out = generateBatch(mixedTarget, {
+      ...custodyOpts,
+      caseId: "IR&42|x>y",
+    });
+    expect(out).toContain("echo Case: IR42xy");
+    expect(out).toContain("SHA256SUMS.csv");
+  });
+
+  it("is off unless asked for", () => {
+    expect(generatePowerShell(mixedTarget, defaultOpts)).not.toContain(
+      "Start-Transcript"
+    );
+  });
+
+  it("WSL custody script passes bash -n", () => {
+    const out = generateWsl(mixedTarget, custodyOpts);
+    expect(out).toContain("sha256sum");
+    const dir = mkdtempSync(join(tmpdir(), "dfirhub-wsl-coc-"));
+    const file = join(dir, "collect.sh");
+    writeFileSync(file, out, "utf-8");
+    try {
+      execFileSync("bash", ["-n", file], { stdio: "pipe" });
+    } finally {
+      rmSync(dir, { force: true, recursive: true });
     }
   });
 });

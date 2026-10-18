@@ -1,736 +1,348 @@
-import {
-  ArrowLeftRight,
-  Box,
-  FileText,
-  Globe,
-  Layers,
-  Monitor,
-  ShieldCheck,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
-import { trackBuilderCopy, trackBuilderDownload } from "@/lib/analytics";
+import {
+  trackBuilderCopy,
+  trackBuilderDownload,
+  trackBuilderPreset,
+  trackBuilderShare,
+} from "@/lib/analytics";
 
-import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
-import { CodeBlock } from "../ui/CodeBlock";
-import { Panel } from "../ui/Panel";
-
-type ExportFormat = "kape" | "powershell" | "batch" | "wsl";
-
-// Top-level regex patterns for performance
-const NON_ALPHANUMERIC_REGEX = /[^a-zA-Z0-9]/g;
-const LEADING_SLASHES_REGEX = /^[\\/]+/;
-const DRIVE_LETTER_REGEX = /^([A-Za-z]):(.*)/;
-const STARTS_WITH_DRIVE_REGEX = /^[A-Za-z]:/;
-
-const categoryIconMap: Record<
-  string,
-  React.ComponentType<{ className?: string }>
-> = {
-  antivirus: ShieldCheck,
-  apps: Box,
-  browsers: Globe,
-  compound: Layers,
-  logs: FileText,
-  p2p: ArrowLeftRight,
-  windows: Monitor,
-};
-
-function formatPathCount(count: number): string {
-  return count === 1 ? "1 path" : `${count} paths`;
-}
-
-interface ScriptOptions {
-  format: ExportFormat;
-  source: string;
-  destination: string;
-  useVss: boolean;
-  useVhdx: boolean;
-}
+import {
+  buildScriptTarget,
+  collectUniqueEntries,
+  resolveLeafModules,
+  resolveLeafTargets,
+  summarizeCollection,
+  translateKapeVariables,
+  uniqueKapeNames,
+} from "../../lib/builder/collection";
+import { DEFAULT_CONFIG } from "../../lib/builder/config";
+import type {
+  BuilderModule,
+  BuilderTarget,
+  KapeConfig,
+  OutputFormat,
+} from "../../lib/builder/config";
+import {
+  formatKapeBatchFile,
+  formatKapeCommand,
+  validateKapeConfig,
+} from "../../lib/builder/kapeCommand";
+import { SCENARIO_PRESETS } from "../../lib/builder/presets";
+import type { ScenarioPreset } from "../../lib/builder/presets";
+import {
+  configFromSearchParams,
+  configToSearchParams,
+} from "../../lib/builder/urlState";
+import {
+  generateBatch,
+  generatePowerShell,
+  generateWsl,
+} from "../../lib/generators";
+import { ChecklistPicker } from "./ChecklistPicker";
+import type { ChecklistItem } from "./ChecklistPicker";
+import { CollectionPreview } from "./CollectionPreview";
+import { OptionsPanel } from "./OptionsPanel";
+import { OutputPanel } from "./OutputPanel";
+import type { OutputTab } from "./OutputPanel";
+import { PresetPanel } from "./PresetPanel";
 
 interface ScriptBuilderProps {
-  allTargets: KapeTarget[];
-  categories: string[];
+  targets: BuilderTarget[];
+  modules: BuilderModule[];
+  targetCategories: string[];
+  moduleFolders: string[];
 }
 
-// Helper to get paths from a target (client-side version)
-function getTargetPaths(target: KapeTarget): KapeTargetEntry[] {
-  return target.targets.filter((entry) => !entry.path.endsWith(".tkape"));
+function toTargetItem(target: BuilderTarget): ChecklistItem {
+  return {
+    badge: target.isCompound ? "Collection" : undefined,
+    description: target.description,
+    group: target.category,
+    id: target.slug,
+    label: target.name,
+    meta: target.isCompound
+      ? `${target.childSlugs.length} targets`
+      : `${target.entries.length} ${target.entries.length === 1 ? "path" : "paths"}`,
+  };
 }
 
-export function ScriptBuilder({ allTargets, categories }: ScriptBuilderProps) {
-  const [selectedTargets, setSelectedTargets] = useState<Set<string>>(
-    new Set()
-  );
-  const [activeCategory, setActiveCategory] = useState<string>(
-    categories[0] || "Windows"
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [options, setOptions] = useState<ScriptOptions>({
-    destination: "D:\\Evidence",
-    format: "kape",
-    source: "C:",
-    useVhdx: false,
-    useVss: false,
-  });
+function toModuleItem(module: BuilderModule): ChecklistItem {
+  return {
+    badge: module.isCompound ? "Collection" : undefined,
+    description: module.description,
+    group: module.folder,
+    id: module.name,
+    label: module.name,
+    meta: module.isCompound
+      ? `${module.referencedModules.length} modules`
+      : module.exportFormats.join(", "),
+  };
+}
+
+function findTargetSlugByKapeName(
+  targets: BuilderTarget[],
+  kapeName: string
+): string | undefined {
+  const normalized = kapeName.toLowerCase();
+  return targets.find((target) => target.kapeName.toLowerCase() === normalized)
+    ?.slug;
+}
+
+function sameMembers(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+  const rightSet = new Set(right.map((value) => value.toLowerCase()));
+  return left.every((value) => rightSet.has(value.toLowerCase()));
+}
+
+function buildOutput(
+  config: KapeConfig,
+  selectedTargets: BuilderTarget[],
+  leaves: BuilderTarget[]
+): string {
+  const hasSelection = config.targets.length > 0 || config.modules.length > 0;
+  const commandConfig = {
+    ...config,
+    targets: uniqueKapeNames(selectedTargets),
+  };
+  if (config.format === "kape") {
+    return hasSelection ? formatKapeCommand(commandConfig) : "";
+  }
+  if (config.format === "cli") {
+    return hasSelection ? formatKapeBatchFile(commandConfig) : "";
+  }
+  const entries = collectUniqueEntries(leaves);
+  if (entries.length === 0) {
+    return "";
+  }
+  const scriptTarget = buildScriptTarget(selectedTargets, entries);
+  const options = {
+    caseId: config.caseId,
+    chainOfCustody: true,
+    destination: translateKapeVariables(config.tdest, config.format),
+    examiner: config.examiner,
+    source: config.tsource,
+  };
+  if (config.format === "powershell") {
+    return generatePowerShell(scriptTarget, options);
+  }
+  if (config.format === "batch") {
+    return generateBatch(scriptTarget, options);
+  }
+  return generateWsl(scriptTarget, options);
+}
+
+export function ScriptBuilder({
+  targets,
+  modules,
+  targetCategories,
+  moduleFolders,
+}: ScriptBuilderProps) {
+  const [config, setConfig] = useState<KapeConfig>(DEFAULT_CONFIG);
+  const [isUrlLoaded, setIsUrlLoaded] = useState(false);
   const [copied, triggerCopied] = useCopyFeedback();
+  const [linkCopied, triggerLinkCopied] = useCopyFeedback();
 
-  // Filter targets by category and search
-  const filteredTargets = useMemo(() => {
-    let targets = allTargets.filter((t) => t.category === activeCategory);
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      targets = targets.filter(
-        (t) =>
-          t.name.toLowerCase().includes(query) ||
-          t.description.toLowerCase().includes(query)
-      );
+  const targetIndex = useMemo(
+    () => new Map(targets.map((target) => [target.slug, target])),
+    [targets]
+  );
+  const moduleIndex = useMemo(
+    () => new Map(modules.map((module) => [module.name.toLowerCase(), module])),
+    [modules]
+  );
+  const targetItems = useMemo(() => targets.map(toTargetItem), [targets]);
+  const moduleItems = useMemo(() => modules.map(toModuleItem), [modules]);
+
+  useEffect(() => {
+    const fromUrl = configFromSearchParams(
+      new URLSearchParams(window.location.search)
+    );
+    setConfig({
+      ...fromUrl,
+      modules: fromUrl.modules
+        .map((name) => moduleIndex.get(name.toLowerCase())?.name)
+        .filter((name): name is string => name !== undefined),
+      targets: fromUrl.targets.filter((slug) => targetIndex.has(slug)),
+    });
+    setIsUrlLoaded(true);
+  }, [moduleIndex, targetIndex]);
+
+  useEffect(() => {
+    if (!isUrlLoaded) {
+      return;
     }
-    return targets.toSorted((a, b) => a.name.localeCompare(b.name));
-  }, [allTargets, activeCategory, searchQuery]);
+    const query = configToSearchParams(config).toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}`;
+    window.history.replaceState(window.history.state, "", nextUrl);
+  }, [config, isUrlLoaded]);
 
-  // Get selected target objects
-  const selectedTargetObjects = useMemo(
-    () => allTargets.filter((t) => selectedTargets.has(t.slug)),
-    [allTargets, selectedTargets]
+  const selectedTargets = useMemo(
+    () =>
+      config.targets
+        .map((slug) => targetIndex.get(slug))
+        .filter((target): target is BuilderTarget => target !== undefined),
+    [config.targets, targetIndex]
+  );
+  const leaves = useMemo(
+    () => resolveLeafTargets(config.targets, targetIndex),
+    [config.targets, targetIndex]
+  );
+  const summary = useMemo(
+    () => summarizeCollection(leaves, collectUniqueEntries(leaves)),
+    [leaves]
+  );
+  const leafModules = useMemo(
+    () => resolveLeafModules(config.modules, moduleIndex),
+    [config.modules, moduleIndex]
+  );
+  const exportFormats = useMemo(
+    () =>
+      [
+        ...new Set(leafModules.flatMap((module) => module.exportFormats)),
+      ].toSorted(),
+    [leafModules]
+  );
+  const issues = useMemo(
+    () =>
+      validateKapeConfig({
+        ...config,
+        targets: uniqueKapeNames(selectedTargets),
+      }),
+    [config, selectedTargets]
+  );
+  const output = useMemo(
+    () => buildOutput(config, selectedTargets, leaves),
+    [config, selectedTargets, leaves]
   );
 
-  // Generate script based on selected targets and options
-  const generatedScript = useMemo(() => {
-    if (selectedTargets.size === 0) {
-      return "";
-    }
+  const activePresetId = useMemo(
+    () =>
+      SCENARIO_PRESETS.find(
+        (preset) =>
+          sameMembers(
+            preset.targets
+              .map((name) => findTargetSlugByKapeName(targets, name))
+              .filter((slug): slug is string => slug !== undefined),
+            config.targets
+          ) && sameMembers(preset.modules, config.modules)
+      )?.id,
+    [config.targets, config.modules, targets]
+  );
 
-    const lines: string[] = [];
-    const targetNames = selectedTargetObjects.map((t) => t.name);
-
-    if (options.format === "kape") {
-      // Generate KAPE command
-      let cmd = `kape.exe --tsource ${options.source} --tdest ${options.destination} --target ${targetNames.join(",")}`;
-      if (options.useVss) {
-        cmd += " --vss";
-      }
-      if (options.useVhdx) {
-        cmd += " --vhdx evidence";
-      }
-      return cmd;
-    }
-    if (options.format === "powershell") {
-      // PowerShell with function-based approach
-      lines.push("# DFIRHub Collection Script");
-      lines.push(`# Generated: ${new Date().toISOString()}`);
-      lines.push(`# Targets: ${selectedTargets.size}`);
-      lines.push("# Run as Administrator");
-      lines.push("");
-      lines.push("#Requires -RunAsAdministrator");
-      lines.push("");
-      lines.push('$ErrorActionPreference = "SilentlyContinue"');
-      lines.push(`$DestBase = "${options.destination}"`);
-      lines.push("");
-      lines.push("# Function to handle artifact collection with robocopy");
-      lines.push("function Collect-Artifact {");
-      lines.push("    param (");
-      lines.push("        [string]$SourceDir,");
-      lines.push("        [string]$FolderName,");
-      lines.push('        [string]$FileMask = "*"');
-      lines.push("    )");
-      lines.push(
-        "    $FullDest = Join-Path -Path $DestBase -ChildPath $FolderName"
-      );
-      lines.push(
-        '    robocopy "$SourceDir" "$FullDest" "$FileMask" /E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS | Out-Null'
-      );
-      lines.push("}");
-      lines.push("");
-
-      let entryNum = 1;
-      for (const target of selectedTargetObjects) {
-        const paths = getTargetPaths(target);
-        if (paths.length === 0) {
-          continue;
-        }
-
-        lines.push(`# === ${target.name} ===`);
-        for (const entry of paths) {
-          const safeName = `${target.name}_${entry.name.replace(NON_ALPHANUMERIC_REGEX, "_")}`;
-          let sourcePath = entry.path.replace("C:", options.source);
-          const hasUserVar = sourcePath.includes("%user%");
-
-          // Convert %user% to PowerShell variable
-          if (hasUserVar) {
-            sourcePath = sourcePath.replaceAll("%user%", "$env:USERNAME");
-          }
-
-          lines.push(`# ${entryNum}. ${entry.name}`);
-
-          // Check for legacy XP paths
-          if (sourcePath.includes("Documents And Settings")) {
-            lines.push('if (Test-Path "C:\\Documents And Settings") {');
-            if (entry.fileMask) {
-              lines.push(
-                `    Collect-Artifact -SourceDir "${sourcePath}" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
-              );
-            } else {
-              lines.push(
-                `    Collect-Artifact -SourceDir "${sourcePath}" -FolderName "${safeName}"`
-              );
-            }
-            lines.push("}");
-          } else if (hasUserVar) {
-            // Use Join-Path for user variable paths
-            const pathParts = sourcePath.split("$env:USERNAME");
-            lines.push(
-              `$UserPath = Join-Path $env:USERPROFILE "${pathParts[1]?.replace(LEADING_SLASHES_REGEX, "") || ""}"`
-            );
-            if (entry.fileMask) {
-              lines.push(
-                `Collect-Artifact -SourceDir "$UserPath" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
-              );
-            } else {
-              lines.push(
-                `Collect-Artifact -SourceDir "$UserPath" -FolderName "${safeName}"`
-              );
-            }
-          } else if (entry.fileMask) {
-            lines.push(
-              `Collect-Artifact -SourceDir "${sourcePath}" -FileMask "${entry.fileMask}" -FolderName "${safeName}"`
-            );
-          } else {
-            lines.push(
-              `Collect-Artifact -SourceDir "${sourcePath}" -FolderName "${safeName}"`
-            );
-          }
-          entryNum++;
-        }
-        lines.push("");
-      }
-
-      lines.push('Write-Host "Collection complete!" -ForegroundColor Green');
-    } else if (options.format === "batch") {
-      // Batch with proper variable handling
-      lines.push("@echo off");
-      lines.push("setlocal EnableDelayedExpansion");
-      lines.push("");
-      lines.push("REM DFIRHub Collection Script");
-      lines.push(`REM Generated: ${new Date().toISOString()}`);
-      lines.push(`REM Targets: ${selectedTargets.size}`);
-      lines.push("REM Run as Administrator");
-      lines.push("");
-      lines.push(`set "DEST=${options.destination}"`);
-      lines.push("");
-      lines.push("REM Create destination directory");
-      lines.push('if not exist "%DEST%" mkdir "%DEST%"');
-      lines.push("");
-
-      for (const target of selectedTargetObjects) {
-        const paths = getTargetPaths(target);
-        if (paths.length === 0) {
-          continue;
-        }
-
-        lines.push(`REM === ${target.name} ===`);
-        for (const entry of paths) {
-          const safeName = `${target.name}_${entry.name.replace(NON_ALPHANUMERIC_REGEX, "_")}`;
-          let sourcePath = entry.path.replace("C:", options.source);
-          const hasUserVar = sourcePath.includes("%user%");
-
-          // Convert %user% to %USERNAME%
-          if (hasUserVar) {
-            sourcePath = sourcePath.replaceAll("%user%", "%USERNAME%");
-          }
-
-          lines.push(`REM ${entry.name}`);
-          lines.push(`set "DESTFOLDER=%DEST%\\${safeName}"`);
-
-          const robocopyFlags =
-            "/E /COPY:DAT /R:0 /W:0 /NP /NFL /NDL /NJH /NJS";
-
-          // Handle legacy XP paths with existence check
-          if (sourcePath.includes("Documents And Settings")) {
-            lines.push('if exist "C:\\Documents And Settings" (');
-            if (entry.fileMask) {
-              lines.push(
-                `    robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
-              );
-            } else {
-              lines.push(
-                `    robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
-              );
-            }
-            lines.push(")");
-          } else if (entry.fileMask) {
-            lines.push(
-              `robocopy "${sourcePath}" "%DESTFOLDER%" "${entry.fileMask}" ${robocopyFlags} >nul 2>&1`
-            );
-          } else {
-            lines.push(
-              `robocopy "${sourcePath}" "%DESTFOLDER%" ${robocopyFlags} >nul 2>&1`
-            );
-          }
-        }
-        lines.push("");
-      }
-
-      lines.push("echo Collection complete!");
-      lines.push("endlocal");
-      lines.push("pause");
-    } else if (options.format === "wsl") {
-      // WSL (Bash) script with proper variable handling
-      const toWslPath = (windowsPath: string): string => {
-        const match = windowsPath.match(DRIVE_LETTER_REGEX);
-        if (match) {
-          const drive = match[1].toLowerCase();
-          const rest = match[2].replaceAll("\\", "/");
-          return `/mnt/${drive}${rest}`;
-        }
-        return windowsPath.replaceAll("\\", "/");
-      };
-
-      const wslDest = toWslPath(options.destination);
-      const wslSource = toWslPath(options.source);
-
-      // Check if any path contains %user% variable
-      const allPaths = selectedTargetObjects.flatMap((t) => getTargetPaths(t));
-      const hasUserPaths = allPaths.some((entry) =>
-        entry.path.toLowerCase().includes("%user%")
-      );
-
-      lines.push("#!/bin/bash");
-      lines.push("# DFIRHub Collection Script");
-      lines.push(`# Generated: ${new Date().toISOString()}`);
-      lines.push(`# Targets: ${selectedTargets.size}`);
-      lines.push("# Run from WSL with sudo for best results");
-      lines.push("");
-      lines.push(`DEST="${wslDest}"`);
-      lines.push("");
-      lines.push("# Create destination directory");
-      lines.push('mkdir -p "$DEST"');
-      lines.push("");
-
-      // Add Windows username detection if needed
-      if (hasUserPaths) {
-        lines.push("# Detect Windows username");
-        lines.push(
-          "WIN_USER=$(cmd.exe /c \"echo %USERNAME%\" 2>/dev/null | tr -d '\\r')"
-        );
-        lines.push("");
-        lines.push('if [ -z "$WIN_USER" ]; then');
-        lines.push(
-          '    echo "Could not detect Windows username. Please set WIN_USER manually."'
-        );
-        lines.push("    exit 1");
-        lines.push("fi");
-        lines.push("");
-      }
-
-      for (const target of selectedTargetObjects) {
-        const paths = getTargetPaths(target);
-        if (paths.length === 0) {
-          continue;
-        }
-
-        lines.push(`# === ${target.name} ===`);
-        for (const entry of paths) {
-          const safeName = `${target.name}_${entry.name.replace(NON_ALPHANUMERIC_REGEX, "_")}`;
-          const destPath = `$DEST/${safeName}`;
-
-          // Convert the source path
-          let sourcePath = entry.path;
-          if (STARTS_WITH_DRIVE_REGEX.test(sourcePath)) {
-            sourcePath = sourcePath.replace(STARTS_WITH_DRIVE_REGEX, wslSource);
-          }
-          sourcePath = sourcePath.replaceAll("\\", "/");
-
-          // Replace %user% with $WIN_USER for Bash
-          if (sourcePath.toLowerCase().includes("%user%")) {
-            sourcePath = sourcePath.replaceAll("%user%", "$WIN_USER");
-          }
-
-          // Clean up any double slashes
-          sourcePath = sourcePath.replaceAll(/([^:])\/\//g, "$1/");
-          // Strip trailing slash for clean path joining
-          sourcePath = sourcePath.replace(/\/+$/, "");
-
-          lines.push(`# ${entry.name}`);
-          lines.push(`mkdir -p "${destPath}"`);
-          lines.push(`if [ -d "${sourcePath}" ]; then`);
-
-          if (entry.fileMask && entry.fileMask.includes("*")) {
-            lines.push(
-              `    find "${sourcePath}" -maxdepth 1 -name "${entry.fileMask}" -exec cp {} "${destPath}/" \\; 2>/dev/null`
-            );
-          } else if (entry.fileMask) {
-            lines.push(
-              `    cp -r "${sourcePath}/${entry.fileMask}" "${destPath}/" 2>/dev/null`
-            );
-          } else {
-            lines.push(
-              `    cp -r "${sourcePath}/"* "${destPath}/" 2>/dev/null`
-            );
-          }
-
-          lines.push("else");
-          lines.push(`    echo "Source not found: ${sourcePath}"`);
-          lines.push("fi");
-        }
-        lines.push("");
-      }
-
-      lines.push('echo -e "\\033[32mCollection complete!\\033[0m"');
-    }
-
-    return lines.join("\n");
-  }, [selectedTargets, selectedTargetObjects, options]);
-
-  const toggleTarget = (slug: string) => {
-    setSelectedTargets((prev) => {
-      const next = new Set(prev);
-      if (next.has(slug)) {
-        next.delete(slug);
-      } else {
-        next.add(slug);
-      }
-      return next;
-    });
+  const updateConfig = (patch: Partial<KapeConfig>) => {
+    setConfig((previous) => ({ ...previous, ...patch }));
   };
 
-  const selectAll = () => {
-    setSelectedTargets((prev) => {
-      const next = new Set(prev);
-      for (const t of filteredTargets) {
-        next.add(t.slug);
-      }
-      return next;
+  const applyPreset = (preset: ScenarioPreset) => {
+    updateConfig({
+      modules: preset.modules.filter((name) =>
+        moduleIndex.has(name.toLowerCase())
+      ),
+      msource: preset.moduleSource ?? "",
+      targets: preset.targets
+        .map((name) => findTargetSlugByKapeName(targets, name))
+        .filter((slug): slug is string => slug !== undefined),
     });
-  };
-
-  const clearAll = () => {
-    setSelectedTargets(new Set());
+    trackBuilderPreset(preset.id);
   };
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(generatedScript);
-      trackBuilderCopy(options.format, selectedTargets.size);
+      await navigator.clipboard.writeText(output);
+      trackBuilderCopy(config.format, config.targets.length);
       triggerCopied();
     } catch (error) {
       console.error("Failed to copy:", error);
     }
   };
 
-  const handleDownload = () => {
-    const extensions: Record<ExportFormat, string> = {
-      batch: ".bat",
-      kape: ".txt",
-      powershell: ".ps1",
-      wsl: ".sh",
-    };
-
-    const mimeTypes: Record<ExportFormat, string> = {
-      batch: "application/x-bat",
-      kape: "text/plain",
-      powershell: "application/x-powershell",
-      wsl: "application/x-sh",
-    };
-
-    const blob = new Blob([generatedScript], {
-      type: mimeTypes[options.format],
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `dfirhub_collection${extensions[options.format]}`;
-    document.body.append(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    trackBuilderDownload(options.format, selectedTargets.size);
+  const handleShare = async () => {
+    const query = configToSearchParams(config).toString();
+    const url = `${window.location.origin}${window.location.pathname}${query ? `?${query}` : ""}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      trackBuilderShare(config.targets.length, config.modules.length);
+      triggerLinkCopied();
+    } catch (error) {
+      console.error("Failed to copy link:", error);
+    }
   };
 
-  const generatedKind = options.format === "kape" ? "command" : "script";
-  const selectedSummary =
-    selectedTargets.size > 0 ? (
-      <span className="min-w-0">
-        <span className="font-medium text-foreground">Selected:</span>{" "}
-        {selectedTargetObjects.map((t) => t.name).join(", ")}
-      </span>
-    ) : undefined;
+  const handleDownload = (tab: OutputTab) => {
+    const blob = new Blob([output], { type: tab.mimeType });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = tab.fileName;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    trackBuilderDownload(config.format, config.targets.length);
+  };
 
   return (
     <div className="space-y-8">
-      <Panel
-        actions={
-          <>
-            <button
-              className="panel-action focus-ring"
-              onClick={selectAll}
-              type="button"
-            >
-              Select all
-            </button>
-            <button
-              className="panel-action focus-ring text-destructive"
-              onClick={clearAll}
-              type="button"
-            >
-              Clear
-            </button>
-          </>
-        }
-        footer={
-          <>
-            <span className="tabular-nums">{filteredTargets.length} shown</span>
-            <span className="tabular-nums">
-              {selectedTargets.size} selected
-            </span>
-          </>
-        }
-        headingId="select-targets-heading"
-        subtitle="Pick the artifacts to collect"
-        title="Select targets"
-        toolbar={
-          <>
-            <input
-              aria-label="Search targets"
-              className="h-8 min-w-48 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search targets..."
-              type="text"
-              value={searchQuery}
-            />
-            <div className="flex flex-wrap gap-1.5">
-              {categories.map((cat) => {
-                const Icon = categoryIconMap[cat.toLowerCase()];
-                const isActive = activeCategory === cat;
+      <PresetPanel
+        activePresetId={activePresetId}
+        onApply={applyPreset}
+        presets={SCENARIO_PRESETS}
+      />
 
-                return (
-                  <button
-                    aria-pressed={isActive}
-                    className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs transition-colors ${
-                      isActive
-                        ? "border border-primary bg-primary text-primary-foreground"
-                        : "border border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    type="button"
-                  >
-                    {Icon && (
-                      <Icon
-                        className={`h-3.5 w-3.5 ${isActive ? "" : "opacity-60"}`}
-                      />
-                    )}
-                    <span>{cat}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        }
-      >
-        <div className="scrollbar-thin fade-y max-h-72 overflow-y-auto">
-          {filteredTargets.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground text-sm">
-              No targets found
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {filteredTargets.map((target) => (
-                <label
-                  className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-muted"
-                  key={target.slug}
-                >
-                  <input
-                    checked={selectedTargets.has(target.slug)}
-                    className="h-3.5 w-3.5 accent-primary"
-                    onChange={() => toggleTarget(target.slug)}
-                    type="checkbox"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <span className="text-sm">{target.name}</span>
-                    {target.isCompound && (
-                      <span className="ml-2 rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-700 text-xs dark:text-cyan-400">
-                        Collection
-                      </span>
-                    )}
-                  </div>
-                  <span className="shrink-0 text-muted-foreground text-xs">
-                    {target.isCompound
-                      ? `${target.referencedTargets.length} targets`
-                      : formatPathCount(
-                          target.targets.filter(
-                            (e) => !e.path.endsWith(".tkape")
-                          ).length
-                        )}
-                  </span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-      </Panel>
+      <div className="grid gap-8 lg:grid-cols-2">
+        <ChecklistPicker
+          groups={targetCategories}
+          headingId="targets-heading"
+          items={targetItems}
+          onChange={(selected) => updateConfig({ targets: selected })}
+          searchLabel="Search targets"
+          selected={config.targets}
+          subtitle="Files to collect (.tkape)"
+          title="Targets"
+        />
+        <ChecklistPicker
+          groups={moduleFolders}
+          headingId="modules-heading"
+          items={moduleItems}
+          onChange={(selected) => updateConfig({ modules: selected })}
+          searchLabel="Search modules"
+          selected={config.modules}
+          subtitle="Tools that parse the evidence (.mkape)"
+          title="Modules"
+        />
+      </div>
 
-      <Panel
-        headingId="export-options-heading"
-        subtitle="Format, source drive and destination"
-        title="Export options"
-      >
-        <div className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4">
-          <div>
-            <label
-              className="mb-2 block text-muted-foreground text-xs"
-              htmlFor="script-format"
-            >
-              Format
-            </label>
-            <select
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
-              id="script-format"
-              onChange={(e) =>
-                setOptions((prev) => ({
-                  ...prev,
-                  format: e.target.value as ExportFormat,
-                }))
-              }
-              value={options.format}
-            >
-              <option value="kape">KAPE Command</option>
-              <option value="powershell">PowerShell (.ps1)</option>
-              <option value="batch">Batch (.bat)</option>
-              <option value="wsl">WSL/Bash (.sh)</option>
-            </select>
-          </div>
+      <CollectionPreview
+        leafModules={leafModules}
+        selectedModuleCount={config.modules.length}
+        selectedTargets={selectedTargets}
+        summary={summary}
+        targetIndex={targetIndex}
+      />
 
-          <div>
-            <label
-              className="mb-2 block text-muted-foreground text-xs"
-              htmlFor="script-source"
-            >
-              Source
-            </label>
-            <input
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
-              id="script-source"
-              onChange={(e) =>
-                setOptions((prev) => ({ ...prev, source: e.target.value }))
-              }
-              type="text"
-              value={options.source}
-            />
-          </div>
+      <OptionsPanel
+        config={config}
+        exportFormats={exportFormats}
+        onChange={updateConfig}
+      />
 
-          <div>
-            <label
-              className="mb-2 block text-muted-foreground text-xs"
-              htmlFor="script-destination"
-            >
-              Destination
-            </label>
-            <input
-              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
-              id="script-destination"
-              onChange={(e) =>
-                setOptions((prev) => ({
-                  ...prev,
-                  destination: e.target.value,
-                }))
-              }
-              type="text"
-              value={options.destination}
-            />
-          </div>
-
-          {options.format === "kape" && (
-            <div className="flex flex-col gap-2">
-              <span className="block text-muted-foreground text-xs">
-                Options
-              </span>
-              <div className="flex items-center gap-4">
-                <label className="flex cursor-pointer items-center gap-1.5">
-                  <input
-                    checked={options.useVss}
-                    className="h-3 w-3 accent-primary"
-                    onChange={(e) =>
-                      setOptions((prev) => ({
-                        ...prev,
-                        useVss: e.target.checked,
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  <span className="text-muted-foreground text-xs">--vss</span>
-                </label>
-                <label className="flex cursor-pointer items-center gap-1.5">
-                  <input
-                    checked={options.useVhdx}
-                    className="h-3 w-3 accent-primary"
-                    onChange={(e) =>
-                      setOptions((prev) => ({
-                        ...prev,
-                        useVhdx: e.target.checked,
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  <span className="text-muted-foreground text-xs">--vhdx</span>
-                </label>
-              </div>
-            </div>
-          )}
-        </div>
-      </Panel>
-
-      <Panel
-        actions={
-          generatedScript ? (
-            <>
-              <button
-                className="panel-action focus-ring"
-                onClick={handleCopy}
-                type="button"
-              >
-                {copied ? "Copied!" : "Copy"}
-              </button>
-              <button
-                className="panel-action panel-action-primary focus-ring"
-                onClick={handleDownload}
-                type="button"
-              >
-                Download
-              </button>
-            </>
-          ) : undefined
-        }
-        footer={selectedSummary}
-        headingId="generated-heading"
-        subtitle={
-          selectedTargets.size > 0
-            ? `${selectedTargets.size} ${selectedTargets.size === 1 ? "target" : "targets"} selected`
-            : "No targets selected yet"
-        }
-        title={`Generated ${generatedKind}`}
-      >
-        {generatedScript ? (
-          <CodeBlock
-            code={generatedScript}
-            flush
-            language={
-              options.format === "kape"
-                ? "powershell"
-                : options.format === "wsl"
-                  ? "bash"
-                  : options.format === "powershell"
-                    ? "powershell"
-                    : "batch"
-            }
-          />
-        ) : (
-          <div className="bg-console p-4 text-muted-foreground text-sm">
-            Select targets to generate a collection command
-          </div>
-        )}
-      </Panel>
+      <OutputPanel
+        copied={copied}
+        format={config.format}
+        issues={issues}
+        linkCopied={linkCopied}
+        lockedPaths={summary.lockedPaths}
+        moduleCount={config.modules.length}
+        onCopy={handleCopy}
+        onDownload={handleDownload}
+        onFormatChange={(format: OutputFormat) => updateConfig({ format })}
+        onShare={handleShare}
+        output={output}
+      />
     </div>
   );
 }
