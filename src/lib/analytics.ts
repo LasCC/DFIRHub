@@ -78,3 +78,14 @@ export function trackBuilderDownload(format: string, targetCount: number) {
 export function trackBuilderCopy(format: string, targetCount: number) {
   capture("builder_copy", { format, target_count: targetCount });
 }
+
+export function trackBuilderPreset(presetId: string) {
+  capture("builder_preset", { preset: presetId });
+}
+
+export function trackBuilderShare(targetCount: number, moduleCount: number) {
+  capture("builder_share", {
+    module_count: moduleCount,
+    target_count: targetCount,
+  });
+}
