@@ -10,10 +10,23 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: content-update-master
+  cancel-in-progress: false
+
 jobs:
   update-sigma-index:
     runs-on: ubuntu-latest
+    env:
+      NETLIFY_BUILD_HOOK: ${{ secrets.NETLIFY_BUILD_HOOK }}
     steps:
+      - name: Require Netlify build hook
+        run: |
+          if [ -z "$NETLIFY_BUILD_HOOK" ]; then
+            echo "::error::NETLIFY_BUILD_HOOK secret is not set"
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
@@ -40,7 +53,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          if git diff --quiet public/sigma-rules/; then
+          if [ -z "$(git status --porcelain public/sigma-rules/)" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -53,10 +66,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/sigma-rules/
           git commit -m "Update Sigma rules index"
-          git push
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
 
       - name: Trigger Netlify Build
         if: steps.changes.outputs.changed == 'true'
         run: |
-          curl -fsS -X POST -d '{}' "${{ secrets.NETLIFY_BUILD_HOOK }}"
+          curl -fsS --retry 5 --retry-all-errors --retry-delay 10 -X POST -d '{}' "$NETLIFY_BUILD_HOOK"
           echo "Netlify build triggered for latest Sigma rules changes."
