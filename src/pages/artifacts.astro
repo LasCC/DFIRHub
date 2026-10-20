@@ -439,6 +439,11 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
 
 <script is:inline>
 (() => {
+  if (window.__artifactsPageBound) {
+    return;
+  }
+  window.__artifactsPageBound = true;
+
   const readJsonData = (id) =>
     JSON.parse(document.getElementById(id)?.textContent || "null");
   const allTargets = readJsonData("artifacts-data") ?? [];
@@ -660,17 +665,22 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
   window.addEventListener("popstate", applyFilter);
 
   // ── In-page search bar ─────────────────────────────────────────────
-  const searchInput = document.getElementById("artifacts-search");
-  const searchClear = document.getElementById("artifacts-search-clear");
+  const SEARCH_INPUT_ID = "artifacts-search";
+  const SEARCH_CLEAR_ID = "artifacts-search-clear";
+  const getSearchInput = () => document.getElementById(SEARCH_INPUT_ID);
+  const getSearchClear = () => document.getElementById(SEARCH_CLEAR_ID);
   let searchTimer = null;
 
   function syncSearchClear() {
+    const searchInput = getSearchInput();
+    const searchClear = getSearchClear();
     if (searchClear && searchInput) {
       searchClear.classList.toggle("hidden", !searchInput.value.trim());
     }
   }
 
   function syncSearchInput() {
+    const searchInput = getSearchInput();
     if (!searchInput || document.activeElement === searchInput) {
       return;
     }
@@ -680,7 +690,11 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
   }
 
   function submitSearch() {
-    const value = (searchInput ? searchInput.value : "").trim();
+    const searchInput = getSearchInput();
+    if (!searchInput) {
+      return;
+    }
+    const value = searchInput.value.trim();
     if (value) {
       history.replaceState(null, "", "/artifacts?q=" + encodeURIComponent(value));
     } else {
@@ -689,29 +703,37 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
     applyFilter();
   }
 
-  if (searchInput) {
-    searchInput.addEventListener("input", () => {
-      syncSearchClear();
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(submitSearch, 150);
-    });
-    searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        clearTimeout(searchTimer);
-        submitSearch();
-      }
-    });
-  }
+  document.addEventListener("input", (e) => {
+    if (e.target?.id !== SEARCH_INPUT_ID) {
+      return;
+    }
+    syncSearchClear();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(submitSearch, 150);
+  });
 
-  if (searchClear && searchInput) {
-    searchClear.addEventListener("click", () => {
-      searchInput.value = "";
-      syncSearchClear();
-      clearTimeout(searchTimer);
-      submitSearch();
-      searchInput.focus();
-    });
-  }
+  document.addEventListener("keydown", (e) => {
+    if (e.target?.id !== SEARCH_INPUT_ID || e.key !== "Enter") {
+      return;
+    }
+    clearTimeout(searchTimer);
+    submitSearch();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target?.closest?.(`#${SEARCH_CLEAR_ID}`)) {
+      return;
+    }
+    const searchInput = getSearchInput();
+    if (!searchInput) {
+      return;
+    }
+    searchInput.value = "";
+    syncSearchClear();
+    clearTimeout(searchTimer);
+    submitSearch();
+    searchInput.focus();
+  });
 
   document.addEventListener("astro:page-load", syncSearchInput);
   syncSearchInput();
