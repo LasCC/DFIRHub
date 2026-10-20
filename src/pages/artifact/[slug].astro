@@ -23,6 +23,7 @@ import {
   buildBreadcrumbJsonLd,
   getTargetDates,
   LOGO_URL,
+  serializeJsonForScript,
   SITE_NAME,
   SITE_URL,
 } from '../../lib/seo';
@@ -228,12 +229,12 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 >
   <script is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(jsonLd)}
+    set:html={serializeJsonForScript(jsonLd)}
     slot="head"
   />
   <script is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(breadcrumbJsonLd)}
+    set:html={serializeJsonForScript(breadcrumbJsonLd)}
     slot="head"
   />
 

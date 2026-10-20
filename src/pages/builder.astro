@@ -8,6 +8,7 @@ import { loadAllModules } from "../lib/kapeModules";
 import { getCategories, getDirectReferenceSlugs, loadAllTargets } from '../lib/kapefiles';
 import {
   buildBreadcrumbJsonLd,
+  serializeJsonForScript,
   SITE_NAME,
   SITE_URL,
 } from '../lib/seo';
@@ -67,13 +68,13 @@ const applicationJsonLd = {
   <script
     is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(breadcrumbJsonLd)}
+    set:html={serializeJsonForScript(breadcrumbJsonLd)}
     slot="head"
   />
   <script
     is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(applicationJsonLd)}
+    set:html={serializeJsonForScript(applicationJsonLd)}
     slot="head"
   />
   <Header client:load currentPath={Astro.url.pathname} />

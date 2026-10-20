@@ -4,7 +4,7 @@ import { Header } from "../components/layout/Header";
 import Panel from "../components/ui/Panel.astro";
 import Layout from "../layouts/Layout.astro";
 import { getCompoundTargets, resolveCompoundReferences } from '../lib/kapefiles';
-import { buildBreadcrumbJsonLd } from '../lib/seo';
+import { buildBreadcrumbJsonLd, serializeJsonForScript } from '../lib/seo';
 
 const collections = getCompoundTargets();
 
@@ -37,7 +37,7 @@ const seoDescription = `Browse ${collections.length} pre-built KAPE triage colle
   <script
     is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(breadcrumbJsonLd)}
+    set:html={serializeJsonForScript(breadcrumbJsonLd)}
     slot="head"
   />
   <Header client:load currentPath={Astro.url.pathname} />

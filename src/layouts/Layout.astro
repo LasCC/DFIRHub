@@ -4,7 +4,7 @@ import { ClientRouter } from "astro:transitions";
 import { KeyboardShortcuts } from "../components/layout/KeyboardShortcuts";
 import ShaderBackground from "../components/layout/ShaderBackground.astro";
 import PostHog from "../components/PostHog.astro";
-import { GITHUB_URL, LOGO_URL, SITE_NAME, SITE_URL } from "../lib/seo";
+import { GITHUB_URL, LOGO_URL, serializeJsonForScript, SITE_NAME, SITE_URL } from "../lib/seo";
 
 interface Props {
   title: string;
@@ -190,7 +190,7 @@ const fullTitle =
     <!-- Structured Data (JSON-LD) -->
     <script is:inline
       type="application/ld+json"
-      set:html={JSON.stringify(structuredData)}
+      set:html={serializeJsonForScript(structuredData)}
     />
 
     <!-- Analytics -->

@@ -29,6 +29,22 @@ function collapseWhitespace(text: string): string {
   return text.replaceAll(WHITESPACE_PATTERN, " ").trim();
 }
 
+const SCRIPT_UNSAFE_CHARACTERS: Record<string, string> = {
+  "&": String.raw`\u0026`,
+  "<": String.raw`\u003c`,
+  ">": String.raw`\u003e`,
+  "\u2028": String.raw`\u2028`,
+  "\u2029": String.raw`\u2029`,
+};
+const SCRIPT_UNSAFE_PATTERN = /[&<>\u2028\u2029]/gu;
+
+export function serializeJsonForScript(value: unknown): string {
+  return JSON.stringify(value).replaceAll(
+    SCRIPT_UNSAFE_PATTERN,
+    (character) => SCRIPT_UNSAFE_CHARACTERS[character] ?? character
+  );
+}
+
 export function truncateAtWord(text: string, maxLength: number): string {
   const clean = collapseWhitespace(text);
   if (clean.length <= maxLength) {
