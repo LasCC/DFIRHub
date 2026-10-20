@@ -7,6 +7,7 @@ import { getCategoryStyle } from "../../lib/categoryStyles";
 import { getCategories, getTargetsByCategory } from "../../lib/kapefiles";
 import {
   buildBreadcrumbJsonLd,
+  serializeJsonForScript,
   SITE_URL,
   truncateAtWord,
 } from "../../lib/seo";
@@ -62,13 +63,13 @@ const collectionJsonLd = {
   <script
     is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(breadcrumbJsonLd)}
+    set:html={serializeJsonForScript(breadcrumbJsonLd)}
     slot="head"
   />
   <script
     is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(collectionJsonLd)}
+    set:html={serializeJsonForScript(collectionJsonLd)}
     slot="head"
   />
 

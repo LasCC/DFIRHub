@@ -11,6 +11,7 @@ interface Category {
 }
 
 interface CategoryFiltersProps {
+  basePath?: string;
   categories: Category[];
 }
 
@@ -19,7 +20,10 @@ const allActiveClasses =
 const categoryActiveClasses =
   "data-[active=true]:!border-primary data-[active=true]:!bg-primary data-[active=true]:!text-primary-foreground";
 
-export function CategoryFilters({ categories }: CategoryFiltersProps) {
+export function CategoryFilters({
+  basePath = "/artifacts",
+  categories,
+}: CategoryFiltersProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrolledStart, setScrolledStart] = useState(true);
   const [scrolledEnd, setScrolledEnd] = useState(false);
@@ -70,10 +74,10 @@ export function CategoryFilters({ categories }: CategoryFiltersProps) {
               data-special={cat.special ? "true" : undefined}
               href={
                 cat.id === "all"
-                  ? "/artifacts"
+                  ? basePath
                   : cat.special
-                    ? `/artifacts?filter=${cat.id}`
-                    : `/artifacts?category=${cat.id}`
+                    ? `${basePath}?filter=${cat.id}`
+                    : `${basePath}?category=${cat.id}`
               }
               key={cat.id}
               onClick={() => {

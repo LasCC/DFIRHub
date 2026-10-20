@@ -41,6 +41,12 @@ interface SearchProps {
   showTrigger?: boolean;
 }
 
+const PRIMARY_ACTION_LABELS: Record<RecentArtifact["kind"], string> = {
+  Artifact: "Open artifact",
+  Collection: "Open collection",
+  Registry: "Open registry artifact",
+};
+
 const ANNOUNCEMENT_CLEAR_DELAY_MS = 1000;
 const COPIED_FEEDBACK_MS = 1500;
 const SKELETON_ROW_COUNT = 3;
@@ -107,11 +113,14 @@ export function Search({ showTrigger = true }: SearchProps) {
     total > hits.length
       ? `Top ${hits.length} of ${total} results`
       : `${total} ${total === 1 ? "result" : "results"}`;
-  const browseAllHref = `/artifacts?q=${encodeURIComponent(trimmedQuery)}`;
+  const browseAllPath = category === "Registry" ? "/registry" : "/artifacts";
+  const browseAllHref = `${browseAllPath}?q=${encodeURIComponent(trimmedQuery)}`;
 
   const selectedArtifact: RecentArtifact | undefined = (
     hasQuery ? hits : recent
   ).find((artifact) => artifact.url === selectedValue);
+  const canCopyCommand =
+    selectedArtifact !== undefined && selectedArtifact.kind !== "Registry";
   const selectedQuickLink = QUICK_LINKS.find(
     (link) => link.href === selectedValue
   );
@@ -121,9 +130,7 @@ export function Search({ showTrigger = true }: SearchProps) {
       return "See all results";
     }
     if (selectedArtifact) {
-      return selectedArtifact.kind === "Collection"
-        ? "Open collection"
-        : "Open artifact";
+      return PRIMARY_ACTION_LABELS[selectedArtifact.kind];
     }
     return selectedQuickLink ? `Go to ${selectedQuickLink.label}` : "Open";
   };
@@ -160,7 +167,7 @@ export function Search({ showTrigger = true }: SearchProps) {
   );
 
   const copySelectedCommand = useCallback(async () => {
-    if (!selectedArtifact) {
+    if (!(selectedArtifact && canCopyCommand)) {
       return;
     }
     try {
@@ -179,7 +186,7 @@ export function Search({ showTrigger = true }: SearchProps) {
     } catch {
       announce("Could not copy the KAPE command");
     }
-  }, [selectedArtifact, announce]);
+  }, [selectedArtifact, canCopyCommand, announce]);
 
   useEffect(
     () => () => {
@@ -513,7 +520,7 @@ export function Search({ showTrigger = true }: SearchProps) {
         </CommandList>
 
         <SearchFooter
-          canCopyCommand={Boolean(selectedArtifact)}
+          canCopyCommand={canCopyCommand}
           copied={copied}
           modifierKey={modifierKey}
           primaryActionLabel={getPrimaryActionLabel()}

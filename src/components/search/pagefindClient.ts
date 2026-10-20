@@ -8,7 +8,7 @@ export interface SearchOutcome {
   total: number;
 }
 
-export type SearchHitKind = "Artifact" | "Collection";
+export type SearchHitKind = "Artifact" | "Collection" | "Registry";
 
 export interface SearchHit {
   category: string;
@@ -99,6 +99,11 @@ const stripLeadingTitle = (excerpt: string, title: string): string => {
   return stripped;
 };
 
+const SEARCH_HIT_KINDS = new Set<string>(["Collection", "Registry"]);
+
+const toSearchHitKind = (kind: string | undefined): SearchHitKind =>
+  kind && SEARCH_HIT_KINDS.has(kind) ? (kind as SearchHitKind) : "Artifact";
+
 const toHit = async (result: PagefindResult): Promise<SearchHit> => {
   const { excerpt, meta, url } = await result.data();
   const cleanUrl = url.replace(HTML_EXTENSION_PATTERN, "");
@@ -107,7 +112,7 @@ const toHit = async (result: PagefindResult): Promise<SearchHit> => {
     category: meta.category ?? "",
     excerpt: stripLeadingTitle(excerpt, title),
     id: result.id,
-    kind: meta.kind === "Collection" ? "Collection" : "Artifact",
+    kind: toSearchHitKind(meta.kind),
     pathCount: Number(meta.paths) || 0,
     title,
     url: cleanUrl,

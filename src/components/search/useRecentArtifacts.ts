@@ -21,7 +21,9 @@ const isRecentArtifact = (value: unknown): value is RecentArtifact => {
     typeof candidate.url === "string" &&
     typeof candidate.title === "string" &&
     typeof candidate.category === "string" &&
-    (candidate.kind === "Artifact" || candidate.kind === "Collection")
+    (candidate.kind === "Artifact" ||
+      candidate.kind === "Collection" ||
+      candidate.kind === "Registry")
   );
 };
 

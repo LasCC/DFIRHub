@@ -1,4 +1,4 @@
-name: Weekly KapeFiles Update
+name: Weekly KapeFiles and RECmd Update
 
 on:
   schedule:
@@ -34,14 +34,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
 
-      - name: Update KapeFiles submodule
+      - name: Update KapeFiles and RECmd submodules
         run: |
-          git submodule update --remote --recursive src/content/kapefiles
+          git submodule update --remote --recursive src/content/kapefiles src/content/recmd
 
       - name: Check for submodule changes
         id: changes
         run: |
-          if git diff --quiet src/content/kapefiles; then
+          if git diff --quiet src/content/kapefiles src/content/recmd; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -52,8 +52,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/content/kapefiles
-          git commit -m "Update KapeFiles submodule"
+          git add src/content/kapefiles src/content/recmd
+          git commit -m "Update KapeFiles and RECmd submodules"
           git pull --rebase origin "$GITHUB_REF_NAME"
           git push origin "HEAD:$GITHUB_REF_NAME"
 
@@ -61,4 +61,4 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         run: |
           curl -fsS --retry 5 --retry-all-errors --retry-delay 10 -X POST -d '{}' "$NETLIFY_BUILD_HOOK"
-          echo "Netlify build triggered for latest KapeFiles changes."
+          echo "Netlify build triggered for latest KapeFiles and RECmd changes."

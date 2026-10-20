@@ -1,4 +1,4 @@
-import { FileSearch, Hammer, Home, Layers } from "lucide-react";
+import { FileSearch, Hammer, Home, KeyRound, Layers } from "lucide-react";
 import type { ComponentType } from "react";
 
 import { ConverterIcon } from "@/components/ui/ConverterIcon";
@@ -19,6 +19,12 @@ export const QUICK_LINKS: QuickLink[] = [
     shortcut: "a",
   },
   { href: "/collections", icon: Layers, label: "Collections", shortcut: "c" },
+  {
+    href: "/registry",
+    icon: KeyRound,
+    label: "Registry artifacts",
+    shortcut: "r",
+  },
   { href: "/builder", icon: Hammer, label: "Builder", shortcut: "b" },
   {
     href: "/converter",

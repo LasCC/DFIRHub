@@ -3,7 +3,7 @@ import { ConverterLayout } from "../components/converter/ConverterLayout";
 import Footer from "../components/layout/Footer.astro";
 import { Header } from "../components/layout/Header";
 import Layout from "../layouts/Layout.astro";
-import { buildBreadcrumbJsonLd, SITE_NAME, SITE_URL } from "../lib/seo";
+import { buildBreadcrumbJsonLd, serializeJsonForScript, SITE_NAME, SITE_URL } from "../lib/seo";
 
 const seoDescription =
   "Free Sigma rule converter. Convert Sigma detection rules to Splunk, Kusto, Lucene and other SIEM queries in your browser. Your rules never leave your device.";
@@ -29,13 +29,13 @@ const applicationJsonLd = {
   <script
     is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(breadcrumbJsonLd)}
+    set:html={serializeJsonForScript(breadcrumbJsonLd)}
     slot="head"
   />
   <script
     is:inline
     type="application/ld+json"
-    set:html={JSON.stringify(applicationJsonLd)}
+    set:html={serializeJsonForScript(applicationJsonLd)}
     slot="head"
   />
   <Header client:load currentPath={Astro.url.pathname} />
