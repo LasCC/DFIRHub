@@ -6,6 +6,7 @@ import satori from "satori";
 import type { Font } from "satori";
 
 import { generateKapeCommand } from "./generators";
+import { getHomepageData } from "./homepage";
 import { getResolvedEntries } from "./kapefiles";
 import type { KapeTarget } from "./kapefiles";
 import { SITE_URL } from "./seo";
@@ -23,10 +24,13 @@ const GRID_REACH = 0.85;
 const GRID_LIT_THRESHOLD = 0.04;
 const SOURCE_DRIVE = "C:";
 const DESTINATION_FOLDER = "D:\\Evidence";
-const DEFAULT_COMMAND_TARGET = "Prefetch";
-const DEFAULT_HEADLINE = "Where the evidence lives, and the command to collect it";
-const DEFAULT_DESCRIPTION =
-  "Search KAPE targets, copy ready-to-run collection commands, and convert Sigma rules.";
+const DEFAULT_EYEBROW = "Windows forensic artifacts reference";
+const DEFAULT_HEADLINE =
+  "Where the evidence lives, and the command to collect it";
+const ARTIFACT_EYEBROW = "Windows forensic artifact";
+const COLLECTION_EYEBROW = "KAPE triage collection";
+const SANS_FONT = "IBM Plex Sans";
+const MONO_FONT = "JetBrains Mono";
 const SITE_DOMAIN = new URL(SITE_URL).host;
 
 const COLORS = {
@@ -53,13 +57,19 @@ interface CardNode {
   };
 }
 
-interface CardContent {
+interface ArtifactCardContent {
+  eyebrow: string;
   title: string;
   description: string;
-  chip?: string;
+  chip: string;
   commandTarget: string;
   footer: string;
   seed: string;
+}
+
+interface DefaultCardStat {
+  value: string;
+  label: string;
 }
 
 let fontsPromise: Promise<Font[]> | undefined;
@@ -73,9 +83,18 @@ function readFontFile(packageName: string, fileName: string): Promise<Buffer> {
 
 function loadFonts(): Promise<Font[]> {
   fontsPromise ??= Promise.all([
-    readFontFile("@fontsource/inter", "inter-latin-400-normal.woff"),
-    readFontFile("@fontsource/inter", "inter-latin-600-normal.woff"),
-    readFontFile("@fontsource/inter", "inter-latin-700-normal.woff"),
+    readFontFile(
+      "@fontsource/ibm-plex-sans",
+      "ibm-plex-sans-latin-400-normal.woff"
+    ),
+    readFontFile(
+      "@fontsource/ibm-plex-sans",
+      "ibm-plex-sans-latin-600-normal.woff"
+    ),
+    readFontFile(
+      "@fontsource/ibm-plex-sans",
+      "ibm-plex-sans-latin-700-normal.woff"
+    ),
     readFontFile(
       "@fontsource/jetbrains-mono",
       "jetbrains-mono-latin-400-normal.woff"
@@ -84,12 +103,12 @@ function loadFonts(): Promise<Font[]> {
       "@fontsource/jetbrains-mono",
       "jetbrains-mono-latin-700-normal.woff"
     ),
-  ]).then(([inter400, inter600, inter700, mono400, mono700]): Font[] => [
-    { data: inter400, name: "Inter", style: "normal", weight: 400 },
-    { data: inter600, name: "Inter", style: "normal", weight: 600 },
-    { data: inter700, name: "Inter", style: "normal", weight: 700 },
-    { data: mono400, name: "JetBrains Mono", style: "normal", weight: 400 },
-    { data: mono700, name: "JetBrains Mono", style: "normal", weight: 700 },
+  ]).then(([sans400, sans600, sans700, mono400, mono700]): Font[] => [
+    { data: sans400, name: SANS_FONT, style: "normal", weight: 400 },
+    { data: sans600, name: SANS_FONT, style: "normal", weight: 600 },
+    { data: sans700, name: SANS_FONT, style: "normal", weight: 700 },
+    { data: mono400, name: MONO_FONT, style: "normal", weight: 400 },
+    { data: mono700, name: MONO_FONT, style: "normal", weight: 700 },
   ]);
   return fontsPromise;
 }
@@ -167,10 +186,10 @@ function pickTitleFontSize(title: string): number {
 }
 
 function buildCommandRow(commandTarget: string): CardNode {
-  const command = generateKapeCommand(
-    { name: commandTarget } as KapeTarget,
-    { destination: DESTINATION_FOLDER, source: SOURCE_DRIVE }
-  );
+  const command = generateKapeCommand({ name: commandTarget } as KapeTarget, {
+    destination: DESTINATION_FOLDER,
+    source: SOURCE_DRIVE,
+  });
   const tokens = command.split(" ");
   const characterCount = `PS> ${command}`.length + COMMAND_SAFETY_CHARACTERS;
   const fontSize = Math.min(
@@ -207,7 +226,7 @@ function buildCommandRow(commandTarget: string): CardNode {
     "div",
     {
       alignItems: "center",
-      fontFamily: "JetBrains Mono",
+      fontFamily: MONO_FONT,
       fontSize,
     },
     [
@@ -221,41 +240,82 @@ function buildCommandRow(commandTarget: string): CardNode {
   );
 }
 
-function buildCard(content: CardContent, logoUri: string): CardNode {
+function buildBrand(logoUri: string): CardNode {
+  return node("div", { alignItems: "center" }, [
+    node("img", {}, undefined, { height: 40, src: logoUri, width: 40 }),
+    node(
+      "div",
+      {
+        color: COLORS.foreground,
+        fontSize: 30,
+        fontWeight: 600,
+        marginLeft: 14,
+      },
+      "DFIRHub"
+    ),
+  ]);
+}
+
+function buildEyebrow(text: string, fontSize: number): CardNode {
+  return node(
+    "div",
+    {
+      color: COLORS.accent,
+      fontFamily: MONO_FONT,
+      fontSize,
+      marginBottom: 18,
+    },
+    text
+  );
+}
+
+function buildCardFrame(seed: string, children: CardNode[]): CardNode {
+  return node(
+    "div",
+    {
+      backgroundColor: COLORS.background,
+      flexDirection: "column",
+      fontFamily: SANS_FONT,
+      height: "100%",
+      padding: CARD_PADDING,
+      position: "relative",
+      width: "100%",
+    },
+    [
+      node("img", { left: 0, position: "absolute", top: 0 }, undefined, {
+        height: CARD_HEIGHT,
+        src: buildGridDataUri(seed),
+        width: CARD_WIDTH,
+      }),
+      ...children,
+    ]
+  );
+}
+
+function buildArtifactCard(
+  content: ArtifactCardContent,
+  logoUri: string
+): CardNode {
   const titleFontSize = pickTitleFontSize(content.title);
 
   const header = node(
     "div",
     { alignItems: "center", justifyContent: "space-between", width: "100%" },
     [
-      node("div", { alignItems: "center" }, [
-        node("img", {}, undefined, { height: 40, src: logoUri, width: 40 }),
-        node(
-          "div",
-          {
-            color: COLORS.foreground,
-            fontSize: 30,
-            fontWeight: 600,
-            marginLeft: 14,
-          },
-          "DFIRHub"
-        ),
-      ]),
-      content.chip
-        ? node(
-            "div",
-            {
-              backgroundColor: COLORS.chipBackground,
-              border: `1px solid ${COLORS.chipBorder}`,
-              borderRadius: 8,
-              color: COLORS.foreground,
-              fontSize: 24,
-              fontWeight: 600,
-              padding: "8px 18px",
-            },
-            content.chip
-          )
-        : node("div", {}, ""),
+      buildBrand(logoUri),
+      node(
+        "div",
+        {
+          backgroundColor: COLORS.chipBackground,
+          border: `1px solid ${COLORS.chipBorder}`,
+          borderRadius: 8,
+          color: COLORS.foreground,
+          fontSize: 24,
+          fontWeight: 600,
+          padding: "8px 18px",
+        },
+        content.chip
+      ),
     ]
   );
 
@@ -263,6 +323,7 @@ function buildCard(content: CardContent, logoUri: string): CardNode {
     "div",
     { flexDirection: "column", flexGrow: 1, justifyContent: "center" },
     [
+      buildEyebrow(content.eyebrow, 24),
       node(
         "div",
         {
@@ -284,7 +345,7 @@ function buildCard(content: CardContent, logoUri: string): CardNode {
           fontSize: 28,
           lineClamp: 2,
           lineHeight: 1.4,
-          marginTop: 22,
+          marginTop: 20,
           maxWidth: 900,
         },
         content.description
@@ -317,33 +378,69 @@ function buildCard(content: CardContent, logoUri: string): CardNode {
     ]
   );
 
-  return node(
+  return buildCardFrame(content.seed, [header, body, panel]);
+}
+
+function buildStat({ value, label }: DefaultCardStat): CardNode {
+  return node("div", { flexDirection: "column", marginRight: 64 }, [
+    node(
+      "div",
+      {
+        color: COLORS.foreground,
+        fontSize: 40,
+        fontWeight: 600,
+        letterSpacing: -1,
+      },
+      value
+    ),
+    node("div", { color: COLORS.muted, fontSize: 22, marginTop: 4 }, label),
+  ]);
+}
+
+function buildDefaultCard(stats: DefaultCardStat[], logoUri: string): CardNode {
+  const body = node(
+    "div",
+    { flexDirection: "column", flexGrow: 1, justifyContent: "center" },
+    [
+      buildEyebrow(DEFAULT_EYEBROW, 26),
+      node(
+        "div",
+        {
+          color: COLORS.foreground,
+          display: "block",
+          fontSize: 76,
+          fontWeight: 700,
+          letterSpacing: -2.5,
+          lineHeight: 1.04,
+        },
+        DEFAULT_HEADLINE
+      ),
+    ]
+  );
+
+  const footer = node(
     "div",
     {
-      backgroundColor: COLORS.background,
-      flexDirection: "column",
-      fontFamily: "Inter",
-      height: "100%",
-      padding: CARD_PADDING,
-      position: "relative",
+      alignItems: "flex-end",
+      borderTop: `1px solid ${COLORS.chipBorder}`,
+      justifyContent: "space-between",
+      paddingTop: 28,
       width: "100%",
     },
     [
-      node("img", { left: 0, position: "absolute", top: 0 }, undefined, {
-        height: CARD_HEIGHT,
-        src: buildGridDataUri(content.seed),
-        width: CARD_WIDTH,
-      }),
-      header,
-      body,
-      panel,
+      node("div", {}, stats.map(buildStat)),
+      node("div", { color: COLORS.muted, fontSize: 24 }, SITE_DOMAIN),
     ]
   );
+
+  return buildCardFrame("dfirhub", [buildBrand(logoUri), body, footer]);
 }
 
-async function renderCard(content: CardContent): Promise<Uint8Array> {
+async function renderCard(
+  build: (logoUri: string) => CardNode
+): Promise<Uint8Array> {
   const [fonts, logoUri] = await Promise.all([loadFonts(), loadLogoDataUri()]);
-  const svg = await satori(buildCard(content, logoUri) as never, {
+  const svg = await satori(build(logoUri) as never, {
     fonts,
     height: CARD_HEIGHT,
     width: CARD_WIDTH,
@@ -357,31 +454,42 @@ async function renderCard(content: CardContent): Promise<Uint8Array> {
 
 function describeContents(target: KapeTarget): string {
   const pathCount = getResolvedEntries(target).length;
-  const pathLabel = `${pathCount} ${pathCount === 1 ? "path" : "paths"}`;
+  const pathLabel = `${pathCount.toLocaleString("en-US")} ${pathCount === 1 ? "path" : "paths"} on disk`;
   if (target.isCompound) {
-    return `${target.referencedTargets.length} targets, ${pathLabel}`;
+    return `${target.referencedTargets.length} artifacts, ${pathLabel}`;
   }
   return pathLabel;
 }
 
+function describeArtifact(target: KapeTarget): string {
+  if (target.description) {
+    return target.description;
+  }
+  return target.isCompound
+    ? `KAPE collection of ${target.name} artifacts for forensic triage.`
+    : `Where ${target.name} lives on disk and the KAPE command to collect it.`;
+}
+
 export function renderArtifactCard(target: KapeTarget): Promise<Uint8Array> {
-  return renderCard({
+  const content: ArtifactCardContent = {
     chip: target.category,
     commandTarget: target.name,
-    description:
-      target.description || `KAPE target for ${target.name} on Windows.`,
+    description: describeArtifact(target),
+    eyebrow: target.isCompound ? COLLECTION_EYEBROW : ARTIFACT_EYEBROW,
     footer: describeContents(target),
     seed: target.slug,
     title: target.name,
-  });
+  };
+  return renderCard((logoUri) => buildArtifactCard(content, logoUri));
 }
 
 export function renderDefaultCard(): Promise<Uint8Array> {
-  return renderCard({
-    commandTarget: DEFAULT_COMMAND_TARGET,
-    description: DEFAULT_DESCRIPTION,
-    footer: "KAPE targets and Sigma rules for DFIR",
-    seed: "dfirhub",
-    title: DEFAULT_HEADLINE,
-  });
+  const { totalTargets, distinctPathCount, sigma } = getHomepageData();
+  const formatCount = (count: number) => count.toLocaleString("en-US");
+  const stats: DefaultCardStat[] = [
+    { label: "forensic artifacts", value: formatCount(totalTargets) },
+    { label: "paths on disk", value: formatCount(distinctPathCount) },
+    { label: "Sigma rules", value: formatCount(sigma.ruleCount) },
+  ];
+  return renderCard((logoUri) => buildDefaultCard(stats, logoUri));
 }
