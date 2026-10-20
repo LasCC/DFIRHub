@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-fade";
+@import "@fontsource-variable/ibm-plex-sans";
 
 /* Dark variant follows the in-app theme class on <html>, not the OS
    color-scheme media query. The theme bootstrap toggles `.light`/`.dark`
@@ -216,8 +217,9 @@
   --radius-xl: 12px;
 
   --font-sans:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
+    "IBM Plex Sans Variable", "IBM Plex Sans", system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -753,7 +755,8 @@
   transform: translateY(12px);
 }
 
-[data-reveal][data-armed]:not([data-revealed]) :is(.reveal-item, .reveal-count) {
+[data-reveal][data-armed]:not([data-revealed])
+  :is(.reveal-item, .reveal-count) {
   opacity: 0;
 }
 
@@ -763,17 +766,23 @@
 
 [data-reveal][data-revealed] .reveal-item {
   animation: reveal-in 0.4s ease-out both;
-  animation-delay: calc(0.2s + var(--reveal-index, 0) * var(--reveal-step, 70ms));
+  animation-delay: calc(
+    0.2s + var(--reveal-index, 0) * var(--reveal-step, 70ms)
+  );
 }
 
 [data-reveal][data-revealed] .reveal-count {
   animation: reveal-in 0.4s ease-out both;
-  animation-delay: calc(0.7s + var(--reveal-index, 0) * var(--reveal-step, 70ms));
+  animation-delay: calc(
+    0.7s + var(--reveal-index, 0) * var(--reveal-step, 70ms)
+  );
 }
 
 [data-reveal][data-revealed] .reveal-bar {
   animation: reveal-wipe 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(0.2s + var(--reveal-index, 0) * var(--reveal-step, 70ms));
+  animation-delay: calc(
+    0.2s + var(--reveal-index, 0) * var(--reveal-step, 70ms)
+  );
 }
 
 /* Dialog & modal animations */
