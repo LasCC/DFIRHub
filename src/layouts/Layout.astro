@@ -18,9 +18,9 @@ interface Props {
 
 const {
   title,
-  description = "Digital Forensics and Incident Response artifact search and reference tool. Search 350+ Windows forensic artifacts, KAPE targets, and collection paths.",
+  description = "Search 360+ Windows forensic artifacts: where each one lives on disk and the KAPE command to collect it. Free, open-source DFIR reference.",
   image = "/og-image.png",
-  imageAlt = "DFIRHub - Windows forensic artifact search and KAPE reference",
+  imageAlt = "DFIRHub - Windows forensic artifacts search and KAPE reference",
   type = "website",
   noindex = false,
   shader,
@@ -34,7 +34,7 @@ const structuredData = {
       "@id": `${siteUrl}/#website`,
       "@type": "WebSite",
       description:
-        "Digital Forensics and Incident Response artifact search and reference tool",
+        "Windows forensic artifacts reference for digital forensics and incident response (DFIR)",
       name: SITE_NAME,
       publisher: { "@id": `${siteUrl}/#organization` },
       url: siteUrl,
@@ -57,7 +57,7 @@ const canonicalPath =
 const canonicalUrl = new URL(canonicalPath, siteUrl).toString();
 const fullTitle =
   title === "DFIRHub"
-    ? "DFIRHub - DFIR Artifact Search & Reference"
+    ? "DFIRHub - Windows Forensic Artifacts Search & Reference"
     : `${title} | DFIRHub`;
 ---
 

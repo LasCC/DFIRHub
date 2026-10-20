@@ -10,7 +10,7 @@ export const LOGO_URL = `${SITE_URL}/icon-512.png`;
 
 const MAX_DESCRIPTION_LENGTH = 158;
 const MIN_DESCRIPTION_LENGTH = 100;
-const SHORT_DESCRIPTION_EXTENSION = "Includes paths and KAPE commands.";
+const SHORT_DESCRIPTION_EXTENSION = "Free DFIR reference.";
 const MAX_TITLE_LENGTH = 60;
 const TITLE_BRAND_SUFFIX = ` | ${SITE_NAME}`;
 const WHITESPACE_PATTERN = /\s+/g;
@@ -45,12 +45,24 @@ function countCollectablePaths(target: KapeTarget): string {
   return `${count} ${count === 1 ? "path" : "paths"}`;
 }
 
+function fitsTitleWithBrand(title: string): boolean {
+  return title.length + TITLE_BRAND_SUFFIX.length <= MAX_TITLE_LENGTH;
+}
+
 export function buildArtifactTitle(target: KapeTarget): string {
-  const kind = target.isCompound ? "KAPE Collection" : "KAPE Target";
-  const detailed = `${target.name} ${kind}`;
-  const fitsWithBrand =
-    detailed.length + TITLE_BRAND_SUFFIX.length <= MAX_TITLE_LENGTH;
-  return fitsWithBrand ? detailed : target.name;
+  const candidates = target.isCompound
+    ? [`${target.name} KAPE Collection`]
+    : [
+        `${target.name} Forensic Artifact & KAPE Target`,
+        `${target.name} Forensic Artifact`,
+      ];
+  return candidates.find(fitsTitleWithBrand) ?? target.name;
+}
+
+function describeCollectionContext(target: KapeTarget, pathCount: string) {
+  return target.isCompound
+    ? `KAPE collection of ${pathCount} for forensic triage.`
+    : `Windows forensic artifact: ${pathCount} and the KAPE command to collect it.`;
 }
 
 export function buildArtifactDescription(target: KapeTarget): string {
@@ -61,10 +73,10 @@ export function buildArtifactDescription(target: KapeTarget): string {
   );
 
   if (!summary) {
-    return `${target.name} - Windows forensic artifact with ${pathCount}. KAPE collection target for DFIR investigations.`;
+    return `${target.name} Windows forensic artifact: where it lives on disk (${pathCount}) and the KAPE command to collect it for DFIR investigations.`;
   }
 
-  const context = `KAPE target with ${pathCount} for Windows forensic collection.`;
+  const context = describeCollectionContext(target, pathCount);
   const room = MAX_DESCRIPTION_LENGTH - context.length - 2;
   const description = `${truncateAtWord(summary, room)}. ${context}`;
   return description.length < MIN_DESCRIPTION_LENGTH

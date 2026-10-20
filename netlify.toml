@@ -146,6 +146,16 @@ from = "/a/*"
 to = "/artifact/:splat"
 status = 301
 
+[[redirects]]
+from = "/artefact/*"
+to = "/artifact/:splat"
+status = 301
+
+[[redirects]]
+from = "/artefacts"
+to = "/artifacts"
+status = 301
+
 # PostHog reverse proxy (avoids ad blockers)
 [[redirects]]
 from = "/ingest/static/*"

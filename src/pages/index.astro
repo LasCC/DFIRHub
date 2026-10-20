@@ -65,15 +65,19 @@ const searchIndex: HomeSearchItem[] = getIndividualTargets().map((target) => ({
     <div class="mx-auto max-w-6xl px-4">
       <section class="pt-12 pb-10 sm:pt-16 sm:pb-14">
         <h1 class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl lg:text-[3.75rem]">
+          <span class="mb-4 block font-mono text-sm font-normal tracking-normal text-muted-foreground">
+            Windows forensic artifacts reference
+          </span>
           Where the evidence lives, and the command to collect it
         </h1>
 
         <div class="mt-10 grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
           <div class="lg:col-span-5">
             <p class="max-w-md text-base text-muted-foreground">
-              Search {totalTargets} KAPE targets that cover{" "}
-              {distinctPathCount} paths on disk. Copy a ready-to-run command,
-              build a collection script, or convert a Sigma rule for your SIEM.
+              Search {totalTargets} forensic artifacts and the KAPE targets
+              that collect them, covering {distinctPathCount} paths on disk.
+              Copy a ready-to-run command, build a collection script, or
+              convert a Sigma rule for your SIEM.
             </p>
 
             <div class="mt-8">

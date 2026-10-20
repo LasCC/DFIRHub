@@ -162,7 +162,7 @@ const seoTitle = buildArtifactTitle(target);
 const seoDescription = buildArtifactDescription(target);
 const artifactUrl = `${SITE_URL}/artifact/${target.slug}`;
 const socialImagePath = `/og/${target.slug}.png`;
-const socialImageAlt = `${target.name} KAPE target on DFIRHub`;
+const socialImageAlt = `${target.name} forensic artifact and KAPE target on DFIRHub`;
 const targetDates = getTargetDates(target);
 
 const jsonLd = {
@@ -182,9 +182,10 @@ const jsonLd = {
   image: `${SITE_URL}${socialImagePath}`,
   inLanguage: "en",
   keywords: [
+    `${target.name} forensic artifact`,
+    "forensic artifact",
+    "forensic artefact",
     "DFIR",
-    "forensics",
-    target.name,
     target.category,
     "KAPE",
     "Windows forensics",
@@ -280,6 +281,9 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
             id="artifact-title"
             class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl"
           >
+            <span class="mb-3 block font-mono text-sm font-normal tracking-normal text-muted-foreground">
+              {target.isCompound ? "KAPE triage collection" : "Windows forensic artifact"}
+            </span>
             {target.name}
           </h1>
           {target.description && (

@@ -28,7 +28,7 @@ const featuredNames = targets
   .map((target) => target.name)
   .join(", ");
 const seoDescription = truncateAtWord(
-  `Browse ${targets.length} ${category} KAPE targets for Windows forensic collection and DFIR triage, including ${featuredNames}.`,
+  `Browse ${targets.length} ${category} forensic artifacts with file paths and KAPE targets for DFIR triage, including ${featuredNames}.`,
   158
 );
 
@@ -107,7 +107,7 @@ const collectionJsonLd = {
           class="mb-2 flex items-center gap-3 text-2xl font-semibold tracking-tight sm:text-3xl"
         >
           <span class={`h-2.5 w-2.5 rounded-full ${style.accent}`}></span>
-          {category} artifacts
+          {category} forensic artifacts
         </h1>
         <p class="text-sm text-muted-foreground sm:text-base">
           <span class="font-medium text-foreground">{targets.length}</span> KAPE

@@ -1,7 +1,7 @@
 {
-  "name": "DFIRHub - DFIR Artifact Reference",
+  "name": "DFIRHub - Windows Forensic Artifacts Reference",
   "short_name": "DFIRHub",
-  "description": "Digital Forensics and Incident Response artifact search, reference, and Sigma rule converter",
+  "description": "Windows forensic artifacts search, KAPE command builder, and Sigma rule converter for DFIR",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
