@@ -7,14 +7,17 @@ import type {
   TelemetrySource,
 } from "@/lib/sigma/logsource-requirements";
 import { describeRuleTelemetry } from "@/lib/sigma/logsource-requirements";
+import type { Logsource } from "@/lib/sigma/sigma-mapping";
 
 interface LoggingRequirementsProps {
   rule: string;
   selectedPipeline: string;
 }
 
-function formatLogsource(logsource: Record<string, string | undefined>) {
-  return ["product", "category", "service"]
+const LOGSOURCE_DISPLAY_KEYS = ["product", "category", "service"] as const;
+
+function formatLogsource(logsource: Logsource) {
+  return LOGSOURCE_DISPLAY_KEYS
     .filter((key) => logsource[key])
     .map((key) => `${key}: ${logsource[key]}`)
     .join(" · ");
