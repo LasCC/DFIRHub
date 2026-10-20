@@ -2,3 +2,7 @@
 	path = src/content/kapefiles
 	url = https://github.com/EricZimmerman/KapeFiles.git
 	branch = master
+[submodule "src/content/recmd"]
+	path = src/content/recmd
+	url = https://github.com/EricZimmerman/RECmd.git
+	branch = master

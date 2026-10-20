@@ -47,6 +47,11 @@ const categoryStyles: Record<string, CategoryStyle> = {
     bg: "bg-purple-500/5",
     text: "text-purple-800 dark:text-purple-400",
   },
+  Registry: {
+    accent: "bg-pink-600",
+    bg: "bg-pink-500/5",
+    text: "text-pink-800 dark:text-pink-400",
+  },
   Windows: {
     accent: "bg-blue-600",
     bg: "bg-blue-500/5",

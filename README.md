@@ -10,13 +10,15 @@ You can search artifacts by name, or start from a question on the home page, suc
 
 Collections group related artifacts. The KAPE command builder starts from an incident scenario, combines targets and modules, and exports a KAPE command, a `_kape.cli` batch file or a fallback script; its URL keeps every choice except secrets. Short links open an artifact directly: `/prefetch` works for popular ones, and `/a/<slug>` works for every artifact.
 
+The registry section lists Windows registry artifacts from the `DFIRBatch.reb` batch file in Eric Zimmerman's RECmd repository. Each page shows the hive, key path and values, the reference links from the batch file, and the RECmd or KAPE command that parses them.
+
 The converter turns a Sigma rule into one of 17 backends, including Splunk, Elastic, KQL, Loki, and CrowdStrike. It runs pySigma in the browser through Pyodide. You can also search the SigmaHQ repository and import a rule from the results.
 
 The site is dark by default. The header switch also offers a light theme and an auto setting that follows your browser. Every artifact page has its own social preview image, rendered at build time.
 
 ## Getting started
 
-You need Node 24 and pnpm 10. The KapeFiles data is a git submodule, so initialize it after you clone.
+You need Node 24 and pnpm 10. The KapeFiles and RECmd data are git submodules, so initialize them after you clone.
 
 ```bash
 git clone https://github.com/LasCC/DFIRHub.git
@@ -41,35 +43,13 @@ Open `http://localhost:4321`.
 | `pnpm fix`             | Fix lint and formatting problems                                                    |
 | `pnpm run sigma:index` | Rebuild the Sigma rules index from SigmaHQ                                          |
 
-## Project structure
-
-```
-src/
-├── components/
-│   ├── artifact/     # Artifact page: paths, command generator, CyberChef links
-│   ├── artifacts/    # Category filters for the artifact list
-│   ├── builder/      # KAPE command builder
-│   ├── converter/    # Sigma rule converter UI
-│   ├── home/         # Landing page sections
-│   ├── layout/       # Header, footer, shader background, keyboard shortcuts
-│   ├── search/       # Pagefind search
-│   └── ui/           # Shared UI primitives and code blocks
-├── content/kapefiles # KapeFiles git submodule
-├── hooks/            # Theme and clipboard hooks
-├── layouts/          # Base page layout and SEO tags
-├── lib/              # KAPE data, command generators, social card renderer
-│   └── sigma/        # Sigma converter engine (Pyodide worker, backends, pipelines)
-├── pages/            # Astro file-based routing, including /og/<slug>.png
-└── styles/           # Global Tailwind styles
-```
-
 ## Deployment
 
 The site deploys to Netlify. Two GitHub Actions workflows keep the data current. Both need a `NETLIFY_BUILD_HOOK` secret, which you create under Build hooks in Netlify and add to the repository secrets in GitHub.
 
 | Workflow                 | Schedule                 | What it does                                                                            |
 | ------------------------ | ------------------------ | --------------------------------------------------------------------------------------- |
-| `update-kapefiles.yml`   | Weekly (Mon 00:00 UTC)   | Triggers a Netlify rebuild to pull the latest KapeFiles submodule                       |
+| `update-kapefiles.yml`   | Weekly (Mon 00:00 UTC)   | Updates the KapeFiles and RECmd submodules and triggers a Netlify rebuild               |
 | `update-sigma-rules.yml` | Monthly (1st, 02:00 UTC) | Rebuilds the Sigma rules index from the SigmaHQ API, commits it, and triggers a rebuild |
 
 You can also start either workflow by hand with `workflow_dispatch`.
@@ -83,6 +63,7 @@ You can also start either workflow by hand with `workflow_dispatch`.
 | `g h`          | Go to home                         |
 | `g a`          | Go to artifacts                    |
 | `g c`          | Go to collections                  |
+| `g r`          | Go to registry artifacts           |
 | `g b`          | Go to builder                      |
 | `g s`          | Go to converter                    |
 | `j` / `k`      | Move down / up in a list           |
@@ -98,6 +79,7 @@ You can also start either workflow by hand with `workflow_dispatch`.
 
 ## Acknowledgments
 
-- [Eric Zimmerman](https://github.com/EricZimmerman) wrote KAPE and maintains KapeFiles.
+- [Eric Zimmerman](https://github.com/EricZimmerman) wrote KAPE and [RECmd](https://github.com/EricZimmerman/RECmd), and maintains KapeFiles.
+- [Andrew Rathbun and the DFIRBatch contributors](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.md) maintain [`DFIRBatch.reb`](https://github.com/EricZimmerman/RECmd/blob/master/BatchExamples/DFIRBatch.reb), the source of the registry section: its key paths, value names, comments and reference links ([MIT](https://github.com/EricZimmerman/RECmd/blob/master/LICENSE)). Each registry page links back to the batch file and to the references it cites.
 - [SigmaHQ](https://github.com/SigmaHQ/sigma) maintains the Sigma detection rules.
 - [pySigma](https://github.com/SigmaHQ/pySigma) is the conversion engine.

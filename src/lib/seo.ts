@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import path from "node:path";
 
 import type { KapeTarget } from "./kapefiles";
+import type { RegistryArtifact } from "./registry";
 
 export const SITE_URL = "https://dfirhub.com";
 export const SITE_NAME = "DFIRHub";
@@ -15,6 +16,8 @@ const MAX_TITLE_LENGTH = 60;
 const TITLE_BRAND_SUFFIX = ` | ${SITE_NAME}`;
 const WHITESPACE_PATTERN = /\s+/g;
 const TRAILING_PUNCTUATION_PATTERN = /[\s.,;:!-]+$/;
+const MIN_CLAUSE_RATIO = 0.6;
+const SENTENCE_BREAK_PATTERN = /(?<=[.!?])\s+/u;
 const KAPETARGETS_PATH_PREFIX = "Targets";
 
 interface BreadcrumbItem {
@@ -79,6 +82,71 @@ export function buildArtifactDescription(target: KapeTarget): string {
   const context = describeCollectionContext(target, pathCount);
   const room = MAX_DESCRIPTION_LENGTH - context.length - 2;
   const description = `${truncateAtWord(summary, room)}. ${context}`;
+  return description.length < MIN_DESCRIPTION_LENGTH
+    ? `${description} ${SHORT_DESCRIPTION_EXTENSION}`
+    : description;
+}
+
+function shortenAtClause(text: string, maxLength: number): string {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  const clauseEnd = text.slice(0, maxLength + 1).lastIndexOf(", ");
+  return clauseEnd > maxLength * MIN_CLAUSE_RATIO
+    ? text.slice(0, clauseEnd)
+    : truncateAtWord(text, maxLength);
+}
+
+export function buildRegistryTitle(artifact: RegistryArtifact): string {
+  const candidates = [
+    `${artifact.name} Registry Forensic Artifact`,
+    `${artifact.name} Registry Artifact`,
+  ];
+  return candidates.find(fitsTitleWithBrand) ?? artifact.name;
+}
+
+export function buildRegistryDescription(artifact: RegistryArtifact): string {
+  const keyCount = artifact.entries.length;
+  const keyLabel = `${keyCount} ${keyCount === 1 ? "key" : "keys"}`;
+  const hiveLabel = `${artifact.hives.join(", ")} ${artifact.hives.length === 1 ? "hive" : "hives"}`;
+  const contexts = [
+    `Windows registry artifact: ${keyLabel} in the ${hiveLabel} and the RECmd command to parse them.`,
+    `${keyLabel} in the ${hiveLabel}, with the RECmd command to parse them.`,
+    `${keyLabel} in the ${hiveLabel}, parsed with RECmd.`,
+  ];
+  const summary = collapseWhitespace(artifact.summary).replace(
+    TRAILING_PUNCTUATION_PATTERN,
+    ""
+  );
+
+  if (!summary) {
+    return truncateAtWord(
+      `${artifact.name} ${contexts[0]} Free DFIR reference.`,
+      MAX_DESCRIPTION_LENGTH
+    );
+  }
+
+  const [firstSentence] = summary.split(SENTENCE_BREAK_PATTERN);
+  const leads = [summary, firstSentence].map(
+    (text) =>
+      `${artifact.name}: ${text.replace(TRAILING_PUNCTUATION_PATTERN, "")}`
+  );
+  const fitsWith = (lead: string, context: string) =>
+    lead.length + context.length + 2 <= MAX_DESCRIPTION_LENGTH;
+  const fittingLead = leads.find((lead) =>
+    contexts.some((context) => fitsWith(lead, context))
+  );
+  const lead = fittingLead ?? leads.at(-1) ?? artifact.name;
+  const context =
+    contexts.find((candidate) => fitsWith(lead, candidate)) ??
+    contexts.at(-1) ??
+    "";
+  const shortenedLead = shortenAtClause(
+    lead,
+    MAX_DESCRIPTION_LENGTH - context.length - 2
+  );
+  const separator = shortenedLead.endsWith("…") ? " " : ". ";
+  const description = `${shortenedLead}${separator}${context}`;
   return description.length < MIN_DESCRIPTION_LENGTH
     ? `${description} ${SHORT_DESCRIPTION_EXTENSION}`
     : description;

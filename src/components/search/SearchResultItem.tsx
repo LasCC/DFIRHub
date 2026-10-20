@@ -22,7 +22,9 @@ export function SearchResultItem({
 }: SearchResultItemProps) {
   const categoryStyle = getCategoryStyle(hit.category);
   const CategoryIcon = getCategoryIcon(hit.category);
-  const pathLabel = hit.pathCount === 1 ? "path" : "paths";
+  const isRegistry = hit.kind === "Registry";
+  const countUnit = isRegistry ? "key" : "path";
+  const countLabel = hit.pathCount === 1 ? countUnit : `${countUnit}s`;
 
   return (
     <CommandItem
@@ -59,14 +61,14 @@ export function SearchResultItem({
       </span>
 
       <span className="hidden shrink-0 flex-col items-end gap-0.5 text-xs sm:flex">
-        {hit.kind === "Artifact" && hit.category && (
+        {hit.kind !== "Collection" && hit.category && (
           <span className={cn("font-medium", categoryStyle.text)}>
             {hit.category}
           </span>
         )}
         {Boolean(hit.pathCount) && (
           <span className="text-muted-foreground tabular-nums">
-            {hit.pathCount} {pathLabel}
+            {`${hit.pathCount} ${countLabel}`}
           </span>
         )}
       </span>

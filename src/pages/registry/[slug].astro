@@ -1,0 +1,365 @@
+---
+import { ArrowUpRight, Database, KeyRound, Tag } from "lucide-react";
+import Footer from "../../components/layout/Footer.astro";
+import { Header } from "../../components/layout/Header";
+import { CodeBlock } from "../../components/ui/CodeBlock";
+import Panel from "../../components/ui/Panel.astro";
+import Layout from "../../layouts/Layout.astro";
+import { loadAllTargets } from "../../lib/kapefiles";
+import {
+  getKapeTargetSlugForHive,
+  getRegistryBatchInfo,
+  getRegistryCategoryId,
+  getRegistrySourceDates,
+  loadRegistryArtifacts,
+  REGISTRY_BATCH_FILE,
+  REGISTRY_CREDITS_URL,
+  REGISTRY_LICENSE_URL,
+  REGISTRY_SOURCE_URL,
+} from "../../lib/registry";
+import type { RegistryArtifact } from "../../lib/registry";
+import {
+  buildBreadcrumbJsonLd,
+  buildRegistryDescription,
+  buildRegistryTitle,
+  LOGO_URL,
+  SITE_NAME,
+  SITE_URL,
+} from "../../lib/seo";
+
+export function getStaticPaths() {
+  return loadRegistryArtifacts().map((artifact) => ({
+    params: { slug: artifact.slug },
+    props: { artifact },
+  }));
+}
+
+interface Props {
+  artifact: RegistryArtifact;
+}
+
+const { artifact } = Astro.props;
+const batchInfo = getRegistryBatchInfo();
+
+const MAX_RELATED_ARTIFACTS = 12;
+
+const { summary } = artifact;
+const keyCount = artifact.entries.length;
+const keyLabel = `${keyCount} ${keyCount === 1 ? "key" : "keys"}`;
+
+const categoryHref = `/registry?category=${getRegistryCategoryId(artifact.category)}`;
+
+const kapeTargets = new Map(loadAllTargets().map((target) => [target.slug, target]));
+const collectTargets = [
+  ...new Set(
+    artifact.hives.flatMap((hive) => getKapeTargetSlugForHive(hive) ?? [])
+  ),
+]
+  .map((slug) => kapeTargets.get(slug))
+  .filter((target) => target !== undefined);
+
+const relatedArtifacts = loadRegistryArtifacts()
+  .filter(
+    (candidate) =>
+      candidate.category === artifact.category && candidate.slug !== artifact.slug
+  )
+  .slice(0, MAX_RELATED_ARTIFACTS);
+
+const referenceLinks = artifact.references.map((reference) => {
+  try {
+    const parsed = new URL(reference.url);
+    return {
+      detail: reference.label ?? `${parsed.pathname}${parsed.search}`.replace(/^\/$/, ""),
+      host: parsed.hostname.replace(/^www\./, ""),
+      url: reference.url,
+    };
+  } catch {
+    return { detail: reference.label ?? "", host: reference.url, url: reference.url };
+  }
+});
+
+const recmdCommand = `RECmd.exe -d "D:\\Evidence" --bn BatchExamples\\${REGISTRY_BATCH_FILE} --csv "D:\\Parsed"`;
+const kapeCommand = String.raw`kape.exe --msource D:\Evidence --mdest D:\Parsed --module RECmd_DFIRBatch`;
+
+const seoTitle = buildRegistryTitle(artifact);
+const seoDescription = buildRegistryDescription(artifact);
+const pageUrl = `${SITE_URL}/registry/${artifact.slug}`;
+const socialImagePath = `/og/registry/${artifact.slug}.png`;
+const socialImageAlt = `${artifact.name} Windows registry forensic artifact on DFIRHub`;
+const sourceDates = getRegistrySourceDates();
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  about: {
+    "@type": "Thing",
+    description: "Windows registry forensic artifact for incident response",
+    name: "Digital Forensics",
+  },
+  author: { "@type": "Person", name: batchInfo.author },
+  description: seoDescription,
+  headline: `${artifact.name} - Windows Registry Forensic Artifact`.slice(0, 110),
+  image: `${SITE_URL}${socialImagePath}`,
+  inLanguage: "en",
+  isBasedOn: REGISTRY_SOURCE_URL,
+  keywords: [
+    `${artifact.name} registry`,
+    "registry forensic artifact",
+    "Windows registry forensics",
+    "DFIR",
+    "RECmd",
+    artifact.category,
+  ].join(", "),
+  mainEntityOfPage: { "@id": pageUrl, "@type": "WebPage" },
+  publisher: {
+    "@type": "Organization",
+    logo: { "@type": "ImageObject", url: LOGO_URL },
+    name: SITE_NAME,
+    url: SITE_URL,
+  },
+  ...(sourceDates && {
+    dateModified: sourceDates.modified,
+    datePublished: sourceDates.published,
+  }),
+};
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Registry", path: "/registry" },
+  { name: artifact.category, path: categoryHref },
+  { name: artifact.name, path: `/registry/${artifact.slug}` },
+]);
+
+const chipLinkClass =
+  "inline-flex rounded-md border border-border bg-card px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground";
+const externalLinkClass =
+  "focus-ring rounded-sm text-primary transition-colors hover:underline";
+---
+
+<Layout
+  title={seoTitle}
+  description={seoDescription}
+  type="article"
+  image={socialImagePath}
+  imageAlt={socialImageAlt}
+>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(jsonLd)}
+    slot="head"
+  />
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbJsonLd)}
+    slot="head"
+  />
+
+  <Header client:load currentPath={Astro.url.pathname} />
+
+  <main id="main-content" class="relative flex-1" tabindex="-1" data-pagefind-body>
+    <span hidden data-pagefind-meta={`title:${artifact.name}`}></span>
+    <span hidden data-pagefind-meta="kind:Registry"></span>
+    <span hidden data-pagefind-meta="category:Registry"></span>
+    <span hidden data-pagefind-filter="category:Registry"></span>
+    <span hidden data-pagefind-meta={`paths:${keyCount}`}></span>
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <nav class="mb-8 text-xs text-muted-foreground" aria-label="Breadcrumb" data-pagefind-ignore>
+        <ol class="flex flex-wrap items-center gap-1">
+          <li>
+            <a
+              href="/"
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >Home</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <a
+              href="/registry"
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >Registry</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <a
+              href={categoryHref}
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >{artifact.category}</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <span class="px-1 text-foreground" aria-current="page">{artifact.slug}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <header class="mb-12">
+        <h1 class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl">
+          <span class="mb-3 block font-mono text-sm font-normal tracking-normal text-muted-foreground">
+            Windows registry artifact
+          </span>
+          {artifact.name}
+        </h1>
+        {summary && <p class="mt-4 max-w-2xl text-lg text-muted-foreground">{summary}</p>}
+        <ul data-pagefind-ignore class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
+          <li class="inline-flex items-center gap-1.5">
+            <Tag aria-hidden="true" className="h-4 w-4" />
+            {artifact.category}
+          </li>
+          <li class="inline-flex items-center gap-1.5">
+            <KeyRound aria-hidden="true" className="h-4 w-4" />
+            {keyLabel}
+          </li>
+          <li class="inline-flex flex-wrap items-center gap-1.5">
+            <Database aria-hidden="true" className="h-4 w-4" />
+            {artifact.hives.map((hive) => (
+              <code class="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+                {hive}
+              </code>
+            ))}
+          </li>
+        </ul>
+      </header>
+
+      <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
+        <div class="flex min-w-0 flex-col gap-8 lg:col-span-7">
+          <Panel headingId="keys-heading">
+            <Fragment slot="title">Registry keys</Fragment>
+            <Fragment slot="subtitle">
+              {`${keyLabel} that RECmd reads for this artifact`}
+            </Fragment>
+            <ul class="divide-y divide-border">
+              {artifact.entries.map((entry) => (
+                <li class="flex flex-col gap-1.5 px-4 py-3">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <code class="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+                      {entry.hive}
+                    </code>
+                    {entry.valueName && (
+                      <span class="font-mono text-xs text-primary">{entry.valueName}</span>
+                    )}
+                    {entry.recursive && (
+                      <span class="text-xs text-muted-foreground">recursive</span>
+                    )}
+                  </div>
+                  <code class="font-mono text-sm break-all text-foreground">{entry.keyPath}</code>
+                  {entry.comment && (
+                    <p class="text-sm text-muted-foreground">{entry.comment}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Panel>
+
+          {referenceLinks.length > 0 && (
+            <Panel headingId="references-heading">
+              <Fragment slot="title">References</Fragment>
+              <Fragment slot="subtitle">
+                {`${referenceLinks.length} ${referenceLinks.length === 1 ? "link" : "links"}`}
+              </Fragment>
+              <ul class="divide-y divide-border">
+                {referenceLinks.map((reference) => (
+                  <li>
+                    <a
+                      href={reference.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="group focus-ring flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted"
+                    >
+                      <span
+                        class="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-64 sm:shrink-0"
+                        title={reference.host}
+                      >
+                        {reference.host}
+                      </span>
+                      <span class="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground sm:block">
+                        {reference.detail}
+                      </span>
+                      <ArrowUpRight
+                        aria-hidden="true"
+                        className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary"
+                      />
+                      <span class="sr-only" data-pagefind-ignore>(opens in new tab)</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+        </div>
+
+        <aside
+          data-pagefind-ignore
+          aria-label="Parse and related information"
+          class="flex min-w-0 flex-col gap-8 lg:col-span-5"
+        >
+          <Panel headingId="parse-heading">
+            <Fragment slot="title">Parse it</Fragment>
+            <Fragment slot="subtitle">
+              Run the {REGISTRY_BATCH_FILE} batch file on collected hives
+            </Fragment>
+            <p class="px-4 pt-3 pb-2 text-xs font-medium text-muted-foreground">RECmd</p>
+            <CodeBlock client:idle code={recmdCommand} language="powershell" flush />
+            <p class="px-4 pt-3 pb-2 text-xs font-medium text-muted-foreground">KAPE module</p>
+            <CodeBlock client:idle code={kapeCommand} language="powershell" flush />
+          </Panel>
+
+          {collectTargets.length > 0 && (
+            <Panel headingId="collect-heading">
+              <Fragment slot="title">Collect the hives</Fragment>
+              <Fragment slot="subtitle">KAPE targets that copy these hives</Fragment>
+              <ul class="flex flex-wrap gap-2 p-3">
+                {collectTargets.map((target) => (
+                  <li>
+                    <a href={`/artifact/${target.slug}`} class={chipLinkClass}>
+                      {target.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+
+          {relatedArtifacts.length > 0 && (
+            <Panel headingId="related-heading">
+              <Fragment slot="title">More in {artifact.category}</Fragment>
+              <ul class="flex flex-wrap gap-2 p-3">
+                {relatedArtifacts.map((related) => (
+                  <li>
+                    <a href={`/registry/${related.slug}`} class={chipLinkClass}>
+                      {related.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+        </aside>
+      </div>
+
+      <p data-pagefind-ignore class="mt-16 border-t border-border pt-4 text-xs text-muted-foreground">
+        <span>Source: </span>
+        <a href={REGISTRY_SOURCE_URL} target="_blank" rel="noopener noreferrer" class={externalLinkClass}>
+          RECmd/BatchExamples/{REGISTRY_BATCH_FILE}
+          <span class="sr-only">(opens in new tab)</span>
+        </a>
+        {` v${batchInfo.version} by ${batchInfo.author} and `}
+        <a href={REGISTRY_CREDITS_URL} target="_blank" rel="noopener noreferrer" class={externalLinkClass}>
+          contributors
+          <span class="sr-only">(opens in new tab)</span>
+        </a>
+        {", "}
+        <a href={REGISTRY_LICENSE_URL} target="_blank" rel="noopener noreferrer" class={externalLinkClass}>
+          MIT License
+          <span class="sr-only">(opens in new tab)</span>
+        </a>
+      </p>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

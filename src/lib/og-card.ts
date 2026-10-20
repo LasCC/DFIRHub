@@ -9,6 +9,7 @@ import { generateKapeCommand } from "./generators";
 import { getHomepageData } from "./homepage";
 import { getResolvedEntries } from "./kapefiles";
 import type { KapeTarget } from "./kapefiles";
+import type { RegistryArtifact } from "./registry";
 import { SITE_URL } from "./seo";
 
 const CARD_WIDTH = 1200;
@@ -29,6 +30,11 @@ const DEFAULT_HEADLINE =
   "Where the evidence lives, and the command to collect it";
 const ARTIFACT_EYEBROW = "Windows forensic artifact";
 const COLLECTION_EYEBROW = "KAPE triage collection";
+const REGISTRY_EYEBROW = "Windows registry artifact";
+const REGISTRY_CHIP = "Registry";
+const MIN_KEY_PATH_FONT_SIZE = 20;
+const KEY_PATH_SEPARATOR = "\\";
+const KEY_PATH_ELLIPSIS = "…";
 const SANS_FONT = "IBM Plex Sans";
 const MONO_FONT = "JetBrains Mono";
 const SITE_DOMAIN = new URL(SITE_URL).host;
@@ -62,7 +68,7 @@ interface ArtifactCardContent {
   title: string;
   description: string;
   chip: string;
-  commandTarget: string;
+  commandRow: CardNode;
   footer: string;
   seed: string;
 }
@@ -240,6 +246,63 @@ function buildCommandRow(commandTarget: string): CardNode {
   );
 }
 
+function shortenKeyPath(keyPath: string, maxLength: number): string {
+  const segments = keyPath.split(KEY_PATH_SEPARATOR);
+  if (keyPath.length <= maxLength || segments.length < 3) {
+    return keyPath;
+  }
+  const [first, ...rest] = segments;
+  const tail = [...rest];
+  const fits = () =>
+    [first, KEY_PATH_ELLIPSIS, ...tail].join(KEY_PATH_SEPARATOR).length <=
+    maxLength;
+  while (tail.length > 1 && !fits()) {
+    tail.shift();
+  }
+  return [first, KEY_PATH_ELLIPSIS, ...tail].join(KEY_PATH_SEPARATOR);
+}
+
+function buildKeyPathRow(hive: string, keyPath: string): CardNode {
+  const maxCharacters = Math.floor(
+    PANEL_INNER_WIDTH / (MIN_KEY_PATH_FONT_SIZE * MONO_CHARACTER_WIDTH_RATIO)
+  );
+  const displayedPath = shortenKeyPath(
+    keyPath,
+    maxCharacters - hive.length - 1 - COMMAND_SAFETY_CHARACTERS
+  );
+  const characterCount =
+    `${hive} ${displayedPath}`.length + COMMAND_SAFETY_CHARACTERS;
+  const fontSize = Math.min(
+    MAX_COMMAND_FONT_SIZE,
+    Math.floor(
+      PANEL_INNER_WIDTH / (characterCount * MONO_CHARACTER_WIDTH_RATIO)
+    )
+  );
+  const gap = Math.round(fontSize * MONO_CHARACTER_WIDTH_RATIO);
+
+  return node(
+    "div",
+    { alignItems: "center", fontFamily: MONO_FONT, fontSize },
+    [
+      node(
+        "div",
+        { color: COLORS.panelMuted, flexShrink: 0, marginRight: gap },
+        hive
+      ),
+      node(
+        "div",
+        {
+          color: COLORS.accent,
+          flexShrink: 0,
+          fontWeight: 700,
+          whiteSpace: "nowrap",
+        },
+        displayedPath
+      ),
+    ]
+  );
+}
+
 function buildBrand(logoUri: string): CardNode {
   return node("div", { alignItems: "center" }, [
     node("img", {}, undefined, { height: 40, src: logoUri, width: 40 }),
@@ -364,7 +427,7 @@ function buildArtifactCard(
       width: "100%",
     },
     [
-      buildCommandRow(content.commandTarget),
+      content.commandRow,
       node(
         "div",
         {
@@ -473,12 +536,36 @@ function describeArtifact(target: KapeTarget): string {
 export function renderArtifactCard(target: KapeTarget): Promise<Uint8Array> {
   const content: ArtifactCardContent = {
     chip: target.category,
-    commandTarget: target.name,
+    commandRow: buildCommandRow(target.name),
     description: describeArtifact(target),
     eyebrow: target.isCompound ? COLLECTION_EYEBROW : ARTIFACT_EYEBROW,
     footer: describeContents(target),
     seed: target.slug,
     title: target.name,
+  };
+  return renderCard((logoUri) => buildArtifactCard(content, logoUri));
+}
+
+function describeRegistryKeys(artifact: RegistryArtifact): string {
+  const keyCount = artifact.entries.length;
+  const keyLabel = `${keyCount} ${keyCount === 1 ? "key" : "keys"}`;
+  return `${keyLabel} in ${artifact.hives.join(", ")}`;
+}
+
+export function renderRegistryCard(
+  artifact: RegistryArtifact
+): Promise<Uint8Array> {
+  const [firstEntry] = artifact.entries;
+  const content: ArtifactCardContent = {
+    chip: REGISTRY_CHIP,
+    commandRow: buildKeyPathRow(firstEntry.hive, firstEntry.keyPath),
+    description:
+      artifact.summary ||
+      `Where ${artifact.name} lives in the registry and how to parse it.`,
+    eyebrow: REGISTRY_EYEBROW,
+    footer: describeRegistryKeys(artifact),
+    seed: `registry-${artifact.slug}`,
+    title: artifact.name,
   };
   return renderCard((logoUri) => buildArtifactCard(content, logoUri));
 }

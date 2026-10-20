@@ -2,6 +2,7 @@ import {
   ArrowRight,
   FileSearch,
   HatGlasses,
+  KeyRound,
   Layers,
   Menu,
   Sigma,
@@ -25,6 +26,8 @@ const GitHubMark = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const HTML_EXTENSION_PATTERN = /\.html$/u;
+
 interface HeaderProps {
   showSearch?: boolean;
   currentPath?: string;
@@ -33,6 +36,7 @@ interface HeaderProps {
 const navItems = [
   { href: "/artifacts", label: "Artifacts", Icon: FileSearch },
   { href: "/collections", label: "Collections", Icon: Layers },
+  { href: "/registry", label: "Registry", Icon: KeyRound },
   { href: "/builder", label: "Builder", Icon: Wrench },
   { href: "/converter", label: "Converter", Icon: Sigma },
 ];
@@ -42,8 +46,9 @@ export function Header({ showSearch = true, currentPath }: HeaderProps) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
 
+  const pagePath = currentPath?.replace(HTML_EXTENSION_PATTERN, "");
   const isActive = (href: string) =>
-    currentPath === href || currentPath?.startsWith(`${href}/`);
+    pagePath === href || pagePath?.startsWith(`${href}/`);
 
   // Close mobile menu on escape
   useEffect(() => {

@@ -16,6 +16,7 @@ import Panel from "../../components/ui/Panel.astro";
 import Layout from "../../layouts/Layout.astro";
 import { findCollectionsContaining, getResolvedEntries, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
 import type { KapeTarget } from '../../lib/kapefiles';
+import { getHivesForKapeTarget, getRegistryArtifactsForHives } from '../../lib/registry';
 import {
   buildArtifactDescription,
   buildArtifactTitle,
@@ -73,6 +74,10 @@ const commandTarget: KapeTarget = target.isCompound
 
 // Find collections that include this target
 const includedInCollections = findCollectionsContaining(target.slug);
+
+const MAX_REGISTRY_LINKS = 16;
+const registryHives = getHivesForKapeTarget(target.slug);
+const registryArtifacts = getRegistryArtifactsForHives(registryHives);
 
 // Split documentation entries into URL references and free-text notes
 const isUrl = (value: string) => /^https?:\/\//i.test(value);
@@ -450,6 +455,27 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                     <li>
                       <a href={"/artifact/" + collection.slug} class={chipLinkClass}>
                         {collection.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+            )}
+
+            {registryArtifacts.length > 0 && (
+              <Panel headingId="registry-heading">
+                <Fragment slot="title">Registry artifacts in these hives</Fragment>
+                <Fragment slot="subtitle">
+                  {`${registryArtifacts.length} artifacts in ${registryHives.join(", ")}`}
+                </Fragment>
+                <a href="/registry" slot="actions" class="panel-action focus-ring">
+                  All registry artifacts
+                </a>
+                <ul class="flex flex-wrap gap-2 p-3">
+                  {registryArtifacts.slice(0, MAX_REGISTRY_LINKS).map((artifact) => (
+                    <li>
+                      <a href={"/registry/" + artifact.slug} class={chipLinkClass}>
+                        {artifact.name}
                       </a>
                     </li>
                   ))}

@@ -1,0 +1,502 @@
+---
+import { CategoryFilters } from "../../components/artifacts/CategoryFilters";
+import Footer from "../../components/layout/Footer.astro";
+import { Header } from "../../components/layout/Header";
+import Panel from "../../components/ui/Panel.astro";
+import Layout from "../../layouts/Layout.astro";
+import {
+  getRegistryArtifactsByCategory,
+  getRegistryBatchInfo,
+  getRegistryCategoryId,
+  loadRegistryArtifacts,
+  REGISTRY_BATCH_FILE,
+  REGISTRY_CREDITS_URL,
+  REGISTRY_LICENSE_URL,
+  REGISTRY_SOURCE_URL,
+} from "../../lib/registry";
+import {
+  buildBreadcrumbJsonLd,
+  SITE_URL,
+  truncateAtWord,
+} from "../../lib/seo";
+
+const artifacts = loadRegistryArtifacts();
+const groupedArtifacts = [...getRegistryArtifactsByCategory()];
+const batchInfo = getRegistryBatchInfo();
+const entryCount = artifacts.reduce(
+  (total, artifact) => total + artifact.entries.length,
+  0
+);
+
+const seoDescription = truncateAtWord(
+  `Browse ${artifacts.length} Windows registry forensic artifacts with hive, key path and value, from UserAssist and BAM to USBSTOR and Run keys. Parse them with RECmd.`,
+  158
+);
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Registry", path: "/registry" },
+]);
+
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  description: seoDescription,
+  isPartOf: { "@type": "WebSite", url: SITE_URL },
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: artifacts.map((artifact, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${SITE_URL}/registry/${artifact.slug}`,
+    })),
+  },
+  name: "Windows registry forensic artifacts",
+};
+
+const filterCategories = [
+  { count: artifacts.length, id: "all", label: "All" },
+  ...groupedArtifacts.map(([category, items]) => ({
+    count: items.length,
+    id: getRegistryCategoryId(category),
+    label: category,
+  })),
+];
+
+const escapeJsonForHtml = (json: string) => json.replaceAll("<", "\\u003c");
+
+const registryArtifactsJson = escapeJsonForHtml(
+  JSON.stringify(
+    artifacts.map((artifact) => ({
+      c: getRegistryCategoryId(artifact.category),
+      cl: artifact.category,
+      d: artifact.summary,
+      h: artifact.hives.join(", "),
+      k: artifact.entries.length,
+      n: artifact.name,
+      s: artifact.slug,
+      t: artifact.entries
+        .map((entry) =>
+          [entry.hive, entry.keyPath, entry.valueName, entry.comment].join(" ")
+        )
+        .join(" "),
+    }))
+  )
+);
+
+const keyLabel = (count: number) => `${count} ${count === 1 ? "key" : "keys"}`;
+---
+
+<Layout
+  title="Windows Registry Forensic Artifacts"
+  description={seoDescription}
+>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(breadcrumbJsonLd)}
+    slot="head"
+  />
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={JSON.stringify(collectionJsonLd)}
+    slot="head"
+  />
+
+  <Header client:load currentPath={Astro.url.pathname} />
+
+  <main id="main-content" class="relative flex-1" tabindex="-1">
+    <div class="mx-auto max-w-6xl px-4 py-8">
+      <nav class="mb-6 text-xs text-muted-foreground" aria-label="Breadcrumb">
+        <ol class="flex items-center gap-1">
+          <li>
+            <a
+              href="/"
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >Home</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <span class="px-1 text-foreground" aria-current="page">Registry</span>
+          </li>
+        </ol>
+      </nav>
+
+      <header class="mb-8">
+        <h1 class="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+          Windows Registry Artifacts
+        </h1>
+        <p class="max-w-3xl text-sm text-muted-foreground sm:text-base">
+          <span class="font-medium text-foreground">{artifacts.length}</span>
+          {" registry artifacts and "}
+          <span class="font-medium text-foreground">{entryCount}</span>
+          {" keys and values to examine during an investigation, with the hive that holds each one."}
+        </p>
+      </header>
+
+      <div class="sticky top-14 z-40 mb-6 bg-background py-3">
+        <div class="relative mb-3">
+          <svg
+            aria-hidden="true"
+            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input
+            id="registry-search"
+            type="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Search by name, key path, value name, or hive"
+            aria-label="Search registry artifacts"
+            class="h-10 w-full rounded-lg border border-input bg-card pr-9 pl-9 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/30 [&::-webkit-search-cancel-button]:hidden"
+          />
+          <button
+            id="registry-search-clear"
+            type="button"
+            aria-label="Clear search"
+            class="absolute top-1/2 right-2 hidden -translate-y-1/2 rounded-md p-1 text-muted-foreground transition-colors hover:bg-overlay/[0.06] hover:text-foreground"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <CategoryFilters
+          client:idle
+          basePath="/registry"
+          categories={filterCategories}
+        />
+      </div>
+
+      <div id="registry-empty" class="hidden py-16 text-center">
+        <p class="text-sm text-muted-foreground">
+          No registry artifacts match "<span
+            id="registry-empty-query"
+            class="font-medium text-foreground"></span>"
+        </p>
+        <a
+          href="/registry"
+          class="mt-2 inline-block text-sm text-primary transition-colors hover:underline"
+        >
+          Clear search
+        </a>
+      </div>
+
+      <div id="registry-default-view" class="flex flex-col gap-8">
+        {
+          groupedArtifacts.map(([category, items]) => (
+            <Panel headingId={`registry-${getRegistryCategoryId(category)}`}>
+              <Fragment slot="title">{category}</Fragment>
+              <Fragment slot="subtitle">
+                {`${items.length} ${items.length === 1 ? "artifact" : "artifacts"}`}
+              </Fragment>
+              <a
+                slot="actions"
+                href={`/registry?category=${getRegistryCategoryId(category)}`}
+                class="panel-action focus-ring"
+              >
+                Filter
+              </a>
+              <ul class="divide-y divide-border">
+                {items.map((artifact) => (
+                  <li>
+                    <a
+                      href={`/registry/${artifact.slug}`}
+                      class="group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
+                    >
+                      <span class="w-48 shrink-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-64">
+                        {artifact.name}
+                      </span>
+                      <span class="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block">
+                        {artifact.summary}
+                      </span>
+                      <span class="ml-auto hidden shrink-0 font-mono text-xs text-muted-foreground md:inline">
+                        {artifact.hives.join(", ")}
+                      </span>
+                      <span class="w-14 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
+                        {keyLabel(artifact.entries.length)}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          ))
+        }
+      </div>
+
+      <div id="registry-filtered-view" class="hidden">
+        <Panel headingId="registry-filtered-title">
+          <Fragment slot="title"><span id="registry-filtered-label">Results</span></Fragment>
+          <Fragment slot="subtitle">
+            <span id="registry-filter-status" aria-live="polite"></span>
+          </Fragment>
+          <ul class="divide-y divide-border" id="registry-filtered-list"></ul>
+        </Panel>
+      </div>
+
+      <p class="mt-16 border-t border-border pt-4 text-xs text-muted-foreground">
+        <span>Source: </span>
+        <a
+          href={REGISTRY_SOURCE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="focus-ring rounded-sm text-primary transition-colors hover:underline"
+        >
+          RECmd/BatchExamples/{REGISTRY_BATCH_FILE}
+          <span class="sr-only">(opens in new tab)</span>
+        </a>
+        {` v${batchInfo.version} by ${batchInfo.author} and `}
+        <a
+          href={REGISTRY_CREDITS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="focus-ring rounded-sm text-primary transition-colors hover:underline"
+        >
+          contributors
+          <span class="sr-only">(opens in new tab)</span>
+        </a>
+        {", "}
+        <a
+          href={REGISTRY_LICENSE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="focus-ring rounded-sm text-primary transition-colors hover:underline"
+        >
+          MIT License
+          <span class="sr-only">(opens in new tab)</span>
+        </a>
+      </p>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script
+  is:inline
+  type="application/json"
+  id="registry-artifacts-data"
+  set:html={registryArtifactsJson}
+/>
+
+<script is:inline>
+(() => {
+  if (window.__registryPageBound) {
+    return;
+  }
+  window.__registryPageBound = true;
+
+  const PAGE_PATH = "/registry";
+  const SEARCH_INPUT_ID = "registry-search";
+  const SEARCH_CLEAR_ID = "registry-search-clear";
+  const SEARCH_DEBOUNCE_MS = 150;
+  let searchTimer = null;
+  let registryArtifacts = null;
+
+  const isRegistryPage = () =>
+    window.location.pathname.replace(/\.html$/u, "") === PAGE_PATH;
+
+  const readRegistryArtifacts = () => {
+    registryArtifacts ??= JSON.parse(
+      document.getElementById("registry-artifacts-data")?.textContent || "[]"
+    );
+    return registryArtifacts;
+  };
+
+  const el = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+
+  const keyLabel = (count) => `${count} ${count === 1 ? "key" : "keys"}`;
+
+  const createRow = (artifact) => {
+    const li = el("li");
+    const link = el(
+      "a",
+      "group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
+    );
+    link.href = `${PAGE_PATH}/${artifact.s}`;
+    link.append(
+      el(
+        "span",
+        "w-48 shrink-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-64",
+        artifact.n
+      ),
+      el(
+        "span",
+        "hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block",
+        artifact.d
+      ),
+      el(
+        "span",
+        "ml-auto hidden shrink-0 font-mono text-xs text-muted-foreground md:inline",
+        artifact.h
+      ),
+      el(
+        "span",
+        "w-14 shrink-0 text-right text-xs text-muted-foreground tabular-nums",
+        keyLabel(artifact.k)
+      )
+    );
+    li.append(link);
+    return li;
+  };
+
+  const updateFilterButtons = (activeId) => {
+    for (const button of document.querySelectorAll(".category-filter-btn")) {
+      if (button.getAttribute("data-filter-id") === activeId) {
+        button.setAttribute("data-active", "true");
+        button.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" });
+      } else {
+        button.removeAttribute("data-active");
+      }
+    }
+  };
+
+  const matchesQuery = (artifact, needle) =>
+    [artifact.n, artifact.s, artifact.cl, artifact.h, artifact.d, artifact.t]
+      .join(" ")
+      .toLowerCase()
+      .includes(needle);
+
+  const applyFilter = () => {
+    if (!isRegistryPage()) {
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get("q")?.trim() ?? "";
+    const categoryId = params.get("category") ?? "";
+    updateFilterButtons(categoryId || "all");
+
+    const defaultView = document.getElementById("registry-default-view");
+    const filteredView = document.getElementById("registry-filtered-view");
+    const emptyState = document.getElementById("registry-empty");
+    const list = document.getElementById("registry-filtered-list");
+    if (!(defaultView && filteredView && emptyState && list)) {
+      return;
+    }
+
+    const isFiltered = Boolean(query || categoryId);
+    defaultView.classList.toggle("hidden", isFiltered);
+    list.textContent = "";
+    if (!isFiltered) {
+      filteredView.classList.add("hidden");
+      emptyState.classList.add("hidden");
+      return;
+    }
+
+    const allArtifacts = readRegistryArtifacts();
+    const needle = query.toLowerCase();
+    const matches = allArtifacts.filter((artifact) =>
+      query ? matchesQuery(artifact, needle) : artifact.c === categoryId
+    );
+    const hasMatches = matches.length > 0;
+
+    filteredView.classList.toggle("hidden", !hasMatches);
+    emptyState.classList.toggle("hidden", hasMatches);
+    document.getElementById("registry-empty-query").textContent = query;
+    document.getElementById("registry-filtered-label").textContent = query
+      ? `Results for "${query}"`
+      : (allArtifacts.find((artifact) => artifact.c === categoryId)?.cl ?? "Results");
+    document.getElementById("registry-filter-status").textContent =
+      `${matches.length} of ${allArtifacts.length} registry artifacts`;
+    list.append(...matches.map(createRow));
+  };
+
+  const syncSearchClear = () => {
+    const input = document.getElementById(SEARCH_INPUT_ID);
+    document
+      .getElementById(SEARCH_CLEAR_ID)
+      ?.classList.toggle("hidden", !input?.value.trim());
+  };
+
+  const syncSearchInput = () => {
+    const input = document.getElementById(SEARCH_INPUT_ID);
+    if (!input || document.activeElement === input) {
+      return;
+    }
+    input.value = new URLSearchParams(window.location.search).get("q") || "";
+    syncSearchClear();
+  };
+
+  const submitSearch = () => {
+    const input = document.getElementById(SEARCH_INPUT_ID);
+    if (!input) {
+      return;
+    }
+    const value = input.value.trim();
+    history.replaceState(
+      null,
+      "",
+      value ? `${PAGE_PATH}?q=${encodeURIComponent(value)}` : PAGE_PATH
+    );
+    applyFilter();
+  };
+
+  document.addEventListener("input", (event) => {
+    if (event.target?.id !== SEARCH_INPUT_ID) {
+      return;
+    }
+    syncSearchClear();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(submitSearch, SEARCH_DEBOUNCE_MS);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.target?.id !== SEARCH_INPUT_ID || event.key !== "Enter") {
+      return;
+    }
+    clearTimeout(searchTimer);
+    submitSearch();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!event.target?.closest?.(`#${SEARCH_CLEAR_ID}`)) {
+      return;
+    }
+    const input = document.getElementById(SEARCH_INPUT_ID);
+    if (!input) {
+      return;
+    }
+    input.value = "";
+    syncSearchClear();
+    clearTimeout(searchTimer);
+    submitSearch();
+    input.focus();
+  });
+
+  const refreshPage = () => {
+    registryArtifacts = null;
+    syncSearchInput();
+    applyFilter();
+  };
+
+  refreshPage();
+  document.addEventListener("astro:page-load", refreshPage);
+  window.addEventListener("popstate", refreshPage);
+})();
+</script>
