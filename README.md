@@ -20,30 +20,30 @@ The site is dark by default. The header switch also offers a light theme and an 
 
 ## Getting started
 
-You need Node 24 and pnpm 10. The KapeFiles, RECmd and evtx data are git submodules, so initialize them after you clone.
+You need Node 24 and Bun 1.4. The KapeFiles, RECmd and evtx data are git submodules, so initialize them after you clone.
 
 ```bash
 git clone https://github.com/LasCC/DFIRHub.git
 cd DFIRHub
 git submodule update --init --recursive
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 Open `http://localhost:4321`.
 
 ## Commands
 
-| Command                | Description                                                                         |
-| ---------------------- | ----------------------------------------------------------------------------------- |
-| `pnpm dev`             | Start the development server                                                        |
-| `pnpm build`           | Build the site. It also renders a social image per artifact, about 90 seconds total |
-| `pnpm preview`         | Serve the production build locally                                                  |
-| `pnpm test`            | Run the tests                                                                       |
-| `pnpm astro check`     | Type check the project                                                              |
-| `pnpm check`           | Lint and check formatting with Ultracite                                            |
-| `pnpm fix`             | Fix lint and formatting problems                                                    |
-| `pnpm run sigma:index` | Rebuild the Sigma rules index from SigmaHQ                                          |
+| Command               | Description                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| `bun run dev`         | Start the development server                                                        |
+| `bun run build`       | Build the site. It also renders a social image per artifact, about 90 seconds total |
+| `bun run preview`     | Serve the production build locally                                                  |
+| `bun run test`        | Run the tests                                                                       |
+| `bun astro check`     | Type check the project                                                              |
+| `bun run check`       | Lint and check formatting with Ultracite                                            |
+| `bun run fix`         | Fix lint and formatting problems                                                    |
+| `bun run sigma:index` | Rebuild the Sigma rules index from SigmaHQ                                          |
 
 ## Deployment
 
