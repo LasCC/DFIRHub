@@ -3,6 +3,16 @@ import path from "node:path";
 
 import * as yaml from "js-yaml";
 
+const VERSION_LINE_PATTERN = /^Version:[ \t]*["']?(?<value>[^"'\r\n]+?)["']?[ \t]*$/mu;
+const DEFAULT_TARGET_VERSION = "1.0";
+
+function readVersionText(yamlContent: string): string {
+  return (
+    yamlContent.match(VERSION_LINE_PATTERN)?.groups?.value ??
+    DEFAULT_TARGET_VERSION
+  );
+}
+
 // KapeFile Target structure
 export interface KapeTarget {
   name: string; // From filename (e.g., "Prefetch")
@@ -225,7 +235,7 @@ function parseKapeFile(filePath: string, category: string): KapeTarget | null {
       name: filename.replace(/\.tkape$/, "").replace(/^!/, ""),
       description: raw.Description || "",
       author: raw.Author || "Unknown",
-      version: raw.Version?.toString() || "1.0",
+      version: readVersionText(yamlContent),
       id: raw.Id || "",
       recreateDirectories: raw.RecreateDirectories ?? true,
       category,
