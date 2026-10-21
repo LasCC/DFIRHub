@@ -117,7 +117,7 @@ export function OutputPanel({
         {isLoading && (
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            Converting...
+            Converting…
           </div>
         )}
         {error && (
@@ -141,7 +141,7 @@ export function OutputPanel({
           ))}
         {!(query || error || isLoading) && (
           <p className="text-muted-foreground text-sm">
-            Convert a Sigma rule to see the output here.
+            Your query will appear here.
           </p>
         )}
       </div>

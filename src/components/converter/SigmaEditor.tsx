@@ -232,7 +232,9 @@ export function SigmaEditor({
             YAML
           </span>
         </span>
-        <kbd className="kbd">⌘↵ Convert</kbd>
+        <kbd className="kbd" title="Convert (⌘↵)">
+          ⌘↵
+        </kbd>
       </div>
       <div className="flex-1">
         <Editor

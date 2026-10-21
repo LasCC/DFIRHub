@@ -12,16 +12,14 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
     id: "triage",
     label: "Full triage",
     modules: ["!EZParser"],
-    summary:
-      "KapeTriage collection, parsed with every Eric Zimmerman tool. A safe first step for most cases.",
+    summary: "KapeTriage parsed with the EZ tools. A safe first pass.",
     targets: ["KapeTriage"],
   },
   {
     id: "ransomware",
     label: "Ransomware",
     modules: ["!EZParser", "Hayabusa"],
-    summary:
-      "Triage plus remote admin tools, with Hayabusa to build an event log timeline of the intrusion.",
+    summary: "Triage, remote access tools and an event log timeline.",
     targets: ["KapeTriage", "RemoteAdmin"],
   },
   {
@@ -34,8 +32,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       "AmcacheParser",
       "SrumECmd",
     ],
-    summary:
-      "RDP, logon and network evidence: event logs, RDP bitmap cache, SRUM, Amcache and Prefetch.",
+    summary: "RDP, logon, network and execution evidence.",
     targets: [
       "EventLogs",
       "EventLogs-RDP",
@@ -56,8 +53,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       "AppCompatCacheParser",
       "RECmd_DFIRBatch",
     ],
-    summary:
-      "What ran and when: Prefetch, Amcache, Shimcache and registry evidence of execution.",
+    summary: "What ran: Prefetch, Amcache, Shimcache and UserAssist.",
     targets: ["ProgramExecution", "RegistryHives"],
   },
   {
@@ -65,15 +61,14 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
     label: "Persistence",
     modules: ["RECmd_DFIRBatch", "EvtxECmd"],
     summary:
-      "Run keys, services, scheduled tasks, startup folders and the event logs that record them.",
+      "Run keys, services, scheduled tasks, startup folders and event logs.",
     targets: ["RegistryHives", "ScheduledTasks", "StartupFolders", "EventLogs"],
   },
   {
     id: "exfiltration",
     label: "Data theft",
     modules: ["SQLECmd", "LECmd", "JLECmd", "RBCmd"],
-    summary:
-      "Browsers, cloud sync clients, USB devices, LNK files, jump lists and the Recycle Bin.",
+    summary: "Browsers, cloud sync, USB, LNK, jump lists and Recycle Bin.",
     targets: [
       "WebBrowsers",
       "CloudStorage_All",
@@ -86,8 +81,7 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
     id: "timeline",
     label: "File system timeline",
     modules: ["MFTECmd"],
-    summary:
-      "$MFT, $J, $LogFile and $Boot, parsed by MFTECmd for a full file system timeline.",
+    summary: "$MFT, $J, $LogFile and $Boot, parsed by MFTECmd.",
     targets: ["FileSystem"],
   },
   {
@@ -99,16 +93,14 @@ export const SCENARIO_PRESETS: ScenarioPreset[] = [
       "LiveResponse_ProcessDetails",
       "SystemInformation",
     ],
-    summary:
-      "Volatile state from the running host: processes, network connections, sessions and users.",
+    summary: "Processes, network connections, sessions and users.",
     targets: [],
   },
   {
     id: "server",
     label: "Server and web",
     modules: ["!EZParser"],
-    summary:
-      "Triage plus IIS, Apache, NGINX, Exchange, Confluence and SQL Server logs for web shell and exploit cases.",
+    summary: "Triage plus IIS, Exchange, Confluence and SQL Server logs.",
     targets: ["KapeTriage", "ServerTriage"],
   },
 ];

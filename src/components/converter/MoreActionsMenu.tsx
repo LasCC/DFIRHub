@@ -1,4 +1,12 @@
-import { Check, Ellipsis, FileDown, Link, Settings2 } from "lucide-react";
+import {
+  Check,
+  Columns,
+  Ellipsis,
+  FileDown,
+  Link,
+  Settings2,
+  Zap,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface MoreActionsMenuProps {
@@ -9,6 +17,11 @@ interface MoreActionsMenuProps {
   onShare: () => void;
   onExport: () => void;
   onToggleAdvanced: () => void;
+  autoConvert?: boolean;
+  multiMode?: boolean;
+  onToggleAutoConvert?: () => void;
+  onToggleMultiMode?: () => void;
+  showModeToggles?: boolean;
 }
 
 /**
@@ -26,6 +39,11 @@ export function MoreActionsMenu({
   onShare,
   onExport,
   onToggleAdvanced,
+  autoConvert = false,
+  multiMode = false,
+  onToggleAutoConvert,
+  onToggleMultiMode,
+  showModeToggles = false,
 }: MoreActionsMenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,7 +100,7 @@ export function MoreActionsMenu({
               ) : (
                 <Link className="h-3.5 w-3.5" />
               )}
-              {shareCopied ? "Copied!" : "Copy share link"}
+              {shareCopied ? "Copied!" : "Copy link"}
             </button>
             {canExport && (
               <button
@@ -95,8 +113,45 @@ export function MoreActionsMenu({
                 type="button"
               >
                 <FileDown className="h-3.5 w-3.5" />
-                Export as ZIP
+                Export ZIP
               </button>
+            )}
+            {showModeToggles && (
+              <>
+                <div className="mx-2 my-1 h-px bg-overlay/[0.06]" />
+                <button
+                  aria-checked={multiMode}
+                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-muted-foreground text-sm transition-colors hover:bg-overlay/[0.06] hover:text-foreground"
+                  onClick={() => {
+                    onToggleMultiMode?.();
+                    setOpen(false);
+                  }}
+                  role="menuitemcheckbox"
+                  type="button"
+                >
+                  <Columns className="h-3.5 w-3.5" />
+                  Compare backends
+                  {multiMode && (
+                    <Check className="ml-auto h-3 w-3 text-primary" />
+                  )}
+                </button>
+                <button
+                  aria-checked={autoConvert}
+                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-muted-foreground text-sm transition-colors hover:bg-overlay/[0.06] hover:text-foreground"
+                  onClick={() => {
+                    onToggleAutoConvert?.();
+                    setOpen(false);
+                  }}
+                  role="menuitemcheckbox"
+                  type="button"
+                >
+                  <Zap className="h-3.5 w-3.5" />
+                  Auto-convert
+                  {autoConvert && (
+                    <Check className="ml-auto h-3 w-3 text-primary" />
+                  )}
+                </button>
+              </>
             )}
             <div className="mx-2 my-1 h-px bg-overlay/[0.06]" />
             <button

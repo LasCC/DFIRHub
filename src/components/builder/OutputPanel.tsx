@@ -1,4 +1,4 @@
-import { Check, Copy, Download, Link } from "lucide-react";
+import { AlertTriangle, Check, Copy, Download, Link } from "lucide-react";
 
 import type { OutputFormat } from "../../lib/builder/config";
 import type { ConfigIssue, IssueLevel } from "../../lib/builder/kapeCommand";
@@ -92,31 +92,16 @@ function FormatHint({ format }: { format: OutputFormat }) {
     case "kape": {
       return (
         <span>
-          Run from the KAPE folder in an elevated PowerShell or cmd window.{" "}
-          <a
-            className="text-primary hover:underline"
-            href="https://ericzimmerman.github.io/KapeDocs/#!Pages\3.-Using-KAPE.md"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Switch reference
-          </a>
+          Run from the KAPE folder in an elevated PowerShell or cmd window.
         </span>
       );
     }
     case "cli": {
       return (
         <span>
-          Save as <code className="font-mono text-foreground">_kape.cli</code>{" "}
-          next to kape.exe. The user only runs kape.exe as administrator.{" "}
-          <a
-            className="text-primary hover:underline"
-            href="https://ericzimmerman.github.io/KapeDocs/#!Pages\3.1-Batch-mode.md"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Batch mode
-          </a>
+          Save next to{" "}
+          <code className="font-mono text-foreground">kape.exe</code>, then run
+          it as administrator.
         </span>
       );
     }
@@ -132,13 +117,17 @@ function FormatHint({ format }: { format: OutputFormat }) {
     }
     case "batch": {
       return (
-        <span>Right-click collect.bat and pick Run as administrator.</span>
+        <span>
+          Right-click{" "}
+          <code className="font-mono text-foreground">collect.bat</code> and
+          choose Run as administrator.
+        </span>
       );
     }
     default: {
       return (
         <span>
-          Run from WSL:{" "}
+          Run in WSL:{" "}
           <code className="font-mono text-foreground">
             sudo bash collect.sh
           </code>
@@ -155,17 +144,25 @@ function ScriptLimits({
   lockedPaths: number;
   moduleCount: number;
 }) {
+  const limits = [
+    lockedPaths > 0
+      ? `${lockedPaths} locked ${lockedPaths === 1 ? "path" : "paths"} skipped on a live system`
+      : "",
+    moduleCount > 0 ? "module steps skipped" : "",
+  ].filter(Boolean);
+
   return (
-    <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
-      <span className="font-medium text-amber-700 dark:text-amber-400">
-        Fallback without KAPE.
-      </span>{" "}
+    <div className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-xs">
+      <AlertTriangle
+        aria-hidden="true"
+        className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-700 dark:text-amber-400"
+      />
       <span className="text-muted-foreground">
-        This script copies files with the operating system.
-        {lockedPaths > 0 &&
-          ` It cannot read the ${lockedPaths} locked ${lockedPaths === 1 ? "path" : "paths"} ($MFT, registry hives, event logs...) on a live system. Use KAPE, or run it against a mounted image.`}
-        {moduleCount > 0 && " Modules only run in KAPE."} It writes
-        collection-info.txt, a log and SHA256SUMS for chain of custody.
+        <span className="font-medium text-amber-700 dark:text-amber-400">
+          Fallback script, not KAPE.
+        </span>{" "}
+        {limits.length > 0 && `${limits.join(" · ")}. `}
+        Writes collection-info.txt, a log and SHA256SUMS.
       </span>
     </div>
   );
@@ -222,28 +219,31 @@ export function OutputPanel({
             {copied ? "Copied!" : "Copy"}
           </button>
           <button
-            className="panel-action panel-action-primary focus-ring"
+            className="panel-action panel-action-primary focus-ring active:scale-[0.98]"
             disabled={!hasOutput}
             onClick={() => onDownload(activeTab)}
+            title={`Download ${activeTab.fileName}`}
             type="button"
           >
             <Download aria-hidden="true" className="h-3.5 w-3.5" />
-            {activeTab.fileName}
+            Download
           </button>
         </>
       }
-      footer={<FormatHint format={format} />}
+      footer={hasOutput ? <FormatHint format={format} /> : undefined}
       headingId="output-heading"
       subtitle={
-        blockingErrors > 0
-          ? `${blockingErrors} ${blockingErrors === 1 ? "problem" : "problems"} to fix before you run it`
-          : "Ready to run"
+        hasOutput
+          ? blockingErrors > 0
+            ? `${blockingErrors} ${blockingErrors === 1 ? "problem" : "problems"} to fix`
+            : "Ready to run"
+          : undefined
       }
       title="Output"
     >
       <div
         aria-label="Output format"
-        className="fade-x flex overflow-x-auto border-border border-b px-2"
+        className="flex flex-wrap border-border border-b px-2"
         role="tablist"
       >
         {OUTPUT_TABS.map((tab) => (
@@ -265,7 +265,7 @@ export function OutputPanel({
         ))}
       </div>
 
-      {(issues.length > 0 || isScript) && (
+      {hasOutput && (issues.length > 0 || isScript) && (
         <div className="space-y-2 border-border border-b p-3">
           {isScript && (
             <ScriptLimits lockedPaths={lockedPaths} moduleCount={moduleCount} />
@@ -292,10 +292,10 @@ export function OutputPanel({
         {hasOutput ? (
           <CodeBlock code={output} flush language={activeTab.language} />
         ) : (
-          <div className="bg-console p-4 text-muted-foreground text-sm">
-            {isScript
-              ? "Pick targets to generate a copy script"
-              : "Pick targets or modules to generate a command"}
+          <div className="flex min-h-24 items-center justify-center p-6 text-center">
+            <p className="text-muted-foreground text-sm">
+              Pick a scenario, target or module above.
+            </p>
           </div>
         )}
       </div>

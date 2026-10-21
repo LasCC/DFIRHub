@@ -22,7 +22,7 @@ interface ChecklistPickerProps {
   searchLabel: string;
 }
 
-const ALL_GROUPS = "All";
+const ALL_GROUPS = "All groups";
 
 function matchesQuery(item: ChecklistItem, query: string): boolean {
   return (
@@ -80,6 +80,7 @@ export function ChecklistPicker({
         <>
           <button
             className="panel-action focus-ring"
+            disabled={visibleItems.length === 0}
             onClick={selectVisible}
             type="button"
           >
@@ -96,54 +97,48 @@ export function ChecklistPicker({
         </>
       }
       className="min-w-0"
-      footer={
-        <>
-          <span className="tabular-nums">{visibleItems.length} shown</span>
-          <span className="tabular-nums">{selected.length} selected</span>
-        </>
-      }
       headingId={headingId}
       subtitle={subtitle}
-      title={title}
+      title={
+        <span className="flex items-center gap-2">
+          {title}
+          <span className="rounded-full border border-border bg-overlay/[0.03] px-2 py-0.5 font-mono font-normal text-[11px] text-muted-foreground">
+            {selected.length}/{items.length}
+          </span>
+        </span>
+      }
       toolbar={
         <>
           <input
             aria-label={searchLabel}
-            className="h-8 min-w-48 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary/50"
+            className="h-8 min-w-32 flex-1 rounded-lg border border-border bg-background px-2.5 text-sm outline-none placeholder:text-muted-foreground/70 focus:border-primary/50"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={`${searchLabel}...`}
+            placeholder={`${searchLabel}…`}
             type="search"
             value={query}
           />
-          <div className="flex flex-wrap gap-1.5">
-            {[ALL_GROUPS, ...groups].map((group) => {
-              const isActive = activeGroup === group;
-              return (
-                <button
-                  aria-pressed={isActive}
-                  className={`inline-flex h-8 items-center rounded-lg border px-2.5 text-xs transition-colors ${
-                    isActive
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                  key={group}
-                  onClick={() => setActiveGroup(group)}
-                  type="button"
-                >
-                  {group}
-                </button>
-              );
-            })}
-          </div>
+          <select
+            aria-label={`Filter ${searchLabel.toLowerCase()} by group`}
+            className="h-8 max-w-40 shrink-0 rounded-lg border border-border bg-background px-2 text-muted-foreground text-xs outline-none focus:border-primary/50"
+            onChange={(event) => setActiveGroup(event.target.value)}
+            value={activeGroup}
+          >
+            <option value={ALL_GROUPS}>{ALL_GROUPS}</option>
+            {groups.map((group) => (
+              <option key={group} value={group}>
+                {group}
+              </option>
+            ))}
+          </select>
         </>
       }
     >
       {selected.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 border-border border-b px-4 py-2.5">
+        <div className="scrollbar-hide flex items-center gap-1 overflow-x-auto border-border border-b px-3 py-1.5">
           {selected.map((id) => (
             <button
               aria-label={`Remove ${itemsById.get(id)?.label ?? id}`}
-              className="focus-ring inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-foreground text-xs transition-colors hover:border-destructive/50 hover:bg-destructive/10"
+              className="focus-ring inline-flex shrink-0 items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-foreground text-xs transition-colors hover:border-destructive/50 hover:bg-destructive/10"
               key={id}
               onClick={() => toggle(id)}
               type="button"
@@ -165,7 +160,7 @@ export function ChecklistPicker({
           <div className="divide-y divide-border">
             {visibleItems.map((item) => (
               <label
-                className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-muted"
+                className="flex cursor-pointer items-center gap-3 px-3 py-2 transition-colors hover:bg-muted"
                 key={item.id}
               >
                 <input

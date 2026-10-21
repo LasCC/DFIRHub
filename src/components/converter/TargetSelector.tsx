@@ -1,13 +1,12 @@
 import { ChevronDown } from "lucide-react";
 
-import type { BackendConfig } from "@/lib/sigma/types";
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { getBackend, getBackendsByCategory } from "@/lib/sigma/backends";
+import type { BackendConfig } from "@/lib/sigma/types";
 
 interface TargetSelectorProps {
   selected: string;
@@ -129,12 +128,13 @@ export function TargetSelector({
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="flex shrink-0 items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary transition-colors hover:bg-primary/15"
-          title="Select conversion target backend"
+          aria-label={`Target backend: ${triggerLabel}`}
+          className="focus-ring flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-2.5 text-primary text-sm transition-colors hover:bg-primary/15 active:scale-[0.98]"
+          title="Select the conversion target"
           type="button"
         >
           {triggerLabel}
-          <ChevronDown className="h-3.5 w-3.5" />
+          <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-[540px] space-y-4 p-4">

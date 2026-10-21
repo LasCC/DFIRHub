@@ -286,14 +286,15 @@ export function ScriptBuilder({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <PresetPanel
         activePresetId={activePresetId}
+        hasSelection={config.targets.length > 0 || config.modules.length > 0}
         onApply={applyPreset}
         presets={SCENARIO_PRESETS}
       />
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <ChecklistPicker
           groups={targetCategories}
           headingId="targets-heading"
@@ -301,7 +302,7 @@ export function ScriptBuilder({
           onChange={(selected) => updateConfig({ targets: selected })}
           searchLabel="Search targets"
           selected={config.targets}
-          subtitle="Files to collect (.tkape)"
+          subtitle="Files KAPE copies"
           title="Targets"
         />
         <ChecklistPicker
@@ -311,7 +312,7 @@ export function ScriptBuilder({
           onChange={(selected) => updateConfig({ modules: selected })}
           searchLabel="Search modules"
           selected={config.modules}
-          subtitle="Tools that parse the evidence (.mkape)"
+          subtitle="Tools KAPE runs"
           title="Modules"
         />
       </div>

@@ -41,9 +41,9 @@ const applicationJsonLd = {
   <Header client:load currentPath={Astro.url.pathname} />
 
   <main id="main-content" class="flex-1 relative" tabindex="-1">
-    <div class="mx-auto max-w-6xl px-4 py-8">
+    <div class="mx-auto max-w-6xl px-4 py-6">
       <!-- Breadcrumb -->
-      <nav class="mb-6 text-xs text-muted-foreground" aria-label="Breadcrumb">
+      <nav class="mb-4 text-xs text-muted-foreground" aria-label="Breadcrumb">
         <ol class="flex items-center gap-1">
           <li>
             <a
@@ -60,11 +60,10 @@ const applicationJsonLd = {
       </nav>
 
       <!-- Header -->
-      <header class="mb-8">
-        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">Sigma Rule Converter</h1>
-        <p class="text-sm sm:text-base text-muted-foreground">
-          Convert Sigma detection rules to SIEM queries. All conversion happens
-          in your browser, your rules never leave your device.
+      <header class="mb-6 max-w-2xl">
+        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-1.5">Sigma Rule Converter</h1>
+        <p class="text-sm text-muted-foreground">
+          Convert Sigma rules to SIEM queries without leaving your browser.
         </p>
       </header>
 

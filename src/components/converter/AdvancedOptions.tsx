@@ -1,4 +1,4 @@
-import { ExternalLink, Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useCallback } from "react";
 
 interface AdvancedOptionsProps {
@@ -11,10 +11,8 @@ interface AdvancedOptionsProps {
 }
 
 const DOCS = {
-  backends: "https://sigmahq.io/docs/digging-deeper/backends.html",
   backendsApi: "https://sigmahq-pysigma.readthedocs.io/en/latest/Backends.html",
   correlations: "https://sigmahq.io/docs/meta/correlations.html",
-  filters: "https://sigmahq.io/docs/meta/filters.html",
   filtersSpec:
     "https://github.com/SigmaHQ/sigma-specification/blob/main/specification/sigma-filters-specification.md",
 };
@@ -62,60 +60,22 @@ export function AdvancedOptions({
   );
 
   return (
-    <div className="space-y-4 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] p-4">
-      {/* Header with docs links */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-muted-foreground text-xs">
-          Advanced pySigma conversion options. These settings are passed
-          directly to the conversion engine.
-        </p>
-        <div className="flex items-center gap-3">
-          <a
-            className="flex items-center gap-1 text-muted-foreground text-xs transition-colors hover:text-primary"
-            href={DOCS.filters}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Filters docs
-          </a>
-          <a
-            className="flex items-center gap-1 text-muted-foreground text-xs transition-colors hover:text-primary"
-            href={DOCS.correlations}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Correlations docs
-          </a>
-          <a
-            className="flex items-center gap-1 text-muted-foreground text-xs transition-colors hover:text-primary"
-            href={DOCS.backends}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Backends docs
-          </a>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div className="rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] p-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         {/* Filter YAML */}
         <div className="lg:col-span-2">
-          <div className="mb-1.5 flex items-center gap-2">
+          <div className="mb-1 flex items-center justify-between gap-2">
             <label
               className="font-medium text-muted-foreground text-xs"
               htmlFor="sigma-filter"
             >
-              Sigma Filter (YAML)
+              Filter YAML
             </label>
             <a
-              className="text-muted-foreground text-xs transition-colors hover:text-primary"
+              className="text-[11px] text-muted-foreground transition-colors hover:text-primary"
               href={DOCS.filtersSpec}
               rel="noopener noreferrer"
               target="_blank"
-              title="View the Sigma Filters specification"
             >
               Spec
             </a>
@@ -125,35 +85,34 @@ export function AdvancedOptions({
             id="sigma-filter"
             name="sigma-filter"
             onChange={(e) => onFilterChange(e.target.value)}
-            placeholder={`# Sigma filters narrow down detection scope\n# by adding or excluding conditions.\n# Example:\nlogsource:\n    category: process_creation\ndetection:\n    filter:\n        Image|endswith: '\\\\svchost.exe'\n    condition: not filter`}
-            rows={5}
+            placeholder="# Optional Sigma filter YAML"
+            rows={4}
             spellCheck={false}
             value={filterYml}
           />
         </div>
 
-        {/* Correlation Method + Backend Options */}
-        <div className="space-y-4">
+        {/* Correlation method + backend options */}
+        <div className="space-y-3">
           <div>
-            <div className="mb-1.5 flex items-center gap-2">
+            <div className="mb-1 flex items-center justify-between gap-2">
               <label
                 className="font-medium text-muted-foreground text-xs"
                 htmlFor="correlation-method"
               >
-                Correlation Method
+                Correlation
               </label>
               <a
-                className="text-muted-foreground text-xs transition-colors hover:text-primary"
+                className="text-[11px] text-muted-foreground transition-colors hover:text-primary"
                 href={DOCS.correlations}
                 rel="noopener noreferrer"
                 target="_blank"
-                title="Learn about Sigma correlation rules"
               >
                 Docs
               </a>
             </div>
             <select
-              className="w-full rounded-md border border-overlay/[0.06] bg-secondary px-3 py-2 text-foreground text-xs focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
+              className="w-full rounded-md border border-overlay/[0.06] bg-secondary px-2.5 py-1.5 text-foreground text-xs focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/20"
               id="correlation-method"
               name="correlation-method"
               onChange={(e) => onCorrelationMethodChange(e.target.value)}
@@ -163,30 +122,28 @@ export function AdvancedOptions({
               <option value="default">default</option>
               <option value="multisearch">multisearch</option>
             </select>
-            <p className="mt-1 text-muted-foreground text-xs">
-              Controls how correlation rules are converted. Only applies to
-              rules with a correlation section.
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Only affects correlation rules.
             </p>
           </div>
 
           <div>
-            <div className="mb-1.5 flex items-center justify-between">
+            <div className="mb-1 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <label className="font-medium text-muted-foreground text-xs">
-                  Backend Options
+                  Backend options
                 </label>
                 <a
-                  className="text-muted-foreground text-xs transition-colors hover:text-primary"
+                  className="text-[11px] text-muted-foreground transition-colors hover:text-primary"
                   href={DOCS.backendsApi}
                   rel="noopener noreferrer"
                   target="_blank"
-                  title="View pySigma backend API documentation"
                 >
-                  API docs
+                  API
                 </a>
               </div>
               <button
-                className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-muted-foreground text-xs transition-colors hover:text-foreground"
+                className="flex items-center gap-1 rounded-md px-1 py-0.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
                 onClick={handleAddOption}
                 title="Add backend option"
                 type="button"
@@ -196,12 +153,12 @@ export function AdvancedOptions({
               </button>
             </div>
             {optionEntries.length === 0 ? (
-              <p className="text-muted-foreground text-xs">
-                No options set. Backend-specific key-value pairs passed via{" "}
+              <p className="text-[11px] text-muted-foreground">
+                Passed as{" "}
                 <code className="rounded bg-overlay/[0.04] px-1 py-0.5">
                   -O key=value
-                </code>{" "}
-                in sigma-cli.
+                </code>
+                .
               </p>
             ) : (
               <div className="space-y-1.5">

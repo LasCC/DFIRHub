@@ -1,13 +1,12 @@
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
-import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
 
 interface PipelineSelectorProps {
   selectedPipeline: string;
@@ -36,16 +35,24 @@ export function PipelineSelector({
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+          aria-label={`Processing pipeline: ${selectedPipeline || "none"}`}
+          className={`focus-ring flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition-colors active:scale-[0.98] ${
             hasSelection
-              ? "border-primary/40 bg-primary/10 text-primary"
-              : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
+              ? "border-overlay/[0.12] bg-overlay/[0.04] text-foreground"
+              : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.12] hover:text-foreground"
           }`}
-          title="Select a processing pipeline to transform field names and values"
+          title="Select a processing pipeline"
           type="button"
         >
-          {selectedPipeline ? selectedLabel : "Pipeline"}
-          <ChevronDown className="h-3.5 w-3.5" />
+          {selectedPipeline ? (
+            <>
+              <span className="text-muted-foreground text-xs">Pipeline</span>
+              <span>{selectedLabel}</span>
+            </>
+          ) : (
+            "Pipeline"
+          )}
+          <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80">

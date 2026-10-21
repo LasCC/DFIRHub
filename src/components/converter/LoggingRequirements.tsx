@@ -3,22 +3,21 @@ import { useCallback, useMemo } from "react";
 
 import { useCopyFeedbackKeyed } from "@/hooks/useCopyFeedback";
 import type {
+  RuleTelemetry,
   SetupStep,
   TelemetrySource,
 } from "@/lib/sigma/logsource-requirements";
-import { describeRuleTelemetry } from "@/lib/sigma/logsource-requirements";
 import type { Logsource } from "@/lib/sigma/sigma-mapping";
 
 interface LoggingRequirementsProps {
-  rule: string;
+  telemetry: RuleTelemetry | null;
   selectedPipeline: string;
 }
 
 const LOGSOURCE_DISPLAY_KEYS = ["product", "category", "service"] as const;
 
 function formatLogsource(logsource: Logsource) {
-  return LOGSOURCE_DISPLAY_KEYS
-    .filter((key) => logsource[key])
+  return LOGSOURCE_DISPLAY_KEYS.filter((key) => logsource[key])
     .map((key) => `${key}: ${logsource[key]}`)
     .join(" · ");
 }
@@ -36,14 +35,14 @@ function sortByPipelineMatch(
 
 function PolicyPath({ path }: { path: string[] }) {
   return (
-    <ol className="mt-1 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-muted-foreground text-xs">
+    <ol className="mt-1 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[11px] text-muted-foreground">
       {path.map((segment, index) => (
         <li className="flex items-center gap-1" key={segment}>
           {index > 0 && (
-            <ChevronRight aria-hidden="true" className="h-3 w-3 opacity-60" />
+            <ChevronRight aria-hidden="true" className="h-3 w-3 opacity-50" />
           )}
           <span
-            className={index === path.length - 1 ? "text-foreground/90" : ""}
+            className={index === path.length - 1 ? "text-foreground/80" : ""}
           >
             {segment}
           </span>
@@ -61,13 +60,13 @@ interface CommandLineProps {
 
 function CommandLine({ command, copied, onCopy }: CommandLineProps) {
   return (
-    <div className="mt-1.5 flex items-start gap-2 rounded-md bg-console px-3 py-2">
-      <code className="min-w-0 flex-1 break-all font-mono text-console-foreground text-xs">
+    <div className="mt-1.5 flex items-start gap-2 rounded-md bg-console px-2.5 py-1.5">
+      <code className="min-w-0 flex-1 break-all font-mono text-[11px] text-console-foreground">
         {command}
       </code>
       <button
         aria-label={copied ? "Command copied" : "Copy command"}
-        className="shrink-0 text-muted-foreground transition-colors hover:text-foreground focus-ring rounded-sm"
+        className="focus-ring shrink-0 rounded-sm text-muted-foreground transition-colors hover:text-foreground"
         onClick={() => onCopy(command)}
         type="button"
       >
@@ -89,8 +88,8 @@ interface SetupStepItemProps {
 
 function SetupStepItem({ step, copiedCommand, onCopy }: SetupStepItemProps) {
   return (
-    <li className="text-sm">
-      <span className="text-foreground">{step.title}</span>
+    <li className="text-xs">
+      <span className="font-medium text-foreground">{step.title}</span>
       {step.policyPath && <PolicyPath path={step.policyPath} />}
       {step.command && (
         <CommandLine
@@ -100,7 +99,7 @@ function SetupStepItem({ step, copiedCommand, onCopy }: SetupStepItemProps) {
         />
       )}
       {step.detail && (
-        <p className="mt-1 text-muted-foreground text-xs">{step.detail}</p>
+        <p className="mt-1 text-muted-foreground">{step.detail}</p>
       )}
     </li>
   );
@@ -126,21 +125,28 @@ function SourceCard({
       ? `Event ID ${source.eventIds.join(", ")}`
       : "Any event ID";
   return (
-    <li className="rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] p-3">
-      <div className="flex flex-wrap items-center gap-2">
+    <details className="group overflow-hidden rounded-lg border border-overlay/[0.06] bg-overlay/[0.02]">
+      <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 transition-colors hover:bg-overlay/[0.03] [&::-webkit-details-marker]:hidden">
+        <ChevronRight
+          aria-hidden="true"
+          className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-open:rotate-90"
+        />
         <span className="font-medium text-foreground text-sm">
           {source.name}
         </span>
+        <span className="font-mono text-[11px] text-muted-foreground">
+          {source.channel} · {eventIdLabel}
+        </span>
         {matchesPipeline && (
-          <span className="rounded border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-primary text-xs leading-none">
-            {`${selectedPipeline} pipeline`}
+          <span
+            className="rounded border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-primary text-[11px] leading-none sm:ml-auto"
+            title="Matches the selected pipeline"
+          >
+            {selectedPipeline}
           </span>
         )}
-      </div>
-      <p className="mt-1 font-mono text-muted-foreground text-xs">
-        {`${source.channel} · ${eventIdLabel}`}
-      </p>
-      <ol className="mt-3 space-y-3">
+      </summary>
+      <ol className="space-y-3 border-overlay/[0.06] border-t px-3 py-3">
         {source.steps.map((step) => (
           <SetupStepItem
             copiedCommand={copiedCommand}
@@ -150,15 +156,14 @@ function SourceCard({
           />
         ))}
       </ol>
-    </li>
+    </details>
   );
 }
 
 export function LoggingRequirements({
-  rule,
+  telemetry,
   selectedPipeline,
 }: LoggingRequirementsProps) {
-  const telemetry = useMemo(() => describeRuleTelemetry(rule), [rule]);
   const [copiedCommand, triggerCopied] = useCopyFeedbackKeyed<string>();
 
   const handleCopy = useCallback(
@@ -169,24 +174,27 @@ export function LoggingRequirements({
     [triggerCopied]
   );
 
+  const sources = useMemo(
+    () =>
+      telemetry ? sortByPipelineMatch(telemetry.sources, selectedPipeline) : [],
+    [telemetry, selectedPipeline]
+  );
+
   if (!telemetry) {
-    return null;
+    return (
+      <p className="text-muted-foreground text-sm">
+        No logging guide for this rule yet.
+      </p>
+    );
   }
 
-  const sources = sortByPipelineMatch(telemetry.sources, selectedPipeline);
-
   return (
-    <section aria-labelledby="logging-requirements-heading" className="p-4">
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h3
-          className="font-medium text-foreground text-sm"
-          id="logging-requirements-heading"
-        >
-          Will this rule fire?
-        </h3>
-        <p className="font-mono text-muted-foreground text-xs">
+    <div>
+      <div className="mb-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[11px]">
+        <span className="text-muted-foreground">Logsource</span>
+        <code className="font-mono text-muted-foreground">
           {formatLogsource(telemetry.logsource)}
-        </p>
+        </code>
       </div>
 
       {sources.length === 0 ? (
@@ -194,7 +202,7 @@ export function LoggingRequirements({
           No logging guide for this log source yet.
         </p>
       ) : (
-        <ul className="space-y-2">
+        <div className="space-y-2">
           {sources.map((source) => (
             <SourceCard
               copiedCommand={copiedCommand}
@@ -205,18 +213,18 @@ export function LoggingRequirements({
               source={source}
             />
           ))}
-        </ul>
+        </div>
       )}
 
       {telemetry.kapeTargets.length > 0 && (
-        <div className="mt-4">
-          <h4 className="mb-2 font-medium text-foreground text-sm">
-            Collect the evidence
+        <div className="mt-3">
+          <h4 className="mb-1.5 font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+            Collect with KAPE
           </h4>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {telemetry.kapeTargets.map((target) => (
               <a
-                className="flex items-center gap-1.5 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-1.5 text-muted-foreground text-sm transition-all hover:border-primary/30 hover:text-foreground"
+                className="flex items-center gap-1.5 rounded-md border border-overlay/[0.06] bg-overlay/[0.02] px-2.5 py-1 text-muted-foreground text-xs transition-colors hover:border-primary/30 hover:text-foreground"
                 href={`/artifact/${target.slug}`}
                 key={`${target.slug}-${target.name}`}
               >
@@ -227,6 +235,6 @@ export function LoggingRequirements({
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }

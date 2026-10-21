@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronDown, Columns, Search, Zap } from "lucide-react";
+import { ArrowRight, Columns, Zap } from "lucide-react";
 import {
   lazy,
   Suspense,
@@ -9,11 +9,6 @@ import {
   useState,
 } from "react";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useCopyFeedback } from "@/hooks/useCopyFeedback";
 import {
   trackConverterBackendChanged,
@@ -21,7 +16,7 @@ import {
   trackConverterShareLink,
   trackSigmaRuleImported,
 } from "@/lib/analytics";
-import { getBackend } from "@/lib/sigma/backends";
+import { getBackend, toAvailableBackendId } from "@/lib/sigma/backends";
 import { locateRuleChecks, toEditorDiagnostics } from "@/lib/sigma/rule-checks";
 import { decodeShareState, encodeShareState } from "@/lib/sigma/share";
 import { SigmaConverter } from "@/lib/sigma/sigma-converter";
@@ -31,14 +26,14 @@ import type { PipelineInfo } from "@/lib/sigma/worker/workerApi";
 
 import { Panel } from "../ui/Panel";
 import { AdvancedOptions } from "./AdvancedOptions";
+import { ConverterInspector } from "./ConverterInspector";
 import { DiffView } from "./DiffView";
 import { ExportDialog } from "./ExportDialog";
 import { LoadingOverlay } from "./LoadingOverlay";
-import { LoggingRequirements } from "./LoggingRequirements";
 import { MoreActionsMenu } from "./MoreActionsMenu";
 import { OutputPanel } from "./OutputPanel";
 import { PipelineSelector } from "./PipelineSelector";
-import { RuleChecks } from "./RuleChecks";
+import { RuleImportMenu } from "./RuleImportMenu";
 
 const SigmaEditor = lazy(() =>
   import("./SigmaEditor").then((m) => ({ default: m.SigmaEditor }))
@@ -79,7 +74,15 @@ function loadSettings(): ConverterSettings {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      const settings: ConverterSettings = {
+        ...DEFAULT_SETTINGS,
+        ...JSON.parse(stored),
+      };
+      return {
+        ...settings,
+        selectedBackend: toAvailableBackendId(settings.selectedBackend),
+        selectedMulti: settings.selectedMulti.filter((id) => getBackend(id)),
+      };
     }
   } catch {
     // Ignore parse errors
@@ -147,34 +150,6 @@ export function ConverterLayout() {
     []
   );
 
-  // Scroll shadow for mobile toolbar
-  const mobileScrollRef = useRef<HTMLDivElement>(null);
-  const [mobileScrollStart, setMobileScrollStart] = useState(true);
-  const [mobileScrollEnd, setMobileScrollEnd] = useState(false);
-
-  const checkMobileScroll = useCallback(() => {
-    const el = mobileScrollRef.current;
-    if (!el) {
-      return;
-    }
-    setMobileScrollStart(el.scrollLeft <= 1);
-    setMobileScrollEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 1);
-  }, []);
-
-  useEffect(() => {
-    const el = mobileScrollRef.current;
-    if (!el) {
-      return;
-    }
-    checkMobileScroll();
-    el.addEventListener("scroll", checkMobileScroll, { passive: true });
-    window.addEventListener("resize", checkMobileScroll);
-    return () => {
-      el.removeEventListener("scroll", checkMobileScroll);
-      window.removeEventListener("resize", checkMobileScroll);
-    };
-  }, [checkMobileScroll]);
-
   // Persist settings to localStorage
   useEffect(() => {
     saveSettings({
@@ -209,7 +184,7 @@ export function ConverterLayout() {
       const state = decodeShareState(encoded);
       if (state) {
         setRule(state.rule);
-        setSelectedBackend(state.backend);
+        setSelectedBackend(toAvailableBackendId(state.backend));
         if (state.pipeline) {
           setSelectedPipeline(state.pipeline);
         }
@@ -460,7 +435,7 @@ export function ConverterLayout() {
   }, [multiMode, multiResults, result, selectedBackend]);
 
   return (
-    <div className="relative space-y-6">
+    <div className="relative space-y-4">
       {/* Loading Overlay */}
       <LoadingOverlay
         error={initError ?? undefined}
@@ -473,7 +448,7 @@ export function ConverterLayout() {
         actions={
           <div className="hidden items-center gap-2 md:flex">
             <button
-              className="panel-action panel-action-primary focus-ring"
+              className="panel-action panel-action-primary focus-ring active:scale-[0.98]"
               disabled={!isReady || isConverting || !rule.trim()}
               onClick={handleConvert}
               title="Convert Sigma rule to the selected backend (⌘↵)"
@@ -496,126 +471,86 @@ export function ConverterLayout() {
           </div>
         }
         headingId="converter-heading"
-        subtitle="Paste or import a Sigma rule, then pick a backend"
-        title="Rule to query"
+        title={
+          <span className="flex items-center gap-1.5">
+            Rule
+            <ArrowRight
+              aria-hidden="true"
+              className="h-3.5 w-3.5 text-muted-foreground"
+            />
+            query
+          </span>
+        }
         toolbar={
           <>
-            <div
-              className={`min-w-0 flex-1 scroll-shadow-x${mobileScrollStart ? " scrolled-start" : ""}${mobileScrollEnd ? " scrolled-end" : ""}`}
-            >
+            <div className="flex w-full flex-wrap items-center gap-2">
+              <RuleImportMenu
+                onExampleSelect={handleExampleSelect}
+                onSearchSigma={() => setShowSigmaSearch(true)}
+              />
+
               <div
-                className="fade-x flex items-center gap-2 overflow-x-auto scrollbar-hide"
-                ref={mobileScrollRef}
+                aria-hidden="true"
+                className="mx-1 h-5 w-px shrink-0 bg-border"
+              />
+
+              <TargetSelector
+                multiSelect={multiMode}
+                onMultiSelect={setSelectedMulti}
+                onSelect={(backend) => {
+                  setSelectedBackend(backend);
+                  trackConverterBackendChanged(backend);
+                }}
+                selected={selectedBackend}
+                selectedMulti={selectedMulti}
+              />
+
+              <PipelineSelector
+                availablePipelines={availablePipelines}
+                customPipelineYaml={customPipelineYaml}
+                onCustomPipelineChange={setCustomPipelineYaml}
+                onPipelineChange={setSelectedPipeline}
+                selectedPipeline={selectedPipeline}
+              />
+
+              <div className="hidden flex-1 md:block" />
+
+              <button
+                aria-label="Compare backends"
+                aria-pressed={multiMode}
+                className={`hidden h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition-colors active:scale-[0.98] focus-ring md:flex ${
+                  multiMode
+                    ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+                    : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.12] hover:text-foreground"
+                }`}
+                onClick={() => setMultiMode((prev) => !prev)}
+                title="Compare outputs from several backends side by side"
+                type="button"
               >
-                {/* Examples */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-muted-foreground text-sm transition-colors hover:border-overlay/[0.1] hover:text-foreground"
-                      title="Load a pre-built Sigma rule example"
-                      type="button"
-                    >
-                      Examples
-                      <ChevronDown aria-hidden="true" className="h-3.5 w-3.5" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    {sigmaExamples.map((example) => (
-                      <button
-                        className="w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-overlay/[0.04]"
-                        key={example.title}
-                        onClick={() => handleExampleSelect(example.yaml)}
-                        type="button"
-                      >
-                        <div className="font-medium text-foreground">
-                          {example.title}
-                        </div>
-                        <div className="text-muted-foreground text-xs">
-                          {example.description}
-                        </div>
-                      </button>
-                    ))}
-                  </PopoverContent>
-                </Popover>
+                <Columns aria-hidden="true" className="h-3.5 w-3.5" />
+                Compare
+              </button>
 
-                {/* Search SigmaHQ */}
-                <button
-                  className="flex shrink-0 items-center gap-2 rounded-lg border border-overlay/[0.06] bg-overlay/[0.02] px-3 py-2 text-muted-foreground text-sm transition-colors hover:border-overlay/[0.1] hover:text-foreground"
-                  onClick={() => setShowSigmaSearch(true)}
-                  title="Search and import rules from SigmaHQ (⌘⇧K)"
-                  type="button"
-                >
-                  <Search aria-hidden="true" className="h-3.5 w-3.5" />
-                  <span>Search SigmaHQ</span>
-                </button>
-
-                {/* Divider: input sources | output settings */}
-                <div
-                  aria-hidden="true"
-                  className="mx-1 h-6 w-px shrink-0 bg-border"
-                />
-
-                {/* Target selector */}
-                <TargetSelector
-                  multiSelect={multiMode}
-                  onMultiSelect={setSelectedMulti}
-                  onSelect={(backend) => {
-                    setSelectedBackend(backend);
-                    trackConverterBackendChanged(backend);
-                  }}
-                  selected={selectedBackend}
-                  selectedMulti={selectedMulti}
-                />
-
-                {/* Pipeline selector */}
-                <PipelineSelector
-                  availablePipelines={availablePipelines}
-                  customPipelineYaml={customPipelineYaml}
-                  onCustomPipelineChange={setCustomPipelineYaml}
-                  onPipelineChange={setSelectedPipeline}
-                  selectedPipeline={selectedPipeline}
-                />
-
-                {/* Multi-backend compare toggle */}
-                <button
-                  aria-pressed={multiMode}
-                  className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                    multiMode
-                      ? "border-primary/30 bg-primary/10 text-primary"
-                      : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
-                  }`}
-                  onClick={() => setMultiMode((prev) => !prev)}
-                  title="Convert to multiple backends at once and compare outputs side-by-side"
-                  type="button"
-                >
-                  <Columns aria-hidden="true" className="h-3.5 w-3.5" />
-                  Compare backends
-                </button>
-
-                {/* Auto-convert toggle */}
-                <button
-                  aria-pressed={autoConvert}
-                  className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                    autoConvert
-                      ? "border-primary/30 bg-primary/10 text-primary"
-                      : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.1] hover:text-foreground"
-                  }`}
-                  onClick={() => setAutoConvert((prev) => !prev)}
-                  title="Automatically convert on every change (500ms debounce)"
-                  type="button"
-                >
-                  <Zap aria-hidden="true" className="h-3.5 w-3.5" />
-                  Auto-convert
-                </button>
-
-                {/* Desktop-only spacer */}
-                <div className="hidden flex-1 md:block" />
-              </div>
+              <button
+                aria-label="Auto-convert while typing"
+                aria-pressed={autoConvert}
+                className={`hidden h-8 shrink-0 items-center gap-1.5 rounded-lg border px-2.5 text-sm transition-colors active:scale-[0.98] focus-ring md:flex ${
+                  autoConvert
+                    ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+                    : "border-overlay/[0.06] bg-overlay/[0.02] text-muted-foreground hover:border-overlay/[0.12] hover:text-foreground"
+                }`}
+                onClick={() => setAutoConvert((prev) => !prev)}
+                title="Convert automatically after every edit"
+                type="button"
+              >
+                <Zap aria-hidden="true" className="h-3.5 w-3.5" />
+                Auto
+              </button>
             </div>
 
             <div className="flex w-full items-center gap-2 md:hidden">
               <button
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 font-medium text-primary-foreground text-sm transition-colors hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50"
                 disabled={!isReady || isConverting || !rule.trim()}
                 onClick={handleConvert}
                 title="Convert Sigma rule to the selected backend (⌘↵)"
@@ -627,13 +562,18 @@ export function ConverterLayout() {
                 )}
               </button>
               <MoreActionsMenu
+                autoConvert={autoConvert}
                 canExport={exportConversions.size > 0}
                 canShare={rule.trim().length > 0}
+                multiMode={multiMode}
                 onExport={() => setShowExport(true)}
                 onShare={handleShare}
                 onToggleAdvanced={() => setShowAdvanced((prev) => !prev)}
+                onToggleAutoConvert={() => setAutoConvert((prev) => !prev)}
+                onToggleMultiMode={() => setMultiMode((prev) => !prev)}
                 shareCopied={shareCopied}
                 showAdvanced={showAdvanced}
+                showModeToggles
               />
             </div>
           </>
@@ -652,7 +592,7 @@ export function ConverterLayout() {
           </div>
         )}
 
-        <div className="grid min-h-[500px] grid-cols-1 lg:grid-cols-2">
+        <div className="grid min-h-[520px] grid-cols-1 lg:grid-cols-2">
           <div className="border-overlay/[0.06] border-b lg:border-r lg:border-b-0">
             <Suspense
               fallback={
@@ -684,20 +624,15 @@ export function ConverterLayout() {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-1 border-overlay/[0.06] border-t lg:grid-cols-2">
-          <div className="border-overlay/[0.06] border-b lg:border-r lg:border-b-0">
-            <RuleChecks
-              checks={locatedRuleChecks}
-              isChecking={isCheckingRule}
-              isEngineReady={isReady}
-              onRevealLine={handleRevealLine}
-            />
-          </div>
-          <LoggingRequirements
-            rule={rule}
-            selectedPipeline={selectedPipeline}
-          />
-        </div>
+
+        <ConverterInspector
+          checks={locatedRuleChecks}
+          isChecking={isCheckingRule}
+          isEngineReady={isReady}
+          onRevealLine={handleRevealLine}
+          rule={rule}
+          selectedPipeline={selectedPipeline}
+        />
       </Panel>
 
       {/* Export Dialog */}

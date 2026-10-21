@@ -112,8 +112,7 @@ export function LoadingOverlay({
               </div>
             </div>
             <p className="max-w-xs text-center text-muted-foreground text-xs">
-              Installing pySigma and detection backends. This only happens once
-              per session.
+              One-time setup. Conversion runs locally.
             </p>
           </>
         )}
