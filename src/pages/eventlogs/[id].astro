@@ -1,0 +1,134 @@
+---
+import Footer from "../../components/layout/Footer.astro";
+import { Header } from "../../components/layout/Header";
+import Panel from "../../components/ui/Panel.astro";
+import Layout from "../../layouts/Layout.astro";
+import { getSharedEventLogIds } from "../../lib/eventlogs";
+import type { EventLogEvent } from "../../lib/eventlogs";
+import {
+  buildBreadcrumbJsonLd,
+  buildEventLogChooserDescription,
+  buildEventLogChooserTitle,
+  serializeJsonForScript,
+  SITE_URL,
+} from "../../lib/seo";
+
+export function getStaticPaths() {
+  return [...getSharedEventLogIds()].map(([eventId, events]) => ({
+    params: { id: String(eventId) },
+    props: { eventId, events },
+  }));
+}
+
+interface Props {
+  eventId: number;
+  events: EventLogEvent[];
+}
+
+const { eventId, events } = Astro.props;
+
+const seoTitle = buildEventLogChooserTitle(eventId, events.length);
+const seoDescription = buildEventLogChooserDescription(events);
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Event logs", path: "/eventlogs" },
+  { name: `Event ID ${eventId}`, path: `/eventlogs/${eventId}` },
+]);
+
+const collectionJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  description: seoDescription,
+  isPartOf: { "@type": "WebSite", url: SITE_URL },
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: events.map((event, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${SITE_URL}/eventlogs/${event.slug}`,
+    })),
+  },
+  name: `Windows event ID ${eventId}`,
+};
+---
+
+<Layout title={seoTitle} description={seoDescription}>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={serializeJsonForScript(breadcrumbJsonLd)}
+    slot="head"
+  />
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={serializeJsonForScript(collectionJsonLd)}
+    slot="head"
+  />
+
+  <Header client:load currentPath={Astro.url.pathname} />
+
+  <main id="main-content" class="relative flex-1" tabindex="-1">
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <nav class="mb-8 text-xs text-muted-foreground" aria-label="Breadcrumb">
+        <ol class="flex flex-wrap items-center gap-1">
+          <li>
+            <a
+              href="/"
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >Home</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <a
+              href="/eventlogs"
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >Event logs</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <span class="px-1 text-foreground" aria-current="page">{eventId}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <header class="mb-10">
+        <h1 class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl">
+          <span class="mb-3 block font-mono text-sm font-normal tracking-normal text-muted-foreground">
+            Windows event log
+          </span>
+          Event ID <span class="font-mono tabular-nums">{eventId}</span>
+        </h1>
+        <p class="mt-4 max-w-2xl text-lg text-muted-foreground">
+          {`${events.length} event logs use this ID, and it means a different thing in each one. Pick the log you have.`}
+        </p>
+      </header>
+
+      <Panel headingId="channels-heading">
+        <Fragment slot="title">Logs with event ID {eventId}</Fragment>
+        <Fragment slot="subtitle">{`${events.length} channels`}</Fragment>
+        <ul class="divide-y divide-border">
+          {events.map((event) => (
+            <li>
+              <a
+                href={`/eventlogs/${event.slug}`}
+                class="group flex flex-col gap-1 px-4 py-3 transition-colors hover:bg-muted sm:flex-row sm:items-baseline sm:gap-4"
+              >
+                <span class="shrink-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-72">
+                  {event.channel}
+                </span>
+                <span class="min-w-0 flex-1 text-sm text-muted-foreground">{event.title}</span>
+                <span class="shrink-0 font-mono text-xs text-muted-foreground">{event.logFile}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Panel>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

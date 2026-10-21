@@ -6,3 +6,7 @@
 	path = src/content/recmd
 	url = https://github.com/EricZimmerman/RECmd.git
 	branch = master
+[submodule "src/content/evtx"]
+	path = src/content/evtx
+	url = https://github.com/EricZimmerman/evtx.git
+	branch = master

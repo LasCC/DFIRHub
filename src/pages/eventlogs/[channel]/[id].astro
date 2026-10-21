@@ -1,0 +1,454 @@
+---
+import { ArrowUpRight, FileText, ListTree, ScrollText, Tag } from "lucide-react";
+import Footer from "../../../components/layout/Footer.astro";
+import { Header } from "../../../components/layout/Header";
+import { CodeBlock } from "../../../components/ui/CodeBlock";
+import Panel from "../../../components/ui/Panel.astro";
+import Layout from "../../../layouts/Layout.astro";
+import {
+  EVENTLOG_CONTRIBUTORS_URL,
+  EVENTLOG_FOLDER,
+  EVENTLOG_LICENSE_URL,
+  EVENTLOG_MAPS_URL,
+  getEventLogCategoryId,
+  getEventLogEventsById,
+  getEventLogSourceDates,
+  loadEventLogEvents,
+} from "../../../lib/eventlogs";
+import type { EventLogEvent, EventLogReference } from "../../../lib/eventlogs";
+import { loadAllTargets } from "../../../lib/kapefiles";
+import {
+  buildBreadcrumbJsonLd,
+  buildEventLogDescription,
+  buildEventLogTitle,
+  LOGO_URL,
+  serializeJsonForScript,
+  SITE_NAME,
+  SITE_URL,
+} from "../../../lib/seo";
+
+export function getStaticPaths() {
+  return loadEventLogEvents().map((event) => ({
+    params: { channel: event.channelSlug, id: String(event.eventId) },
+    props: { event },
+  }));
+}
+
+interface Props {
+  event: EventLogEvent;
+}
+
+const { event } = Astro.props;
+
+const MAX_RELATED_EVENTS = 12;
+const EVENTLOGS_KAPE_TARGET = "eventlogs";
+
+const hasSeveralProviders = event.maps.length > 1;
+const fieldCount = event.maps.reduce((total, map) => total + map.fields.length, 0);
+const fieldLabel = `${fieldCount} ${fieldCount === 1 ? "field" : "fields"}`;
+const providers = [...new Set(event.maps.map((map) => map.provider))];
+const authors = [...new Set(event.maps.map((map) => map.author).filter(Boolean))];
+const notes = [...new Set(event.maps.flatMap((map) => map.notes))];
+
+const categoryHref = `/eventlogs?category=${getEventLogCategoryId(event.category)}`;
+const pagePath = `/eventlogs/${event.slug}`;
+
+const otherChannels = (getEventLogEventsById().get(event.eventId) ?? []).filter(
+  (candidate) => candidate.slug !== event.slug
+);
+
+const relatedEvents = loadEventLogEvents()
+  .filter((candidate) => candidate.channel === event.channel && candidate.slug !== event.slug)
+  .toSorted(
+    (left, right) =>
+      Math.abs(left.eventId - event.eventId) - Math.abs(right.eventId - event.eventId)
+  )
+  .slice(0, MAX_RELATED_EVENTS)
+  .toSorted((left, right) => left.eventId - right.eventId);
+
+const eventLogsTarget = loadAllTargets().find((target) => target.slug === EVENTLOGS_KAPE_TARGET);
+
+const toReferenceLink = (reference: EventLogReference) => {
+  try {
+    const parsed = new URL(reference.url);
+    return {
+      detail: reference.label ?? `${parsed.pathname}${parsed.search}`.replace(/^\/$/, ""),
+      host: parsed.hostname.replace(/^www\./, ""),
+      url: reference.url,
+    };
+  } catch {
+    return { detail: reference.label ?? "", host: reference.url, url: reference.url };
+  }
+};
+
+const referenceLinks = [
+  ...new Map(
+    event.maps.flatMap((map) => map.references).map((reference) => [reference.url, reference])
+  ).values(),
+].map(toReferenceLink);
+
+const logPath = `${EVENTLOG_FOLDER}\\${event.logFile}`;
+const evtxCommand = `EvtxECmd.exe -f "${logPath}" --inc ${event.eventId} --csv "D:\\Parsed"`;
+const kapeCommand = String.raw`kape.exe --msource D:\Evidence --mdest D:\Parsed --module EvtxECmd`;
+
+const seoTitle = buildEventLogTitle(event);
+const seoDescription = buildEventLogDescription(event);
+const pageUrl = `${SITE_URL}${pagePath}`;
+const socialImagePath = `/og/eventlogs/${event.slug}.png`;
+const socialImageAlt = `Windows event ID ${event.eventId} in the ${event.channelLabel} log on DFIRHub`;
+const sourceDates = getEventLogSourceDates();
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  about: {
+    "@type": "Thing",
+    description: "Windows event log entry for incident response",
+    name: "Digital Forensics",
+  },
+  author: authors.map((name) => ({ "@type": "Person", name })),
+  description: seoDescription,
+  headline: `Event ID ${event.eventId}: ${event.title} - ${event.channelLabel}`.slice(0, 110),
+  image: `${SITE_URL}${socialImagePath}`,
+  inLanguage: "en",
+  isBasedOn: event.maps[0]?.fileUrl ?? EVENTLOG_MAPS_URL,
+  keywords: [
+    `event id ${event.eventId}`,
+    `${event.channelLabel} event ${event.eventId}`,
+    "Windows event log forensics",
+    "EvtxECmd",
+    "DFIR",
+    event.category,
+  ].join(", "),
+  mainEntityOfPage: { "@id": pageUrl, "@type": "WebPage" },
+  publisher: {
+    "@type": "Organization",
+    logo: { "@type": "ImageObject", url: LOGO_URL },
+    name: SITE_NAME,
+    url: SITE_URL,
+  },
+  ...(sourceDates && {
+    dateModified: sourceDates.modified,
+    datePublished: sourceDates.published,
+  }),
+};
+
+const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "Home", path: "/" },
+  { name: "Event logs", path: "/eventlogs" },
+  { name: event.category, path: categoryHref },
+  { name: `${event.channelLabel} ${event.eventId}`, path: pagePath },
+]);
+
+const chipLinkClass =
+  "inline-flex rounded-md border border-border bg-card px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground";
+const externalLinkClass =
+  "focus-ring rounded-sm text-primary transition-colors hover:underline";
+const codeChipClass =
+  "rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground";
+---
+
+<Layout
+  title={seoTitle}
+  description={seoDescription}
+  type="article"
+  image={socialImagePath}
+  imageAlt={socialImageAlt}
+>
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={serializeJsonForScript(jsonLd)}
+    slot="head"
+  />
+  <script
+    is:inline
+    type="application/ld+json"
+    set:html={serializeJsonForScript(breadcrumbJsonLd)}
+    slot="head"
+  />
+
+  <Header client:load currentPath={Astro.url.pathname} />
+
+  <main id="main-content" class="relative flex-1" tabindex="-1" data-pagefind-body>
+    <span hidden data-pagefind-meta={`title:Event ID ${event.eventId}: ${event.title}`}></span>
+    <span hidden data-pagefind-meta="kind:EventLog"></span>
+    <span hidden data-pagefind-meta="category:Event log"></span>
+    <span hidden data-pagefind-filter="category:Event log"></span>
+    <span hidden data-pagefind-meta={`paths:${fieldCount}`}></span>
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
+      <nav class="mb-8 text-xs text-muted-foreground" aria-label="Breadcrumb" data-pagefind-ignore>
+        <ol class="flex flex-wrap items-center gap-1">
+          <li>
+            <a
+              href="/"
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >Home</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <a
+              href="/eventlogs"
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >Event logs</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <a
+              href={categoryHref}
+              class="focus-ring rounded-sm px-1 transition-colors hover:text-foreground"
+              >{event.category}</a
+            >
+          </li>
+          <li class="flex items-center gap-1">
+            <span aria-hidden="true">/</span>
+            <span class="px-1 text-foreground" aria-current="page">{event.slug}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <header class="mb-12">
+        <h1 class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl">
+          <span class="mb-3 block font-mono text-sm font-normal tracking-normal text-muted-foreground">
+            Windows event log · {event.channel}
+          </span>
+          <span class="font-mono tabular-nums">{event.eventId}</span>
+          {" "}
+          {event.title}
+        </h1>
+        {event.summary && <p class="mt-4 max-w-2xl text-lg text-muted-foreground">{event.summary}</p>}
+        <ul data-pagefind-ignore class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground">
+          <li class="inline-flex items-center gap-1.5">
+            <Tag aria-hidden="true" className="h-4 w-4" />
+            {event.category}
+          </li>
+          <li class="inline-flex items-center gap-1.5">
+            <ListTree aria-hidden="true" className="h-4 w-4" />
+            {fieldLabel}
+          </li>
+          <li class="inline-flex flex-wrap items-center gap-1.5">
+            <FileText aria-hidden="true" className="h-4 w-4" />
+            <code class={codeChipClass}>{event.logFile}</code>
+          </li>
+          <li class="inline-flex flex-wrap items-center gap-1.5">
+            <ScrollText aria-hidden="true" className="h-4 w-4" />
+            {providers.map((provider) => <code class={codeChipClass}>{provider}</code>)}
+          </li>
+        </ul>
+      </header>
+
+      <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
+        <div class="flex min-w-0 flex-col gap-8 lg:col-span-7">
+          {notes.length > 1 && (
+            <Panel headingId="notes-heading">
+              <Fragment slot="title">Notes</Fragment>
+              <ul class="flex flex-col gap-2 px-4 py-3 text-sm text-muted-foreground">
+                {notes.map((note) => <li>{note}</li>)}
+              </ul>
+            </Panel>
+          )}
+
+          {event.maps.map((map, mapIndex) => (
+            <Panel headingId={`fields-heading-${mapIndex}`}>
+              <Fragment slot="title">
+                {hasSeveralProviders ? map.description : "Fields EvtxECmd extracts"}
+              </Fragment>
+              <Fragment slot="subtitle">
+                {hasSeveralProviders
+                  ? `Provider ${map.provider}`
+                  : `${map.fields.length} ${map.fields.length === 1 ? "column" : "columns"} in the EvtxECmd CSV`}
+              </Fragment>
+              {map.fields.length === 0 ? (
+                <p class="px-4 py-3 text-sm text-muted-foreground">
+                  The map has no custom fields. EvtxECmd keeps the standard columns only.
+                </p>
+              ) : (
+                <ul class="divide-y divide-border">
+                  {map.fields.map((field) => (
+                    <li class="flex flex-col gap-1.5 px-4 py-3">
+                      <div class="flex flex-wrap items-baseline gap-2">
+                        <span class="font-mono text-xs font-medium text-primary">{field.property}</span>
+                        <code class="font-mono text-sm wrap-break-word text-foreground">{field.template}</code>
+                      </div>
+                      {field.values.length > 0 && (
+                        <ul class="flex flex-col gap-0.5" data-pagefind-ignore>
+                          {field.values.map((value) => (
+                            <li class="font-mono text-xs wrap-break-word text-muted-foreground">
+                              <span class="text-foreground">%{value.name}%</span>
+                              {" = "}
+                              {value.xpath}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+          ))}
+
+          {event.maps.flatMap((map) => map.lookups).length > 0 && (
+            <Panel headingId="lookups-heading">
+              <Fragment slot="title">Value lookups</Fragment>
+              <Fragment slot="subtitle">Codes that EvtxECmd turns into text</Fragment>
+              {event.maps.flatMap((map) => map.lookups).map((lookup) => (
+                <div class="border-b border-border last:border-b-0">
+                  <p class="px-4 pt-3 pb-1 font-mono text-xs font-medium text-primary">{lookup.name}</p>
+                  <dl class="grid grid-cols-[minmax(4rem,auto)_1fr] gap-x-4 gap-y-1 px-4 pb-3 text-sm">
+                    {lookup.values.map(([code, label]) => (
+                      <>
+                        <dt class="font-mono text-xs leading-5 text-foreground tabular-nums">{code}</dt>
+                        <dd class="text-muted-foreground">{label}</dd>
+                      </>
+                    ))}
+                  </dl>
+                </div>
+              ))}
+            </Panel>
+          )}
+
+          {event.maps.filter((map) => map.sampleXml).map((map, mapIndex) => (
+            <Panel headingId={`sample-heading-${mapIndex}`}>
+              <Fragment slot="title">Sample event</Fragment>
+              <Fragment slot="subtitle">
+                {hasSeveralProviders ? `${map.provider} event XML` : "Event XML from the map file"}
+              </Fragment>
+              <div data-pagefind-ignore>
+                <CodeBlock client:visible code={map.sampleXml} language="xml" flush />
+              </div>
+            </Panel>
+          ))}
+
+          {referenceLinks.length > 0 && (
+            <Panel headingId="references-heading">
+              <Fragment slot="title">References</Fragment>
+              <Fragment slot="subtitle">
+                {`${referenceLinks.length} ${referenceLinks.length === 1 ? "link" : "links"}`}
+              </Fragment>
+              <ul class="divide-y divide-border">
+                {referenceLinks.map((reference) => (
+                  <li>
+                    <a
+                      href={reference.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="group focus-ring flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-muted"
+                    >
+                      <span
+                        class="min-w-0 truncate text-sm font-medium text-foreground group-hover:text-primary sm:w-64 sm:shrink-0"
+                        title={reference.host}
+                      >
+                        {reference.host}
+                      </span>
+                      <span class="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground sm:block">
+                        {reference.detail}
+                      </span>
+                      <ArrowUpRight
+                        aria-hidden="true"
+                        className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary"
+                      />
+                      <span class="sr-only" data-pagefind-ignore>(opens in new tab)</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+        </div>
+
+        <aside
+          data-pagefind-ignore
+          aria-label="Parse and related information"
+          class="flex min-w-0 flex-col gap-8 lg:col-span-5"
+        >
+          <Panel headingId="parse-heading">
+            <Fragment slot="title">Parse it</Fragment>
+            <Fragment slot="subtitle">Extract this event from {event.logFile}</Fragment>
+            <p class="px-4 pt-3 pb-2 text-xs font-medium text-muted-foreground">EvtxECmd</p>
+            <CodeBlock client:idle code={evtxCommand} language="powershell" flush />
+            <p class="px-4 pt-3 pb-2 text-xs font-medium text-muted-foreground">KAPE module</p>
+            <CodeBlock client:idle code={kapeCommand} language="powershell" flush />
+          </Panel>
+
+          {eventLogsTarget && (
+            <Panel headingId="collect-heading">
+              <Fragment slot="title">Collect the log</Fragment>
+              <Fragment slot="subtitle">
+                <code class="font-mono text-xs break-all">{logPath}</code>
+              </Fragment>
+              <ul class="flex flex-wrap gap-2 p-3">
+                <li>
+                  <a href={`/artifact/${eventLogsTarget.slug}`} class={chipLinkClass}>
+                    {eventLogsTarget.name}
+                  </a>
+                </li>
+              </ul>
+            </Panel>
+          )}
+
+          {otherChannels.length > 0 && (
+            <Panel headingId="other-channels-heading">
+              <Fragment slot="title">Event ID {event.eventId} in other logs</Fragment>
+              <a href={`/eventlogs/${event.eventId}`} slot="actions" class="panel-action focus-ring">
+                Compare
+              </a>
+              <ul class="flex flex-wrap gap-2 p-3">
+                {otherChannels.map((other) => (
+                  <li>
+                    <a href={`/eventlogs/${other.slug}`} class={chipLinkClass}>
+                      {other.channelLabel}: {other.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+
+          {relatedEvents.length > 0 && (
+            <Panel headingId="related-heading">
+              <Fragment slot="title">More in {event.channelLabel}</Fragment>
+              <ul class="flex flex-wrap gap-2 p-3">
+                {relatedEvents.map((related) => (
+                  <li>
+                    <a href={`/eventlogs/${related.slug}`} class={chipLinkClass}>
+                      <span class="mr-1.5 font-mono tabular-nums">{related.eventId}</span>
+                      {related.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+        </aside>
+      </div>
+
+      <p data-pagefind-ignore class="mt-16 border-t border-border pt-4 text-xs text-muted-foreground">
+        <span>Source: </span>
+        {event.maps.map((map, mapIndex) => (
+          <>
+            {mapIndex > 0 && ", "}
+            <a href={map.fileUrl} target="_blank" rel="noopener noreferrer" class={externalLinkClass}>
+              evtx/Maps/{map.fileName}
+              <span class="sr-only">(opens in new tab)</span>
+            </a>
+          </>
+        ))}
+        {` by ${authors.join(", ") || "EvtxECmd"} and `}
+        <a href={EVENTLOG_CONTRIBUTORS_URL} target="_blank" rel="noopener noreferrer" class={externalLinkClass}>
+          contributors
+          <span class="sr-only">(opens in new tab)</span>
+        </a>
+        {", "}
+        <a href={EVENTLOG_LICENSE_URL} target="_blank" rel="noopener noreferrer" class={externalLinkClass}>
+          MIT License
+          <span class="sr-only">(opens in new tab)</span>
+        </a>
+      </p>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

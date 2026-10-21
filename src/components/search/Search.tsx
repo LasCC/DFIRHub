@@ -44,8 +44,19 @@ interface SearchProps {
 const PRIMARY_ACTION_LABELS: Record<RecentArtifact["kind"], string> = {
   Artifact: "Open artifact",
   Collection: "Open collection",
+  EventLog: "Open event",
   Registry: "Open registry artifact",
 };
+
+const BROWSE_ALL_PATHS: Record<string, string> = {
+  "Event log": "/eventlogs",
+  Registry: "/registry",
+};
+
+const KINDS_WITHOUT_KAPE_COMMAND = new Set<RecentArtifact["kind"]>([
+  "EventLog",
+  "Registry",
+]);
 
 const ANNOUNCEMENT_CLEAR_DELAY_MS = 1000;
 const COPIED_FEEDBACK_MS = 1500;
@@ -113,14 +124,16 @@ export function Search({ showTrigger = true }: SearchProps) {
     total > hits.length
       ? `Top ${hits.length} of ${total} results`
       : `${total} ${total === 1 ? "result" : "results"}`;
-  const browseAllPath = category === "Registry" ? "/registry" : "/artifacts";
+  const browseAllPath =
+    (category && BROWSE_ALL_PATHS[category]) ?? "/artifacts";
   const browseAllHref = `${browseAllPath}?q=${encodeURIComponent(trimmedQuery)}`;
 
   const selectedArtifact: RecentArtifact | undefined = (
     hasQuery ? hits : recent
   ).find((artifact) => artifact.url === selectedValue);
   const canCopyCommand =
-    selectedArtifact !== undefined && selectedArtifact.kind !== "Registry";
+    selectedArtifact !== undefined &&
+    !KINDS_WITHOUT_KAPE_COMMAND.has(selectedArtifact.kind);
   const selectedQuickLink = QUICK_LINKS.find(
     (link) => link.href === selectedValue
   );

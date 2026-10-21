@@ -1,5 +1,5 @@
 [build]
-command = "rm -rf .astro/content-cache && git submodule sync --recursive && git submodule update --init --recursive --remote src/content/kapefiles src/content/recmd && pnpm install --frozen-lockfile && pnpm run build"
+command = "rm -rf .astro/content-cache && git submodule sync --recursive && git submodule update --init --recursive --remote src/content/kapefiles src/content/recmd src/content/evtx && pnpm install --frozen-lockfile && pnpm run build"
 publish = "dist"
 
 [build.environment]
@@ -80,11 +80,6 @@ to = "/artifact/lnkfilesandumpdirectories"
 status = 301
 
 # Event logs
-[[redirects]]
-from = "/eventlogs"
-to = "/artifact/eventlogs"
-status = 301
-
 [[redirects]]
 from = "/evtx"
 to = "/artifact/eventlogs"

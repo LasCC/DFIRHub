@@ -23,6 +23,7 @@ const isRecentArtifact = (value: unknown): value is RecentArtifact => {
     typeof candidate.category === "string" &&
     (candidate.kind === "Artifact" ||
       candidate.kind === "Collection" ||
+      candidate.kind === "EventLog" ||
       candidate.kind === "Registry")
   );
 };

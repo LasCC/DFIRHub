@@ -5,6 +5,7 @@ import {
   KeyRound,
   Layers,
   Menu,
+  ScrollText,
   Sigma,
   Wrench,
   X,
@@ -37,6 +38,7 @@ const navItems = [
   { href: "/artifacts", label: "Artifacts", Icon: FileSearch },
   { href: "/collections", label: "Collections", Icon: Layers },
   { href: "/registry", label: "Registry", Icon: KeyRound },
+  { href: "/eventlogs", label: "Event logs", Icon: ScrollText },
   { href: "/builder", label: "Builder", Icon: Wrench },
   { href: "/converter", label: "Converter", Icon: Sigma },
 ];

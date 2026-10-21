@@ -3,7 +3,7 @@ import { codeToHtml } from "shiki";
 
 interface CodeBlockProps {
   code: string;
-  language: "powershell" | "batch" | "bash" | "shell" | "text";
+  language: "powershell" | "batch" | "bash" | "shell" | "text" | "xml";
   flush?: boolean;
 }
 
@@ -13,6 +13,7 @@ const languageMap: Record<string, string> = {
   powershell: "powershell",
   shell: "bash",
   text: "text",
+  xml: "xml",
 };
 
 export function CodeBlock({ code, language, flush = false }: CodeBlockProps) {

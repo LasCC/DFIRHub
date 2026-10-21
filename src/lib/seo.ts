@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 
+import type { EventLogEvent } from "./eventlogs";
 import type { KapeTarget } from "./kapefiles";
 import type { RegistryArtifact } from "./registry";
 
@@ -239,5 +240,67 @@ export function getTargetDates(target: KapeTarget): TargetDates | undefined {
   targetDatesCache ??= readTargetDates();
   return targetDatesCache.get(
     `${KAPETARGETS_PATH_PREFIX}/${target.category}/${target.sourceFile}`
+  );
+}
+
+export function buildEventLogTitle(event: EventLogEvent): string {
+  const candidates = [
+    `Event ID ${event.eventId}: ${event.title} (${event.channelLabel})`,
+    `Event ID ${event.eventId}: ${event.title}`,
+    `${event.channelLabel} Event ID ${event.eventId}`,
+  ];
+  return candidates.find(fitsTitleWithBrand) ?? `Event ID ${event.eventId}`;
+}
+
+function describeEventLogFields(event: EventLogEvent): string {
+  const fieldCount = event.maps.reduce(
+    (total, map) => total + map.fields.length,
+    0
+  );
+  return `${fieldCount} ${fieldCount === 1 ? "field" : "fields"}`;
+}
+
+export function buildEventLogDescription(event: EventLogEvent): string {
+  const lead = `${event.channelLabel} event ID ${event.eventId}: ${collapseWhitespace(event.title).replace(TRAILING_PUNCTUATION_PATTERN, "")}`;
+  const contexts = [
+    `The ${describeEventLogFields(event)} EvtxECmd extracts from ${event.logFile}, a sample event and the command to parse it.`,
+    `${describeEventLogFields(event)} EvtxECmd extracts from ${event.logFile}, with a sample event.`,
+    `Parsed from ${event.logFile} with EvtxECmd.`,
+  ];
+  const context =
+    contexts.find(
+      (candidate) =>
+        lead.length + candidate.length + 2 <= MAX_DESCRIPTION_LENGTH
+    ) ??
+    contexts.at(-1) ??
+    "";
+  const shortenedLead = shortenAtClause(
+    lead,
+    MAX_DESCRIPTION_LENGTH - context.length - 2
+  );
+  const separator = shortenedLead.endsWith("…") ? " " : ". ";
+  const description = `${shortenedLead}${separator}${context}`;
+  return description.length < MIN_DESCRIPTION_LENGTH
+    ? `${description} ${SHORT_DESCRIPTION_EXTENSION}`
+    : description;
+}
+
+export function buildEventLogChooserTitle(
+  eventId: number,
+  channelCount: number
+): string {
+  return `Event ID ${eventId} in ${channelCount} Windows Event Logs`;
+}
+
+export function buildEventLogChooserDescription(
+  events: EventLogEvent[]
+): string {
+  const [first] = events;
+  const channels = events
+    .map((event) => `${event.channelLabel} (${event.title})`)
+    .join(", ");
+  return truncateAtWord(
+    `Windows event ID ${first?.eventId} is used by ${events.length} event logs: ${channels}. Pick the channel to see its fields and sample event.`,
+    MAX_DESCRIPTION_LENGTH
   );
 }

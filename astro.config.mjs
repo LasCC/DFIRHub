@@ -7,6 +7,8 @@ import { defineConfig } from "astro/config";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { eventLogRedirects } from "./src/integrations/eventLogRedirects.ts";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://astro.build/config
@@ -22,6 +24,7 @@ export default defineConfig({
   },
 
   integrations: [
+    eventLogRedirects(),
     react(),
     sitemap({
       filter: (page) => !page.includes("?"),

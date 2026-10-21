@@ -25,6 +25,7 @@ const shortcutGroups: ShortcutGroup[] = [
       { description: "Go to all artifacts", keys: ["g", "a"] },
       { description: "Go to collections", keys: ["g", "c"] },
       { description: "Go to registry artifacts", keys: ["g", "r"] },
+      { description: "Go to event logs", keys: ["g", "e"] },
       { description: "Go to builder", keys: ["g", "b"] },
     ],
     title: "Navigation",

@@ -42,6 +42,11 @@ const categoryStyles: Record<string, CategoryStyle> = {
     bg: "bg-yellow-500/5",
     text: "text-yellow-800 dark:text-yellow-400",
   },
+  "Event log": {
+    accent: "bg-teal-600",
+    bg: "bg-teal-500/5",
+    text: "text-teal-800 dark:text-teal-400",
+  },
   P2P: {
     accent: "bg-purple-600",
     bg: "bg-purple-500/5",

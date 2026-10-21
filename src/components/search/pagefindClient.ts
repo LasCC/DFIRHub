@@ -8,7 +8,7 @@ export interface SearchOutcome {
   total: number;
 }
 
-export type SearchHitKind = "Artifact" | "Collection" | "Registry";
+export type SearchHitKind = "Artifact" | "Collection" | "EventLog" | "Registry";
 
 export interface SearchHit {
   category: string;
@@ -99,7 +99,11 @@ const stripLeadingTitle = (excerpt: string, title: string): string => {
   return stripped;
 };
 
-const SEARCH_HIT_KINDS = new Set<string>(["Collection", "Registry"]);
+const SEARCH_HIT_KINDS = new Set<string>([
+  "Collection",
+  "EventLog",
+  "Registry",
+]);
 
 const toSearchHitKind = (kind: string | undefined): SearchHitKind =>
   kind && SEARCH_HIT_KINDS.has(kind) ? (kind as SearchHitKind) : "Artifact";

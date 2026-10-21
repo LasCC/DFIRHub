@@ -1,4 +1,5 @@
 import {
+  Activity,
   AppWindow,
   ArrowLeftRight,
   Box,
@@ -13,14 +14,18 @@ import {
   KeyRound,
   Layers,
   LayoutGrid,
+  Lock,
   Mail,
   Monitor,
+  MonitorSmartphone,
   MousePointerClick,
   Package,
   Play,
   Repeat,
+  ScrollText,
   Share2,
   ShieldCheck,
+  SquareTerminal,
   Usb,
   Users,
 } from "lucide-react";
@@ -33,6 +38,7 @@ export const categoryIcons: Record<string, CategoryIcon> = {
   antivirus: ShieldCheck,
   apps: Box,
   browsers: Globe,
+  "event log": ScrollText,
   compound: Layers,
   logs: FileText,
   p2p: ArrowLeftRight,
@@ -60,10 +66,27 @@ export const registryCategoryIcons: Record<string, CategoryIcon> = {
   "web-browsers": Globe,
 };
 
+export const eventLogCategoryIcons: Record<string, CategoryIcon> = {
+  application: AppWindow,
+  "defender-and-policy": ShieldCheck,
+  powershell: SquareTerminal,
+  "remote-access": MonitorSmartphone,
+  security: Lock,
+  sysmon: Activity,
+  system: Cpu,
+  "third-party": Package,
+  "windows-operational": Monitor,
+};
+
 export const getCategoryIcon = (
   category: string,
   fallback: CategoryIcon = LayoutGrid
 ): CategoryIcon => {
   const id = category.toLowerCase();
-  return categoryIcons[id] ?? registryCategoryIcons[id] ?? fallback;
+  return (
+    categoryIcons[id] ??
+    registryCategoryIcons[id] ??
+    eventLogCategoryIcons[id] ??
+    fallback
+  );
 };

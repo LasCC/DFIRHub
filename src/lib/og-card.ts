@@ -5,6 +5,7 @@ import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 import type { Font } from "satori";
 
+import type { EventLogEvent } from "./eventlogs";
 import { generateKapeCommand } from "./generators";
 import { getHomepageData } from "./homepage";
 import { getResolvedEntries } from "./kapefiles";
@@ -32,6 +33,8 @@ const ARTIFACT_EYEBROW = "Windows forensic artifact";
 const COLLECTION_EYEBROW = "KAPE triage collection";
 const REGISTRY_EYEBROW = "Windows registry artifact";
 const REGISTRY_CHIP = "Registry";
+const EVENTLOG_EYEBROW = "Windows event log";
+const EVENTLOG_CHIP = "Event log";
 const MIN_KEY_PATH_FONT_SIZE = 20;
 const KEY_PATH_SEPARATOR = "\\";
 const KEY_PATH_ELLIPSIS = "…";
@@ -579,4 +582,28 @@ export function renderDefaultCard(): Promise<Uint8Array> {
     { label: "Sigma rules", value: formatCount(sigma.ruleCount) },
   ];
   return renderCard((logoUri) => buildDefaultCard(stats, logoUri));
+}
+
+function describeEventLogFields(event: EventLogEvent): string {
+  const fieldCount = event.maps.reduce(
+    (total, map) => total + map.fields.length,
+    0
+  );
+  const fieldLabel = `${fieldCount} ${fieldCount === 1 ? "field" : "fields"}`;
+  return `${fieldLabel} parsed by EvtxECmd`;
+}
+
+export function renderEventLogCard(event: EventLogEvent): Promise<Uint8Array> {
+  const content: ArtifactCardContent = {
+    chip: EVENTLOG_CHIP,
+    commandRow: buildKeyPathRow(event.logFile, `Event ID ${event.eventId}`),
+    description:
+      event.summary ||
+      `${event.channelLabel} event ${event.eventId}: what it records, the fields EvtxECmd extracts and a sample event.`,
+    eyebrow: `${EVENTLOG_EYEBROW} · ${event.channelLabel}`,
+    footer: describeEventLogFields(event),
+    seed: `eventlog-${event.slug}`,
+    title: `${event.eventId} · ${event.title}`,
+  };
+  return renderCard((logoUri) => buildArtifactCard(content, logoUri));
 }

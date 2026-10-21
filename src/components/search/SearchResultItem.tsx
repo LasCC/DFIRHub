@@ -15,6 +15,13 @@ interface SearchResultItemProps {
   query?: string;
 }
 
+const COUNT_UNITS: Record<SearchHit["kind"], string> = {
+  Artifact: "path",
+  Collection: "path",
+  EventLog: "field",
+  Registry: "key",
+};
+
 export function SearchResultItem({
   hit,
   onSelect,
@@ -22,8 +29,7 @@ export function SearchResultItem({
 }: SearchResultItemProps) {
   const categoryStyle = getCategoryStyle(hit.category);
   const CategoryIcon = getCategoryIcon(hit.category);
-  const isRegistry = hit.kind === "Registry";
-  const countUnit = isRegistry ? "key" : "path";
+  const countUnit = COUNT_UNITS[hit.kind];
   const countLabel = hit.pathCount === 1 ? countUnit : `${countUnit}s`;
 
   return (
