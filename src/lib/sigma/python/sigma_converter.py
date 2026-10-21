@@ -52,17 +52,20 @@ from sigma.processing.resolver import ProcessingPipelineResolver
 from sigma.rule import SigmaRule
 from sigma.validators.base import SigmaValidationIssue
 
-# Discover plugins at module level
 plugins = InstalledSigmaPlugins.autodiscover()
 backends = plugins.backends
+
+
+def refresh_plugins():
+    global plugins, backends
+    plugins = InstalledSigmaPlugins.autodiscover()
+    backends = plugins.backends
 
 
 def get_available_pipelines(backend=""):
     """Get available pipeline info, optionally filtered by backend compatibility."""
     try:
-        available_pipelines = ProcessingPipelineResolver(
-            InstalledSigmaPlugins.autodiscover().pipelines
-        ).list_pipelines()
+        available_pipelines = ProcessingPipelineResolver(plugins.pipelines).list_pipelines()
 
         results = []
         for name, pipeline in available_pipelines:
@@ -337,7 +340,7 @@ def _collect_parse_errors(collection):
 
 
 def _run_validators(rules):
-    validator_classes = InstalledSigmaPlugins.autodiscover().validators
+    validator_classes = plugins.validators
     validators = [
         validator_class()
         for name, validator_class in validator_classes.items()

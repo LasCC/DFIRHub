@@ -1,12 +1,23 @@
 import registerPromiseWorker from "promise-worker/register";
 
 import sigmaConverterPy from "../python/sigma_converter.py?raw";
+import {
+  CORE_PACKAGES,
+  PYODIDE_CDN_BASE,
+  SIGMA_LOCK_FILE,
+  SIGMA_PACKAGES_PATH,
+  VALIDATOR_PACKAGE,
+  toLockPackageName,
+} from "./pyodide-packages";
 
-const PYODIDE_VERSION = "0.29.3";
-const PYODIDE_CDN_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full`;
+const SIGMA_LOCK_URL = `${self.location.origin}${SIGMA_PACKAGES_PATH}${SIGMA_LOCK_FILE}`;
 
 interface PyodideInterface {
-  loadPackage: (pkg: string | string[]) => Promise<void>;
+  loadPackage: (
+    pkg: string | string[],
+    options?: { messageCallback?: (message: string) => void }
+  ) => Promise<void>;
+  lockfile: { packages: Record<string, unknown> };
   runPythonAsync: (code: string) => Promise<unknown>;
   globals: {
     get: (name: string) => unknown;
@@ -44,6 +55,8 @@ const SIGMAHQ_VALIDATOR_DATA_MODULES = {
   data_windows_provider: "sigmahq_windows_provider.json",
 } as const;
 
+const ignoreMessage = () => null;
+
 function sendStatus(stage: string, progress: number, ready = false) {
   self.postMessage({
     type: "status_update",
@@ -61,40 +74,14 @@ async function initPyodide(): Promise<void> {
   sendStatus("Loading Pyodide runtime", 0.1);
 
   const { loadPyodide } = await import(
-    /* @vite-ignore */ `${PYODIDE_CDN_BASE}/pyodide.mjs`
+    /* @vite-ignore */ `${PYODIDE_CDN_BASE}pyodide.mjs`
   );
+  sendStatus("Loading pySigma", 0.4);
   pyodide = (await loadPyodide({
-    indexURL: `${PYODIDE_CDN_BASE}/`,
+    indexURL: PYODIDE_CDN_BASE,
+    lockFileURL: SIGMA_LOCK_URL,
+    packages: CORE_PACKAGES,
   })) as PyodideInterface;
-
-  sendStatus("Installing micropip", 0.25);
-  await pyodide.loadPackage("micropip");
-
-  sendStatus("Installing PyYAML", 0.35);
-  const micropip = pyodide.pyimport("micropip") as {
-    install: (
-      pkg: string | string[],
-      opts?: Record<string, unknown>
-    ) => Promise<void>;
-  };
-
-  const wheelUrl = `${self.location.origin}/wheels/pyyaml-6.0.3-cp313-cp313-pyodide_2025_0_wasm32.whl`;
-  await micropip.install(wheelUrl);
-
-  sendStatus("Installing pySigma", 0.5);
-  // Pin below 1.4.0: pySigma 1.4.0+ hard-depends on `jq` (a C-extension with
-  // no pure-Python/Pyodide wasm wheel), which makes micropip fail to resolve
-  // in the browser. 1.3.3 is the last jq-free release and satisfies the
-  // pipelines (pysigma >=1.0,<2.0) and backends (pysigma >=1).
-  // pyparsing 3.3 breaks pySigma 1.3.3 condition post-processing: every
-  // condition with `not` fails with "'str' object is not callable".
-  await micropip.install(["pySigma<1.4", "pyparsing>=3.2.5,<3.3"]);
-
-  sendStatus("Installing default pipelines", 0.65);
-  await micropip.install([
-    "pySigma-pipeline-windows",
-    "pySigma-pipeline-sysmon",
-  ]);
 
   sendStatus("Loading converter module", 0.8);
   await pyodide.runPythonAsync(sigmaConverterPy);
@@ -122,18 +109,16 @@ async function fetchSigmahqValidatorData(): Promise<Record<string, string>> {
 const LOAD_SIGMAHQ_DATA_PYTHON = `
 import json as _json
 load_sigmahq_validator_data(_json.loads(_validator_data_json))
+refresh_plugins()
 `;
 
 async function installSigmahqValidators(): Promise<void> {
   if (!pyodide) {
     return;
   }
-  const micropip = pyodide.pyimport("micropip") as {
-    install: (pkg: string) => Promise<void>;
-  };
   const [validatorData] = await Promise.all([
     fetchSigmahqValidatorData(),
-    micropip.install("pySigma-validators-sigmahq"),
+    pyodide.loadPackage(VALIDATOR_PACKAGE, { messageCallback: ignoreMessage }),
   ]);
   pyodide.globals.set("_validator_data_json", JSON.stringify(validatorData));
   await pyodide.runPythonAsync(LOAD_SIGMAHQ_DATA_PYTHON);
@@ -155,14 +140,17 @@ async function installBackendPackage(packageName: string): Promise<void> {
     return;
   }
 
-  const micropip = pyodide.pyimport("micropip") as {
-    install: (pkg: string) => Promise<void>;
-  };
-  await micropip.install(packageName);
+  const lockPackageName = toLockPackageName(packageName);
+  if (!(lockPackageName in pyodide.lockfile.packages)) {
+    throw new Error(
+      `${packageName} does not work with pySigma 1.3.3 in the browser`
+    );
+  }
+  await pyodide.loadPackage(lockPackageName, {
+    messageCallback: ignoreMessage,
+  });
   installedBackends.add(packageName);
-
-  // Reload converter module to pick up new backends via autodiscovery
-  await pyodide.runPythonAsync(sigmaConverterPy);
+  await pyodide.runPythonAsync("refresh_plugins()");
 }
 
 const CONVERT_PYTHON = `
@@ -200,7 +188,11 @@ async function convert(
 
   const packageName = payload.packageName;
   if (packageName && typeof packageName === "string") {
-    await installBackendPackage(packageName);
+    try {
+      await installBackendPackage(packageName);
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
   }
 
   pyodide.globals.set("_params_json", JSON.stringify(payload));

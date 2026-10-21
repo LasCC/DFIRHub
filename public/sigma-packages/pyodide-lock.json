@@ -1,0 +1,379 @@
+{
+  "info": {
+    "abi_version": "2026_0",
+    "arch": "wasm32",
+    "platform": "emscripten_5_0_3",
+    "python": "3.14.2"
+  },
+  "packages": {
+    "certifi": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/certifi-2026.4.22-py3-none-any.whl",
+      "imports": [
+        "certifi"
+      ],
+      "install_dir": "site",
+      "name": "certifi",
+      "package_type": "package",
+      "sha256": "c2c0091986db798df5fd84582d289496f31244a898ec032b7015278c2d82c80c",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "2026.4.22"
+    },
+    "charset-normalizer": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/charset_normalizer-3.4.7-py3-none-any.whl",
+      "imports": [
+        "charset_normalizer"
+      ],
+      "install_dir": "site",
+      "name": "charset-normalizer",
+      "package_type": "package",
+      "sha256": "9e437ef92fa51f06eedeb1ef092c0a887bd24fe0d40b1e900191117ce1653121",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "3.4.7"
+    },
+    "diskcache": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/diskcache-5.6.3-py3-none-any.whl",
+      "imports": [
+        "diskcache"
+      ],
+      "install_dir": "site",
+      "name": "diskcache",
+      "package_type": "package",
+      "sha256": "3a80f49db7aea57622ce414ed95bfa560c7468cd4abb19d4b449b9cdaf627d5d",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "5.6.3"
+    },
+    "idna": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/idna-3.11-py3-none-any.whl",
+      "imports": [
+        "idna"
+      ],
+      "install_dir": "site",
+      "name": "idna",
+      "package_type": "package",
+      "sha256": "1619419bc899f07c7a608a12e8238e5e0bc15bb25fec90cfe20a86bb849ba0d8",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "3.11"
+    },
+    "importlib-resources": {
+      "name": "importlib_resources",
+      "version": "7.1.0",
+      "file_name": "importlib_resources-7.1.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "1bd7b48b4088eddb2cd16382150bb515af0bd2c70128194392725f82ad2c96a1",
+      "imports": [
+        "importlib_resources"
+      ],
+      "depends": []
+    },
+    "jinja2": {
+      "depends": [
+        "markupsafe"
+      ],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/jinja2-3.1.6-py3-none-any.whl",
+      "imports": [
+        "jinja2"
+      ],
+      "install_dir": "site",
+      "name": "Jinja2",
+      "package_type": "package",
+      "sha256": "9330ec9cf2241fb8fc352928ea5e72016bf82de1d3d3b71ffea52a093a3ebab8",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "3.1.6"
+    },
+    "markupsafe": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/markupsafe-3.0.3-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+      "imports": [
+        "markupsafe"
+      ],
+      "install_dir": "site",
+      "name": "MarkupSafe",
+      "package_type": "package",
+      "sha256": "b44c364dc0d19e4210ce68ab77833c2b5d608f78fe6966263add4fc1fa667d97",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "3.0.3"
+    },
+    "packaging": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/packaging-26.1-py3-none-any.whl",
+      "imports": [
+        "packaging"
+      ],
+      "install_dir": "site",
+      "name": "packaging",
+      "package_type": "package",
+      "sha256": "565acbbea54da30348b6d68b6a54373e6f777987db9f1db6966b4b3a5060d303",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "26.1"
+    },
+    "pyparsing": {
+      "name": "pyparsing",
+      "version": "3.2.5",
+      "file_name": "pyparsing-3.2.5-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "e38a4f02064cf41fe6593d328d0512495ad1f3d8a91c4f73fc401b3079a59a5e",
+      "imports": [],
+      "depends": []
+    },
+    "pysigma": {
+      "name": "pySigma",
+      "version": "1.3.3",
+      "file_name": "pysigma-1.3.3-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "3771aeaf4bc65dc372a754d67607964d8beb0431d438cc76ae380b89d91f261b",
+      "imports": [],
+      "depends": [
+        "diskcache",
+        "jinja2",
+        "packaging",
+        "pyparsing",
+        "pyyaml",
+        "requests",
+        "typing-extensions"
+      ]
+    },
+    "pysigma-backend-carbonblack": {
+      "name": "pysigma-backend-carbonblack",
+      "version": "0.1.14",
+      "file_name": "pysigma_backend_carbonblack-0.1.14-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "3c93820a11bb8e371cb9f9b44df8c04edd3f5de27cf09cd9f54011264045f095",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-crowdstrike": {
+      "name": "pysigma-backend-crowdstrike",
+      "version": "3.0.0",
+      "file_name": "pysigma_backend_crowdstrike-3.0.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "be875a79f4677e8b200a55a19de4f2d9e70af8622fc4265658395c8de87a62f6",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-elasticsearch": {
+      "name": "pySigma-backend-elasticsearch",
+      "version": "2.1.0",
+      "file_name": "pysigma_backend_elasticsearch-2.1.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "d4b6ed1566fd8cca05a5d175d6d5dc644e0a863b94eab4025679c9550de1b881",
+      "imports": [],
+      "depends": [
+        "pysigma",
+        "pyyaml"
+      ]
+    },
+    "pysigma-backend-kusto": {
+      "name": "pySigma-backend-kusto",
+      "version": "1.0.1",
+      "file_name": "pysigma_backend_kusto-1.0.1-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "8b6a6763a2839b8bc75e333ea2bcb2f3bb07d98b46072a1bef602c1e9b504799",
+      "imports": [],
+      "depends": [
+        "certifi",
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-loki": {
+      "name": "pySigma-backend-loki",
+      "version": "0.13.0",
+      "file_name": "pysigma_backend_loki-0.13.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "96eed1443d4f3cf8b4457af58f82c13e26facf21b60d6f3c985fffd3bceecc2e",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-netwitness": {
+      "name": "pySigma-backend-netwitness",
+      "version": "0.3.0",
+      "file_name": "pysigma_backend_netwitness-0.3.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "8654cb63a40f55ba0f6a14923a67102f7110b68a6c8d0ca6cb2ed8684d7e6ca7",
+      "imports": [
+        "sigma"
+      ],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-opensearch": {
+      "name": "pySigma-backend-opensearch",
+      "version": "2.0.3",
+      "file_name": "pysigma_backend_opensearch-2.0.3-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "bcb90e21207385fadb56ac5358242c86d32736a897289f2e0cb5d6949670e927",
+      "imports": [],
+      "depends": [
+        "pysigma",
+        "pysigma-backend-elasticsearch"
+      ]
+    },
+    "pysigma-backend-quickwit": {
+      "name": "pySigma-backend-quickwit",
+      "version": "0.1.4",
+      "file_name": "pysigma_backend_quickwit-0.1.4-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "d978339384fb77e9f01b6c74348f618b8819328ccca4a4fae7cc3dd0395f1c00",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-secops": {
+      "name": "pySigma-backend-secops",
+      "version": "1.0.0",
+      "file_name": "pysigma_backend_secops-1.0.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "c4e864af1c584107804c58f0b6f88281f97df93293c8df54c7cb1696982dace0",
+      "imports": [],
+      "depends": [
+        "importlib-resources",
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-sentinelone-pq": {
+      "name": "pysigma-backend-sentinelone-pq",
+      "version": "0.1.6",
+      "file_name": "pysigma_backend_sentinelone_pq-0.1.6-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "f162d4d57a9ae8eccdf7bf4d355967471eef94645f9556e0fd4f3a7a76df0b6c",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-splunk": {
+      "name": "pysigma-backend-splunk",
+      "version": "2.1.0",
+      "file_name": "pysigma_backend_splunk-2.1.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "90da654b17c7a396ba23af14a29ed559c562ae5bb60c4ceda47cd9744dd3581c",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-backend-sqlite": {
+      "name": "pySigma-backend-sqlite",
+      "version": "1.2.4",
+      "file_name": "pysigma_backend_sqlite-1.2.4-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "30fcebe9c114872725bced20c7aaa2deffd9e43c29e893c4176d6dd5c348d61a",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-pipeline-sysmon": {
+      "name": "pysigma-pipeline-sysmon",
+      "version": "2.0.0",
+      "file_name": "pysigma_pipeline_sysmon-2.0.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "84575bbde5dd891882306ca1f6ce16bdc592da2e511ac8960012af2efb9d120b",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-pipeline-windows": {
+      "name": "pysigma-pipeline-windows",
+      "version": "2.0.1",
+      "file_name": "pysigma_pipeline_windows-2.0.1-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "f62d1d5be64379dcb1584ea89cf3765732a25470b249f7ffac1fb9e2e2e19d80",
+      "imports": [],
+      "depends": [
+        "pysigma"
+      ]
+    },
+    "pysigma-validators-sigmahq": {
+      "name": "pySigma-validators-sigmahq",
+      "version": "0.21.0",
+      "file_name": "pysigma_validators_sigmahq-0.21.0-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "d785ec1e64750c6a807ee457a2f1cbf2c6e2b2ab9b7e493bcfa8f0ad666f58a5",
+      "imports": [],
+      "depends": [
+        "diskcache",
+        "pysigma",
+        "requests"
+      ]
+    },
+    "pyyaml": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyyaml-6.0.3-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+      "imports": [
+        "_yaml",
+        "yaml"
+      ],
+      "install_dir": "site",
+      "name": "pyyaml",
+      "package_type": "package",
+      "sha256": "a05d2a48c13ed72a8c60c73b30b753a25c3a591bb66c15428b7e95e69a9e806f",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "6.0.3"
+    },
+    "requests": {
+      "name": "requests",
+      "version": "2.34.2",
+      "file_name": "requests-2.34.2-py3-none-any.whl",
+      "install_dir": "site",
+      "sha256": "2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0",
+      "imports": [
+        "requests"
+      ],
+      "depends": [
+        "certifi",
+        "charset-normalizer",
+        "idna",
+        "urllib3"
+      ]
+    },
+    "typing-extensions": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/typing_extensions-4.15.0-py3-none-any.whl",
+      "imports": [
+        "typing_extensions"
+      ],
+      "install_dir": "site",
+      "name": "typing-extensions",
+      "package_type": "package",
+      "sha256": "4fec68770a05408e668a4fa53d6bf4f0f684b9dacf820c7c5d6e97d3ad225e29",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "4.15.0"
+    },
+    "urllib3": {
+      "depends": [],
+      "file_name": "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/urllib3-2.6.3-py3-none-any.whl",
+      "imports": [
+        "urllib3"
+      ],
+      "install_dir": "site",
+      "name": "urllib3",
+      "package_type": "package",
+      "sha256": "86b7c1af060597b115bcde5e36798039ca50b221afe14aa03d3437ac09b02a75",
+      "tool": {},
+      "unvendored_tests": false,
+      "version": "2.6.3"
+    }
+  }
+}

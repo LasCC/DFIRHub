@@ -29,6 +29,7 @@ export interface BackendConfig {
   package: string;
   backendClass: string;
   language: string;
+  waitingForPysigmaRelease?: boolean;
 }
 
 export interface SavedRule {

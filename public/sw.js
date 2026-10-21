@@ -11,11 +11,12 @@
 //
 // Bump CACHE_VERSION whenever the cached-URL matchers change so old
 // clients discard their cache on next activation.
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v6";
 const PYODIDE_CACHE = `dfirhub-pyodide-${CACHE_VERSION}`;
 
-const PYODIDE_CDN = "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/";
+const PYODIDE_CDN = "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/";
 const PYPI_CDN = "https://files.pythonhosted.org/";
+const SIGMA_WHEELS = /^\/sigma-packages\/.+\.whl$/u;
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -37,8 +38,15 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Cache-first for the Pyodide runtime and PyPI wheels only.
-  if (url.href.startsWith(PYODIDE_CDN) || url.href.startsWith(PYPI_CDN)) {
+  // Cache-first for the Pyodide runtime and wheels only. Wheel file names
+  // carry their version, so a cached wheel never goes stale.
+  const isSigmaWheel =
+    url.origin === self.location.origin && SIGMA_WHEELS.test(url.pathname);
+  if (
+    url.href.startsWith(PYODIDE_CDN) ||
+    url.href.startsWith(PYPI_CDN) ||
+    isSigmaWheel
+  ) {
     event.respondWith(
       caches.open(PYODIDE_CACHE).then((cache) =>
         cache.match(event.request).then(

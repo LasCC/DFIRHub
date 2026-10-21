@@ -5,7 +5,9 @@ import type { BackendConfig } from "./types";
 // splitting on CamelCase, joining with "_", and lowercasing.
 // Verified against detection.studio (github.com/northsh/detection.studio).
 
-export const backends: BackendConfig[] = [
+export const DEFAULT_BACKEND_ID = "splunk";
+
+const allBackends: BackendConfig[] = [
   // SIEM
   {
     id: "splunk",
@@ -70,6 +72,7 @@ export const backends: BackendConfig[] = [
     package: "pySigma-backend-datadog",
     backendClass: "DatadogBackend",
     language: "datadog",
+    waitingForPysigmaRelease: true,
   },
   {
     id: "secops",
@@ -127,6 +130,7 @@ export const backends: BackendConfig[] = [
     package: "pySigma-backend-uberagent",
     backendClass: "uberagent",
     language: "uaql",
+    waitingForPysigmaRelease: true,
   },
   // Other
   {
@@ -144,13 +148,26 @@ export const backends: BackendConfig[] = [
     package: "pySigma-backend-surrealql",
     backendClass: "SurrealQLBackend",
     language: "surrealql",
+    waitingForPysigmaRelease: true,
   },
 ];
+
+export const backends = allBackends.filter(
+  (backend) => !backend.waitingForPysigmaRelease
+);
+
+export const backendsWaitingForPysigmaRelease = allBackends.filter(
+  (backend) => backend.waitingForPysigmaRelease
+);
 
 export const backendMap = new Map(backends.map((b) => [b.id, b]));
 
 export function getBackend(id: string): BackendConfig | undefined {
   return backendMap.get(id);
+}
+
+export function toAvailableBackendId(id: string): string {
+  return backendMap.has(id) ? id : DEFAULT_BACKEND_ID;
 }
 
 export function getBackendsByCategory(
