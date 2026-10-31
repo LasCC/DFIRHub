@@ -13,7 +13,7 @@ interface Props {
   imageAlt?: string;
   type?: "website" | "article";
   noindex?: boolean;
-  shader?: "full" | "soft" | "off";
+  shader?: "full" | "off";
 }
 
 const {
@@ -204,7 +204,7 @@ const fullTitle =
   </head>
   <body
     class="min-h-screen bg-background text-foreground antialiased scrollbar-thin overflow-x-hidden"
-    data-shader={shader ?? (canonicalPath === "/" ? "full" : "soft")}
+    data-shader={shader ?? (canonicalPath === "/" ? "full" : "off")}
   >
     <!-- Skip Link for Accessibility -->
     <a href="#main-content" class="skip-link"> Skip to main content </a>
