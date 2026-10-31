@@ -251,7 +251,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     <span hidden data-pagefind-meta={`paths:${pathCount}`}></span>
     <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <ArtifactPageContainer client:load>
-        <ArtifactBreadcrumb className="mb-8 text-xs text-muted-foreground">
+        <ArtifactBreadcrumb className="mb-8 text-xs text-muted-foreground page-enter">
           <ol class="flex flex-wrap items-center gap-1" role="list" data-pagefind-ignore>
             <li>
               <a
@@ -286,7 +286,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
           </ol>
         </ArtifactBreadcrumb>
 
-        <ArtifactHeader className="mb-12">
+        <ArtifactHeader className="mb-12 page-enter [animation-delay:50ms]">
           <h1
             id="artifact-title"
             class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl"
@@ -349,7 +349,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
           </ul>
         </ArtifactHeader>
 
-        <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
+        <div class="grid grid-cols-1 gap-12 lg:grid-cols-12 page-enter [animation-delay:100ms]">
           <div class="flex min-w-0 flex-col gap-8 lg:col-span-7">
             <div data-pagefind-ignore={target.isCompound ? "all" : undefined}>
               <PathBrowser

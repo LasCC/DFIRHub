@@ -177,7 +177,7 @@ const codeChipClass =
     <span hidden data-pagefind-filter="category:Event log"></span>
     <span hidden data-pagefind-meta={`paths:${fieldCount}`}></span>
     <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
-      <nav class="mb-8 text-xs text-muted-foreground" aria-label="Breadcrumb" data-pagefind-ignore>
+      <nav class="mb-8 text-xs text-muted-foreground page-enter" aria-label="Breadcrumb" data-pagefind-ignore>
         <ol class="flex flex-wrap items-center gap-1">
           <li>
             <a
@@ -209,7 +209,7 @@ const codeChipClass =
         </ol>
       </nav>
 
-      <header class="mb-12">
+      <header class="mb-12 page-enter [animation-delay:50ms]">
         <h1 class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl">
           <span class="mb-3 block font-mono text-sm font-normal tracking-normal text-muted-foreground">
             Windows event log · {event.channel}
@@ -239,7 +239,7 @@ const codeChipClass =
         </ul>
       </header>
 
-      <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
+      <div class="grid grid-cols-1 gap-12 lg:grid-cols-12 page-enter [animation-delay:100ms]">
         <div class="flex min-w-0 flex-col gap-8 lg:col-span-7">
           {notes.length > 1 && (
             <Panel headingId="notes-heading">

@@ -574,6 +574,13 @@
   }
 
   /* Animation utilities */
+  .page-enter {
+    animation-name: page-enter;
+    animation-duration: 0.4s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: backwards;
+  }
+
   .animate-in {
     animation: animate-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
@@ -630,6 +637,17 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Keyframe Animations
    ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes animate-in {
   from {
     opacity: 0;

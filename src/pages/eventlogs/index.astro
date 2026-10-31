@@ -106,7 +106,7 @@ const eventLogEventsJson = serializeJsonForScript(
 
   <main id="main-content" class="relative flex-1" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4 py-8">
-      <nav class="mb-6 text-xs text-muted-foreground" aria-label="Breadcrumb">
+      <nav class="mb-6 text-xs text-muted-foreground page-enter" aria-label="Breadcrumb">
         <ol class="flex items-center gap-1">
           <li>
             <a
@@ -122,7 +122,7 @@ const eventLogEventsJson = serializeJsonForScript(
         </ol>
       </nav>
 
-      <header class="mb-8">
+      <header class="mb-8 page-enter [animation-delay:50ms]">
         <h1 class="mb-2 text-2xl font-semibold tracking-tight sm:text-3xl">
           Windows event logs
         </h1>
@@ -134,7 +134,7 @@ const eventLogEventsJson = serializeJsonForScript(
         </p>
       </header>
 
-      <div class="sticky top-14 z-40 mb-6 bg-background py-3">
+      <div class="sticky top-14 z-40 mb-6 bg-background py-3 page-enter [animation-delay:100ms]">
         <div class="relative mb-3">
           <svg
             aria-hidden="true"
@@ -200,7 +200,7 @@ const eventLogEventsJson = serializeJsonForScript(
         </a>
       </div>
 
-      <div id="eventlogs-default-view" class="flex flex-col gap-8">
+      <div id="eventlogs-default-view" class="flex flex-col gap-8 page-enter [animation-delay:150ms]">
         {
           groupedEvents.map(([category, items]) => (
             <Panel headingId={`eventlogs-${getEventLogCategoryId(category)}`}>

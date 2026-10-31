@@ -209,7 +209,7 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
   <main id="main-content" class="flex-1 relative" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4 py-8">
       <!-- Breadcrumb -->
-      <nav class="mb-6 text-xs text-muted-foreground" aria-label="Breadcrumb">
+      <nav class="mb-6 text-xs text-muted-foreground page-enter" aria-label="Breadcrumb">
         <ol class="flex items-center gap-1">
           <li>
             <a
@@ -228,7 +228,7 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
       </nav>
 
       <!-- Header -->
-      <header class="mb-8">
+      <header class="mb-8 page-enter [animation-delay:50ms]">
         <h1 class="text-2xl sm:text-3xl font-semibold mb-2 tracking-tight">
           Windows forensic artifacts
         </h1>
@@ -239,7 +239,7 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
       </header>
 
       <!-- Category Filter (sticky below header) -->
-      <div class="sticky top-14 z-40 py-3 bg-background mb-6">
+      <div class="sticky top-14 z-40 py-3 bg-background mb-6 page-enter [animation-delay:100ms]">
         <div class="relative mb-3">
           <svg
             aria-hidden="true"
@@ -302,7 +302,7 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
       </div>
 
       <!-- Default View: Targets by Category (hidden when filtered) -->
-      <div id="default-view" class="flex flex-col gap-8">
+      <div id="default-view" class="flex flex-col gap-8 page-enter [animation-delay:150ms]">
         {categories.map((category) => {
           const style = getCategoryStyle(category);
           const total = targetsByCategory[category].length;

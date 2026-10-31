@@ -71,7 +71,7 @@ const collectionJsonLd = {
 
   <main id="main-content" class="relative flex-1" tabindex="-1">
     <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
-      <nav class="mb-8 text-xs text-muted-foreground" aria-label="Breadcrumb">
+      <nav class="mb-8 text-xs text-muted-foreground page-enter" aria-label="Breadcrumb">
         <ol class="flex flex-wrap items-center gap-1">
           <li>
             <a
@@ -95,7 +95,7 @@ const collectionJsonLd = {
         </ol>
       </nav>
 
-      <header class="mb-10">
+      <header class="mb-10 page-enter [animation-delay:50ms]">
         <h1 class="max-w-4xl text-4xl leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl">
           <span class="mb-3 block font-mono text-sm font-normal tracking-normal text-muted-foreground">
             Windows event log
@@ -107,7 +107,7 @@ const collectionJsonLd = {
         </p>
       </header>
 
-      <Panel headingId="channels-heading">
+      <Panel class="page-enter [animation-delay:100ms]" headingId="channels-heading">
         <Fragment slot="title">Logs with event ID {eventId}</Fragment>
         <Fragment slot="subtitle">{`${events.length} channels`}</Fragment>
         <ul class="divide-y divide-border">
