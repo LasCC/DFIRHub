@@ -216,7 +216,7 @@ export function OutputPanel({
             ) : (
               <Copy aria-hidden="true" className="h-3.5 w-3.5" />
             )}
-            {copied ? "Copied!" : "Copy"}
+            {copied ? "Copied" : "Copy"}
           </button>
           <button
             className="panel-action panel-action-primary focus-ring active:scale-[0.98]"

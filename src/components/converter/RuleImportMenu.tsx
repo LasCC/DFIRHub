@@ -55,7 +55,7 @@ export function RuleImportMenu({
           <kbd className="kbd kbd-compact">⌘⇧K</kbd>
         </button>
 
-        <p className="px-2.5 pt-3 pb-1 font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+        <p className="px-2.5 pt-3 pb-1 font-medium text-xs text-muted-foreground">
           Examples
         </p>
         <div className="max-h-80 space-y-0.5 overflow-y-auto">

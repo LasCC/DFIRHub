@@ -275,7 +275,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
           onClick={handleCopyAll}
           type="button"
         >
-          {copiedPath === "all" ? "Copied!" : "Copy all"}
+          {copiedPath === "all" ? "Copied" : "Copy all"}
         </button>
       }
       footer={
@@ -310,7 +310,7 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
               aria-label="Filter paths"
               className="h-8 min-w-48 flex-1 rounded-lg border border-border bg-background px-3 text-foreground text-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter paths..."
+              placeholder="Filter paths"
               type="text"
               value={filter}
             />
@@ -506,12 +506,12 @@ function PathEntry({ entry, copiedPath, onCopy, showName }: PathEntryProps) {
         )}
       </div>
       <span
-        className={`relative ml-2 shrink-0 rounded-md p-1.5 transition-all sm:ml-4 ${
+        className={`relative ml-2 shrink-0 rounded-md p-1.5 transition-[color,opacity] sm:ml-4 ${
           isCopied
             ? "text-primary"
             : "text-muted-foreground opacity-60 hover:text-foreground group-hover:opacity-100 group-focus-visible:opacity-100"
         }`}
-        title={isCopied ? "Copied!" : "Copy path"}
+        title={isCopied ? "Copied" : "Copy path"}
       >
         {isCopied ? (
           <svg

@@ -154,7 +154,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
           ) : (
             <Copy aria-hidden="true" className="h-3.5 w-3.5" />
           )}
-          {isCopied ? "Copied!" : "Copy"}
+          {isCopied ? "Copied" : "Copy"}
         </button>
       }
       footer={<FormatHint format={format} />}

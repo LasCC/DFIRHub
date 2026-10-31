@@ -57,8 +57,8 @@ export function PipelineSelector({
       </PopoverTrigger>
       <PopoverContent className="w-80">
         <div className="mb-1 flex items-center justify-between px-2 pt-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Processing Pipeline
+          <span className="text-xs font-medium text-muted-foreground">
+            Processing pipeline
           </span>
           {hasSelection && (
             <button

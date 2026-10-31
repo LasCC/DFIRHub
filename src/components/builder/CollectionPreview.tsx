@@ -29,17 +29,17 @@ function EntryFlags({ entry }: { entry: KapeTargetEntry }) {
   return (
     <span className="flex shrink-0 gap-1">
       {isLockedOnLiveSystem(entry) && (
-        <span className="rounded border border-amber-500/30 bg-amber-500/10 px-1.5 text-[10px] text-amber-700 dark:text-amber-400">
+        <span className="rounded border border-amber-500/30 bg-amber-500/10 px-1.5 text-[11px] text-amber-700 dark:text-amber-400">
           locked
         </span>
       )}
       {USER_VARIABLE.test(entry.path) && (
-        <span className="rounded border border-border px-1.5 text-[10px] text-muted-foreground">
+        <span className="rounded border border-border px-1.5 text-[11px] text-muted-foreground">
           per user
         </span>
       )}
       {entry.recursive && (
-        <span className="rounded border border-border px-1.5 text-[10px] text-muted-foreground">
+        <span className="rounded border border-border px-1.5 text-[11px] text-muted-foreground">
           recursive
         </span>
       )}
@@ -224,7 +224,7 @@ export function CollectionPreview({
               aria-hidden="true"
               className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90"
             />
-            <span className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+            <span className="font-medium text-xs text-muted-foreground">
               Processors
             </span>
             <span className="text-muted-foreground text-xs tabular-nums">

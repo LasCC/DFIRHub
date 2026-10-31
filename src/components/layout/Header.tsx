@@ -219,7 +219,7 @@ export function Header({ showSearch = true, currentPath }: HeaderProps) {
           ref={mobileNavRef}
         >
           <nav aria-label="Mobile navigation" className="space-y-1">
-            <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+            <p className="px-3 pb-2 pt-1 text-xs font-medium text-muted-foreground">
               Navigate
             </p>
 

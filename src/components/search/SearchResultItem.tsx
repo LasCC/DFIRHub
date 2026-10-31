@@ -53,7 +53,7 @@ export function SearchResultItem({
             <HighlightedText query={query} text={hit.title} />
           </span>
           {hit.kind === "Collection" && (
-            <span className="shrink-0 rounded border border-border px-1.5 py-px font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
+            <span className="shrink-0 rounded border border-border px-1.5 py-px text-[11px] text-muted-foreground">
               Collection
             </span>
           )}

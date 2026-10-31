@@ -100,7 +100,7 @@ export function MoreActionsMenu({
               ) : (
                 <Link className="h-3.5 w-3.5" />
               )}
-              {shareCopied ? "Copied!" : "Copy link"}
+              {shareCopied ? "Copied" : "Copy link"}
             </button>
             {canExport && (
               <button

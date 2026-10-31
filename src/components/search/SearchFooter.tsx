@@ -37,7 +37,7 @@ export function SearchFooter({
         {canCopyCommand && (
           <KeyHint
             keys={[modifierKey, "C"]}
-            label={copied ? "Copied!" : "Copy KAPE command"}
+            label={copied ? "Copied" : "Copy KAPE command"}
           />
         )}
       </div>

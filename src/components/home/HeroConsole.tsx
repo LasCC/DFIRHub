@@ -48,12 +48,12 @@ function describePreview(preview: ConsolePreview): string {
     preview.collectionCount > 0
       ? `, part of ${pluralize(preview.collectionCount, "collection")}`
       : "";
-  return `${pluralize(preview.pathCount, "path")}${collections}.`;
+  return `${pluralize(preview.pathCount, "path")}${collections}`;
 }
 
 function getTokenClassName(token: string, previousToken: string | undefined) {
   if (previousToken === TARGET_FLAG) {
-    return "font-bold text-console-accent";
+    return "font-medium text-console-accent";
   }
   if (token.startsWith("--")) {
     return "text-console-muted";

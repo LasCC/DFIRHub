@@ -18,9 +18,9 @@ export interface CategoryStyle {
 
 const categoryStyles: Record<string, CategoryStyle> = {
   Antivirus: {
-    accent: "bg-red-600",
-    bg: "bg-red-500/5",
-    text: "text-red-800 dark:text-red-400",
+    accent: "bg-lime-600",
+    bg: "bg-lime-500/5",
+    text: "text-lime-800 dark:text-lime-400",
   },
   Apps: {
     accent: "bg-emerald-600",

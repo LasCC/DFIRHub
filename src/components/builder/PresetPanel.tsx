@@ -33,7 +33,7 @@ export function PresetPanel({
             return (
               <button
                 aria-pressed={isActive}
-                className={`focus-ring inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors active:scale-[0.98] ${
+                className={`focus-ring inline-flex h-8 items-center rounded-md border px-3 text-sm transition-colors active:scale-[0.98] ${
                   isActive
                     ? "border-primary bg-primary font-medium text-primary-foreground"
                     : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"

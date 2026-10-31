@@ -86,11 +86,11 @@ export function ExportDialog({
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Export Detection Package"
+      aria-label="Export detection package"
     >
       <div className="w-full max-w-md rounded-lg border border-overlay/[0.06] bg-popover p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-semibold text-lg">Export Detection Package</h2>
+          <h2 className="font-semibold text-lg">Export detection package</h2>
           <button
             aria-label="Close"
             className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"

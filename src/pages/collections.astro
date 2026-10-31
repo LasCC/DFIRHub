@@ -68,22 +68,20 @@ const seoDescription = `Browse ${collections.length} pre-built KAPE triage colle
 
       <!-- Header -->
       <header class="mb-8 animate-in" style="animation-delay: 50ms;">
-        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">Triage Collections</h1>
+        <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">Triage collections</h1>
         <p class="text-sm sm:text-base text-muted-foreground">
-          <span class="font-medium text-foreground">{collections.length}</span> pre-built KAPE
-          compound targets for rapid forensic acquisition
+          <span class="font-medium text-foreground">{collections.length}</span> KAPE
+          compound targets, each a ready-made set of artifacts for triage
         </p>
       </header>
 
       <!-- Info Box -->
       <div
-        class="mb-8 p-4 border border-cyan-500/30 bg-card bg-linear-to-b from-cyan-500/5 to-cyan-500/5 rounded-lg animate-in"
-        style="animation-delay: 100ms;"
+        class="mb-8 rounded-lg border border-border bg-card p-4 animate-in" style="animation-delay: 100ms;"
       >
         <p class="text-sm text-muted-foreground">
-          <span class="font-medium text-cyan-700 dark:text-cyan-400">Compound targets</span> combine multiple
-          individual targets into a single collection. Use these for
-          comprehensive triage acquisition with a single KAPE command.
+          <span class="font-medium text-foreground">Compound targets</span> group several
+          targets into one collection, so one KAPE command collects all of them.
         </p>
       </div>
 
@@ -106,7 +104,7 @@ const seoDescription = `Browse ${collections.length} pre-built KAPE triage colle
                     href={`/artifact/${collection.slug}`}
                     class="group focus-ring block bg-background p-5 transition-colors hover:bg-muted"
                   >
-                    <h3 class="mb-2 text-base font-medium text-cyan-700 transition-colors group-hover:text-cyan-600 dark:text-cyan-400 dark:group-hover:text-cyan-300">
+                    <h3 class="mb-2 text-base font-medium text-foreground">
                       {collection.name}
                     </h3>
                     <p class="mb-4 line-clamp-2 text-sm text-muted-foreground">
@@ -114,19 +112,19 @@ const seoDescription = `Browse ${collections.length} pre-built KAPE triage colle
                     </p>
                     <div class="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>
-                        <span class="font-medium text-cyan-700 dark:text-cyan-400">
+                        <span class="font-medium tabular-nums text-foreground">
                           {collection.referencedTargets.length}
                         </span>{" "}
                         targets
                       </span>
                       <span>
-                        <span class="font-medium text-cyan-700 dark:text-cyan-400">
+                        <span class="font-medium tabular-nums text-foreground">
                           {resolved.length}
                         </span>{" "}
                         resolved
                       </span>
                       <span>
-                        <span class="font-medium text-cyan-700 dark:text-cyan-400">
+                        <span class="font-medium tabular-nums text-foreground">
                           {totalPaths}
                         </span>{" "}
                         paths
@@ -152,7 +150,7 @@ const seoDescription = `Browse ${collections.length} pre-built KAPE triage colle
                   href={`/artifact/${collection.slug}`}
                   class="group focus-ring flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
                 >
-                  <span class="w-48 shrink-0 truncate text-sm font-medium text-foreground transition-colors group-hover:text-cyan-700 dark:group-hover:text-cyan-400 sm:w-56">
+                  <span class="w-48 shrink-0 truncate text-sm font-medium text-foreground transition-colors sm:w-56">
                     {collection.name}
                   </span>
                   <span class="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block">
@@ -161,7 +159,7 @@ const seoDescription = `Browse ${collections.length} pre-built KAPE triage colle
                   <span class="hidden w-52 shrink-0 truncate text-right text-xs text-muted-foreground lg:block" title={collection.author}>
                     by {collection.author}
                   </span>
-                  <span class="ml-auto w-20 shrink-0 text-right text-xs tabular-nums text-cyan-700 dark:text-cyan-400">
+                  <span class="ml-auto w-20 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
                     {`${collection.referencedTargets.length} ${collection.referencedTargets.length === 1 ? "target" : "targets"}`}
                   </span>
                 </a>

@@ -73,7 +73,7 @@ function BackendGroup({
   }
   return (
     <div>
-      <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      <h3 className="mb-2 text-xs font-medium text-muted-foreground">
         {label}
       </h3>
       <div

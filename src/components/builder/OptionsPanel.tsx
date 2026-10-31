@@ -48,7 +48,7 @@ function FieldLabel({
     >
       <span className="text-muted-foreground">{label}</span>
       {flag && (
-        <code className="font-mono text-[10px] text-muted-foreground/60">
+        <code className="font-mono text-[11px] text-muted-foreground">
           {flag}
         </code>
       )}
@@ -172,7 +172,7 @@ function CheckboxField({
       />
       <span className="flex flex-wrap items-baseline gap-x-1.5">
         <span className="text-foreground">{label}</span>
-        <code className="font-mono text-[10px] text-muted-foreground/60">
+        <code className="font-mono text-[11px] text-muted-foreground">
           {flag}
         </code>
       </span>
@@ -589,7 +589,7 @@ function AdvancedTab({
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       <div>
-        <h3 className="mb-2 font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+        <h3 className="mb-2 font-medium text-xs text-muted-foreground">
           Case
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -613,7 +613,7 @@ function AdvancedTab({
       </div>
 
       <div>
-        <h3 className="mb-2 font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+        <h3 className="mb-2 font-medium text-xs text-muted-foreground">
           Run
         </h3>
         <div className="grid gap-2.5 sm:grid-cols-2">

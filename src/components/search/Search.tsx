@@ -359,7 +359,7 @@ export function Search({ showTrigger = true }: SearchProps) {
           className="text-base sm:text-sm"
           data-search-input
           onValueChange={handleQueryChange}
-          placeholder="Search artifacts and collections..."
+          placeholder="Search artifacts and collections"
           ref={searchInputRef}
           trailing={
             <span className="ml-2 flex shrink-0 items-center gap-2">

@@ -218,7 +218,7 @@ export function LoggingRequirements({
 
       {telemetry.kapeTargets.length > 0 && (
         <div className="mt-3">
-          <h4 className="mb-1.5 font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
+          <h4 className="mb-1.5 font-medium text-xs text-muted-foreground">
             Collect with KAPE
           </h4>
           <div className="flex flex-wrap gap-1.5">

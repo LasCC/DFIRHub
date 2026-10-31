@@ -109,7 +109,7 @@ export function SigmaSearchDialog({
 
   const placeholder = indexReady
     ? `Search ${ruleCount.toLocaleString()} Sigma rules...`
-    : "Loading Sigma index...";
+    : "Loading Sigma index…";
 
   return (
     <CommandDialog onOpenChange={onOpenChange} open={open} shouldFilter={false}>
@@ -125,7 +125,7 @@ export function SigmaSearchDialog({
           <div className="py-8 text-center text-muted-foreground text-sm">
             <span className="inline-flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              Loading Sigma index...
+              Loading Sigma index…
             </span>
           </div>
         )}
@@ -157,7 +157,7 @@ export function SigmaSearchDialog({
         {results.length > 0 && (
           <CommandGroup
             heading={
-              <span className="flex items-center gap-2 text-xs uppercase tracking-wider">
+              <span className="flex items-center gap-2 text-xs">
                 <span>Results</span>
                 <span className="font-medium text-primary">
                   ({results.length})

@@ -168,7 +168,7 @@ export function KeyboardShortcuts() {
           <div className="grid gap-6">
             {shortcutGroups.map((group) => (
               <div key={group.title}>
-                <h3 className="mb-3 text-muted-foreground text-xs uppercase tracking-wider">
+                <h3 className="mb-3 font-medium text-muted-foreground text-xs">
                   {group.title}
                 </h3>
                 <div className="space-y-2">

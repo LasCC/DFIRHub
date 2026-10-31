@@ -87,7 +87,7 @@ export function ChecklistPicker({
             Select shown
           </button>
           <button
-            className="panel-action focus-ring text-destructive"
+            className="panel-action focus-ring"
             disabled={selected.length === 0}
             onClick={() => onChange([])}
             type="button"
@@ -102,7 +102,7 @@ export function ChecklistPicker({
       title={
         <span className="flex items-center gap-2">
           {title}
-          <span className="rounded-full border border-border bg-overlay/[0.03] px-2 py-0.5 font-mono font-normal text-[11px] text-muted-foreground">
+          <span className="font-mono font-normal text-xs tabular-nums text-muted-foreground">
             {selected.length}/{items.length}
           </span>
         </span>
@@ -113,7 +113,7 @@ export function ChecklistPicker({
             aria-label={searchLabel}
             className="h-8 min-w-32 flex-1 rounded-lg border border-border bg-background px-2.5 text-sm outline-none placeholder:text-muted-foreground/70 focus:border-primary/50"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={`${searchLabel}…`}
+            placeholder={searchLabel}
             type="search"
             value={query}
           />
@@ -173,7 +173,7 @@ export function ChecklistPicker({
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm">{item.label}</span>
                     {item.badge && (
-                      <span className="shrink-0 rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-700 text-xs dark:text-cyan-400">
+                      <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-muted-foreground text-xs">
                         {item.badge}
                       </span>
                     )}

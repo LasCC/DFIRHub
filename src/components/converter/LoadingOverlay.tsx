@@ -73,9 +73,7 @@ export function LoadingOverlay({
       })}
     >
       <div className="flex flex-col items-center gap-4">
-        <PythonIcon
-          className={`h-12 w-12 ${error ? "opacity-40" : "animate-pulse"}`}
-        />
+        <PythonIcon className={`h-12 w-12 ${error ? "opacity-40" : ""}`} />
 
         {error ? (
           <div className="w-64">
@@ -103,8 +101,8 @@ export function LoadingOverlay({
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-overlay/[0.06]">
                 <div
-                  className="h-full rounded-full bg-primary transition-all duration-300"
-                  style={{ width: `${percent}%` }}
+                  className="h-full origin-left bg-primary transition-transform duration-300 ease-out"
+                  style={{ transform: `scaleX(${percent / 100})` }}
                 />
               </div>
               <div className="mt-1 text-center text-muted-foreground text-xs">
