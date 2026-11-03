@@ -404,3 +404,7 @@ export function getKapeTargetSlugForHive(hive: string): string | undefined {
 export function getHivesForKapeTarget(targetSlug: string): string[] {
   return HIVES_BY_KAPE_TARGET[targetSlug] ?? [];
 }
+
+export function isThinRegistryArtifact(artifact: RegistryArtifact): boolean {
+  return artifact.entries.length <= 1 && artifact.references.length === 0;
+}

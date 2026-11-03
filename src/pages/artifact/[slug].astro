@@ -5,7 +5,7 @@ import {
   ArtifactHeader,
   ArtifactPageContainer,
 } from "../../components/artifact/ArtifactContent";
-import { ArrowRight, ArrowUpRight, Folder, Tag, User, Users } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Folder, Info, Tag, User, Users } from "lucide-react";
 import { CategoryChip } from "../../components/artifact/CategoryChip";
 import { CommandGenerator } from "../../components/artifact/CommandGenerator";
 import { CyberChefLinks } from "../../components/artifact/CyberChefLinks";
@@ -17,6 +17,8 @@ import Layout from "../../layouts/Layout.astro";
 import { findCollectionsContaining, getResolvedEntries, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
 import type { KapeTarget } from '../../lib/kapefiles';
 import { getEventLogEventsForKapeTarget } from '../../lib/eventlogs';
+import { findRelatedArtifacts, getArtifactEvidence } from '../../lib/artifactEvidence';
+import { getArtifactInsight, getParserModules, isThinArtifact } from '../../lib/artifactInsights';
 import { getHivesForKapeTarget, getRegistryArtifactsForHives } from '../../lib/registry';
 import {
   buildArtifactDescription,
@@ -108,6 +110,25 @@ for (const entry of docNotes) {
     noteBlocks.push({ type: "text", value: entry });
   }
 }
+
+const MAX_SUMMARY_FILES = 6;
+const MAX_SUMMARY_LOCATIONS = 3;
+const evidence = getArtifactEvidence(target);
+const summaryFiles = target.isCompound ? [] : evidence.keyFiles.slice(0, MAX_SUMMARY_FILES);
+const summaryLocations = target.isCompound ? [] : evidence.locations.slice(0, MAX_SUMMARY_LOCATIONS);
+const hiddenLocationCount = Math.max(0, evidence.locations.length - MAX_SUMMARY_LOCATIONS);
+const relatedArtifacts = findRelatedArtifacts(target);
+const insight = getArtifactInsight(target.slug);
+const parserModules = insight ? getParserModules(insight) : [];
+const builderUrl = `/builder?t=${encodeURIComponent(target.slug)}${
+  parserModules.length > 0
+    ? `&m=${parserModules.map((module) => encodeURIComponent(module.name)).join(",")}`
+    : ""
+}`;
+const shouldNoindex = isThinArtifact(target);
+const showDescription =
+  Boolean(target.description) &&
+  target.description.trim().toLowerCase() !== target.name.toLowerCase();
 
 const resolvedEntries = getResolvedEntries(target);
 const pathCount = resolvedEntries.length;
@@ -230,6 +251,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
   type="article"
   image={socialImagePath}
   imageAlt={socialImageAlt}
+  noindex={shouldNoindex}
 >
   <script is:inline
     type="application/ld+json"
@@ -296,7 +318,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
             </span>
             {target.name}
           </h1>
-          {target.description && (
+          {showDescription && (
             <p
               class:list={[
                 "mt-4 whitespace-pre-line text-muted-foreground",
@@ -304,6 +326,30 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
               ]}
             >
               {target.description}
+            </p>
+          )}
+          {summaryLocations.length > 0 && (
+            <p class="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              {summaryFiles.length > 0 && (
+                <Fragment>
+                  Look for{" "}
+                  {summaryFiles.map((file, index) => (
+                    <Fragment>
+                      {index > 0 && ", "}
+                      <code class="font-mono text-foreground">{file}</code>
+                    </Fragment>
+                  ))}{" "}
+                  in{" "}
+                </Fragment>
+              )}
+              {summaryFiles.length === 0 && "Evidence lives in "}
+              {summaryLocations.map((location, index) => (
+                <Fragment>
+                  {index > 0 && (index === summaryLocations.length - 1 && hiddenLocationCount === 0 ? " and " : ", ")}
+                  <code class="font-mono break-words text-foreground">{location}</code>
+                </Fragment>
+              ))}
+              {hiddenLocationCount > 0 && ` and ${hiddenLocationCount} more ${hiddenLocationCount === 1 ? "folder" : "folders"}`}.
             </p>
           )}
           <ul class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground" data-pagefind-ignore>
@@ -351,6 +397,42 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
 
         <div class="grid grid-cols-1 gap-12 lg:grid-cols-12 page-enter [animation-delay:100ms]">
           <div class="flex min-w-0 flex-col gap-8 lg:col-span-7">
+            {insight && (
+              <Panel headingId="insight-heading">
+                <Fragment slot="title">What it shows</Fragment>
+                <Fragment slot="subtitle">Investigation value and how to parse it</Fragment>
+                <div class="space-y-4 p-5 text-sm leading-relaxed">
+                  <p class="text-foreground">{insight.proves}</p>
+                  {insight.tip && (
+                    <div class="flex gap-3 rounded-lg border border-border bg-muted/50 px-3.5 py-3 text-muted-foreground">
+                      <Info aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <p>{insight.tip}</p>
+                    </div>
+                  )}
+                </div>
+                {parserModules.length > 0 && (
+                  <ul class="divide-y divide-border border-t border-border">
+                    {parserModules.map((module) => (
+                      <li class="flex items-center justify-between gap-4 px-5 py-2.5">
+                        <span class="min-w-0">
+                          <span class="block font-mono text-sm text-foreground">{module.name}</span>
+                          <span class="block text-xs text-muted-foreground">{module.description}</span>
+                        </span>
+                        <span class="shrink-0 text-xs text-muted-foreground">KAPE module</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {parserModules.length > 0 && (
+                  <div class="panel-footer" data-pagefind-ignore>
+                    <a href={builderUrl} class="focus-ring rounded-sm text-primary transition-colors hover:underline">
+                      Collect and parse in the command builder
+                    </a>
+                  </div>
+                )}
+              </Panel>
+            )}
+
             <div data-pagefind-ignore={target.isCompound ? "all" : undefined}>
               <PathBrowser
                 client:idle
@@ -434,6 +516,38 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
                           className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary"
                         />
                         <span class="sr-only" data-pagefind-ignore>(opens in new tab)</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </Panel>
+            )}
+
+            {relatedArtifacts.length > 0 && (
+              <Panel headingId="related-heading">
+                <Fragment slot="title">Related artifacts</Fragment>
+                <Fragment slot="subtitle">Often collected in the same investigation</Fragment>
+                <a
+                  href={"/category/" + target.category.toLowerCase()}
+                  slot="actions"
+                  class="panel-action focus-ring"
+                >
+                  All {target.category.toLowerCase()} artifacts
+                </a>
+                <ul class="divide-y divide-border" data-pagefind-ignore>
+                  {relatedArtifacts.map((related) => (
+                    <li>
+                      <a
+                        href={"/artifact/" + related.slug}
+                        class="group flex items-center justify-between gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
+                      >
+                        <span class="min-w-0">
+                          <span class="block text-sm text-foreground">{related.name}</span>
+                          {related.description && related.description !== related.name && (
+                            <span class="block truncate text-xs text-muted-foreground">{related.description}</span>
+                          )}
+                        </span>
+                        <ArrowRight aria-hidden="true" className="h-3 w-3 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
                       </a>
                     </li>
                   ))}

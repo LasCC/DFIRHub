@@ -4,6 +4,7 @@ import Footer from "../../components/layout/Footer.astro";
 import { Header } from "../../components/layout/Header";
 import { CodeBlock } from "../../components/ui/CodeBlock";
 import Panel from "../../components/ui/Panel.astro";
+import { isThinRegistryArtifact } from "../../lib/registry";
 import Layout from "../../layouts/Layout.astro";
 import { loadAllTargets } from "../../lib/kapefiles";
 import {
@@ -40,6 +41,7 @@ interface Props {
 }
 
 const { artifact } = Astro.props;
+const shouldNoindex = isThinRegistryArtifact(artifact);
 const batchInfo = getRegistryBatchInfo();
 
 const MAX_RELATED_ARTIFACTS = 12;
@@ -143,6 +145,7 @@ const externalLinkClass =
   type="article"
   image={socialImagePath}
   imageAlt={socialImageAlt}
+  noindex={shouldNoindex}
 >
   <script
     is:inline

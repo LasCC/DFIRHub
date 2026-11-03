@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 
+import { getArtifactEvidence } from "./artifactEvidence";
+import { getArtifactInsight } from "./artifactInsights";
 import type { EventLogEvent } from "./eventlogs";
 import type { KapeTarget } from "./kapefiles";
 import type { RegistryArtifact } from "./registry";
@@ -70,12 +72,21 @@ function fitsTitleWithBrand(title: string): boolean {
 }
 
 export function buildArtifactTitle(target: KapeTarget): string {
-  const candidates = target.isCompound
-    ? [`${target.name} KAPE Collection`]
-    : [
-        `${target.name} Forensic Artifact & KAPE Target`,
-        `${target.name} Forensic Artifact`,
-      ];
+  if (target.isCompound) {
+    return (
+      [`${target.name} KAPE Collection`].find(fitsTitleWithBrand) ?? target.name
+    );
+  }
+  const { mentionsLogs } = getArtifactEvidence(target);
+  const locationLabel = mentionsLogs
+    ? "Log & File Locations"
+    : "File Locations";
+  const candidates = [
+    `${target.name} Forensics: ${locationLabel}`,
+    `${target.name} Forensics: File Locations`,
+    `${target.name} Forensic Artifacts`,
+    `${target.name} Forensics`,
+  ];
   return candidates.find(fitsTitleWithBrand) ?? target.name;
 }
 
@@ -85,8 +96,106 @@ function describeCollectionContext(target: KapeTarget, pathCount: string) {
     : `Windows forensic artifact: ${pathCount} and the KAPE command to collect it.`;
 }
 
+const GENERIC_DESCRIPTION_PATTERN = /^(?:a )?target (?:to|that) collects?\b/iu;
+const NON_ALPHANUMERIC_PATTERN = /[^a-z0-9]/gu;
+
+function isNameOnlySummary(summary: string, name: string): boolean {
+  const normalize = (text: string) =>
+    text.toLowerCase().replaceAll(NON_ALPHANUMERIC_PATTERN, "");
+  return normalize(summary) === normalize(name);
+}
+
+function buildMeaningfulSummary(target: KapeTarget): string {
+  const summary = collapseWhitespace(target.description).replace(
+    TRAILING_PUNCTUATION_PATTERN,
+    ""
+  );
+  const isUninformative =
+    !summary ||
+    isNameOnlySummary(summary, target.name) ||
+    GENERIC_DESCRIPTION_PATTERN.test(summary);
+  return isUninformative ? "" : summary;
+}
+
+const MAX_DESCRIBED_FILES = 4;
+const MAX_DESCRIBED_LOCATIONS = 2;
+const KAPE_CLOSING = "With the KAPE command to collect it.";
+
+function buildInsightDescriptionCandidates(
+  target: KapeTarget,
+  keyFiles: string[],
+  locations: string[]
+): string[] {
+  const insight = getArtifactInsight(target.slug);
+  if (!insight) {
+    return [];
+  }
+  const provesStartsWithName = insight.proves
+    .toLowerCase()
+    .startsWith(target.name.toLowerCase());
+  const leads = provesStartsWithName
+    ? [insight.proves]
+    : [`${target.name}: ${insight.proves}`, insight.proves];
+  const fileCounts = [3, 2, 1].filter((count) => count <= keyFiles.length);
+  const details = [
+    ...fileCounts.map(
+      (count) => ` Key files: ${keyFiles.slice(0, count).join(", ")}.`
+    ),
+    ...locations.slice(0, 1).map((location) => ` Stored in ${location}.`),
+    "",
+  ];
+  return leads.flatMap((lead) => details.map((detail) => `${lead}${detail}`));
+}
+
+function buildEvidenceDescriptionCandidates(target: KapeTarget): string[] {
+  const { keyFiles, locations } = getArtifactEvidence(target);
+  const summary = buildMeaningfulSummary(target);
+  const lead = summary ? `${summary}.` : `${target.name} forensics.`;
+  const candidates: string[] = buildInsightDescriptionCandidates(
+    target,
+    keyFiles,
+    locations
+  );
+
+  for (
+    let fileCount = Math.min(keyFiles.length, MAX_DESCRIBED_FILES);
+    fileCount >= 0;
+    fileCount--
+  ) {
+    for (
+      let locationCount = Math.min(locations.length, MAX_DESCRIBED_LOCATIONS);
+      locationCount >= 1;
+      locationCount--
+    ) {
+      const filePart =
+        fileCount > 0
+          ? ` Key files: ${keyFiles.slice(0, fileCount).join(", ")}.`
+          : "";
+      const locationPart = ` Stored in ${locations.slice(0, locationCount).join(" and ")}.`;
+      candidates.push(
+        `${lead}${filePart}${locationPart} ${KAPE_CLOSING}`,
+        `${lead}${filePart}${locationPart}`
+      );
+    }
+  }
+  return candidates;
+}
+
 export function buildArtifactDescription(target: KapeTarget): string {
   const pathCount = countCollectablePaths(target);
+
+  if (!target.isCompound) {
+    const fitting = buildEvidenceDescriptionCandidates(target).find(
+      (candidate) => candidate.length <= MAX_DESCRIPTION_LENGTH
+    );
+    if (fitting && fitting.length >= MIN_DESCRIPTION_LENGTH) {
+      return fitting;
+    }
+    if (fitting) {
+      return `${fitting} ${SHORT_DESCRIPTION_EXTENSION}`;
+    }
+  }
+
   const summary = collapseWhitespace(target.description).replace(
     TRAILING_PUNCTUATION_PATTERN,
     ""
@@ -197,7 +306,7 @@ function readTargetDates(): Map<string, TargetDates> {
     const isShallow = execFileSync(
       "git",
       ["-C", repoDir, "rev-parse", "--is-shallow-repository"],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+      { encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] }
     ).trim();
     if (isShallow !== "false") {
       return dates;
@@ -214,7 +323,7 @@ function readTargetDates(): Map<string, TargetDates> {
         "--",
         KAPETARGETS_PATH_PREFIX,
       ],
-      { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 }
+      { encoding: "utf-8", maxBuffer: 256 * 1024 * 1024 }
     );
 
     let currentDate = "";

@@ -325,7 +325,10 @@ function isXmlText(token: string | undefined): token is string {
 
 function normalizeXmlToken(token: string): string {
   return token.startsWith("<") && !token.startsWith("<![CDATA[")
-    ? token.replaceAll(WHITESPACE_PATTERN, " ").replace(" >", ">").replace(" />", "/>")
+    ? token
+        .replaceAll(WHITESPACE_PATTERN, " ")
+        .replace(" >", ">")
+        .replace(" />", "/>")
     : token;
 }
 
@@ -345,7 +348,12 @@ export function formatSampleXml(xml: string): string {
     const afterNext = tokens[index + 2];
     const indent = XML_INDENT.repeat(depth);
 
-    if (isXmlOpeningTag(token) && isXmlText(next) && afterNext && isXmlClosingTag(afterNext)) {
+    if (
+      isXmlOpeningTag(token) &&
+      isXmlText(next) &&
+      afterNext &&
+      isXmlClosingTag(afterNext)
+    ) {
       lines.push(`${indent}${token}${next}${afterNext}`);
       index += 3;
       continue;
@@ -649,4 +657,14 @@ export function getEventLogEventsForKapeTarget(
     return events.filter((event) => event.category === REMOTE_ACCESS_CATEGORY);
   }
   return [];
+}
+
+const THIN_EVENT_MAX_FIELDS = 1;
+
+export function isThinEventLogEvent(event: EventLogEvent): boolean {
+  const mostFields = Math.max(0, ...event.maps.map((map) => map.fields.length));
+  const hasContext = event.maps.some(
+    (map) => map.notes.length > 0 || map.references.length > 0
+  );
+  return mostFields <= THIN_EVENT_MAX_FIELDS && !hasContext && !event.summary;
 }

@@ -4,6 +4,7 @@ import Footer from "../../../components/layout/Footer.astro";
 import { Header } from "../../../components/layout/Header";
 import { CodeBlock } from "../../../components/ui/CodeBlock";
 import Panel from "../../../components/ui/Panel.astro";
+import { isThinEventLogEvent } from "../../../lib/eventlogs";
 import Layout from "../../../layouts/Layout.astro";
 import {
   EVENTLOG_CONTRIBUTORS_URL,
@@ -39,6 +40,7 @@ interface Props {
 }
 
 const { event } = Astro.props;
+const shouldNoindex = isThinEventLogEvent(event);
 
 const MAX_RELATED_EVENTS = 12;
 const EVENTLOGS_KAPE_TARGET = "eventlogs";
@@ -154,6 +156,7 @@ const codeChipClass =
   type="article"
   image={socialImagePath}
   imageAlt={socialImageAlt}
+  noindex={shouldNoindex}
 >
   <script
     is:inline
