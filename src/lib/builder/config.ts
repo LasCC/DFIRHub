@@ -1,4 +1,4 @@
-import type { KapeTargetEntry } from "../kapefiles";
+import type { KapeTargetEntry } from "../kapeEntries";
 
 export interface BuilderTarget {
   slug: string;
@@ -14,16 +14,31 @@ export interface BuilderTarget {
 export interface BuilderModule {
   name: string;
   description: string;
-  category: string;
   folder: string;
   exportFormats: string[];
   isCompound: boolean;
   referencedModules: string[];
 }
 
-export type ContainerType = "none" | "vhdx" | "vhd" | "zip";
-export type TransferType = "none" | "sftp" | "s3" | "s3url" | "azure";
-export type OutputFormat = "kape" | "cli" | "powershell" | "batch" | "wsl";
+export const CONTAINER_TYPES = ["none", "vhdx", "vhd", "zip"] as const;
+export const TRANSFER_TYPES = ["none", "sftp", "s3", "s3url", "azure"] as const;
+export const OUTPUT_FORMATS = [
+  "kape",
+  "cli",
+  "powershell",
+  "batch",
+  "wsl",
+] as const;
+export const SCRIPT_FORMATS = ["powershell", "batch", "wsl"] as const;
+
+export type ContainerType = (typeof CONTAINER_TYPES)[number];
+export type TransferType = (typeof TRANSFER_TYPES)[number];
+export type OutputFormat = (typeof OUTPUT_FORMATS)[number];
+export type ScriptFormat = (typeof SCRIPT_FORMATS)[number];
+
+export function isScriptFormat(format: OutputFormat): format is ScriptFormat {
+  return (SCRIPT_FORMATS as readonly OutputFormat[]).includes(format);
+}
 
 export interface KapeConfig {
   targets: string[];
@@ -122,6 +137,12 @@ export const SECRET_FIELDS = [
   "s3Url",
   "azureSasUri",
 ] as const satisfies readonly (keyof KapeConfig)[];
+
+export type SecretField = (typeof SECRET_FIELDS)[number];
+
+export function isSecretField(field: keyof KapeConfig): field is SecretField {
+  return (SECRET_FIELDS as readonly string[]).includes(field);
+}
 
 export function hasSecrets(config: KapeConfig): boolean {
   return SECRET_FIELDS.some((field) => config[field].trim() !== "");

@@ -17,22 +17,19 @@ const builderTargets: BuilderTarget[] = loadAllTargets().map((target) => ({
   category: target.category,
   childSlugs: getDirectReferenceSlugs(target),
   description: target.description,
-  entries: target.targets
-    .filter((entry) => !entry.path.endsWith(".tkape"))
-    .map(({ name, category, path, fileMask, recursive }) => ({
-      category,
-      fileMask,
-      name,
-      path,
-      recursive,
-    })),
+  entries: target.entries.map(({ name, category, path, fileMask, recursive }) => ({
+    category,
+    fileMask,
+    name,
+    path,
+    recursive,
+  })),
   isCompound: target.isCompound,
-  kapeName: target.sourceFile.replace(/\.tkape$/, ""),
+  kapeName: target.kapeName,
   name: target.name,
   slug: target.slug,
 }));
 const builderModules: BuilderModule[] = loadAllModules().map((module) => ({
-  category: module.category,
   description: module.description,
   exportFormats: module.exportFormats,
   folder: module.folder,

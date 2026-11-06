@@ -5,9 +5,9 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { formatArtifactCommand } from "../builder/kapeCommand";
 import {
   generateBatch,
-  generateKapeCommand,
   generatePowerShell,
   generateWsl,
 } from "../generators";
@@ -24,14 +24,13 @@ const anyDesk: KapeTarget = {
   category: "Apps",
   description: "AnyDesk",
   documentation: [],
-  id: "6c3736f5-39e2-4cce-9af8-02c76c09b91c",
   isCompound: false,
+  kapeName: "AnyDesk",
   name: "AnyDesk",
-  recreateDirectories: true,
   referencedTargets: [],
   slug: "anydesk",
   sourceFile: "AnyDesk.tkape",
-  targets: [
+  entries: [
     {
       category: "Communications",
       fileMask: "*.trace",
@@ -76,24 +75,25 @@ const compound: KapeTarget = {
   isCompound: true,
   name: "PackageManagers",
   referencedTargets: ["Chocolatey.tkape"],
+  kapeName: "PackageManagers",
   slug: "packagemanagers",
-  targets: [{ category: "Compound", path: "Chocolatey.tkape", name: "" }],
+  entries: [],
 };
 
 const defaultOpts = { destination: "D:\\Evidence", source: "C:" };
 
-describe("generateKapeCommand", () => {
+describe("formatArtifactCommand", () => {
   it("emits a basic command", () => {
-    expect(generateKapeCommand(anyDesk, defaultOpts)).toBe(
-      "kape.exe --tsource C: --tdest D:\\Evidence --target AnyDesk"
+    expect(formatArtifactCommand({ kapeName: anyDesk.kapeName })).toBe(
+      ".\\kape.exe --tsource C: --tdest D:\\Evidence --target AnyDesk"
     );
   });
 
   it("threads --vss and --vhdx flags", () => {
-    const cmd = generateKapeCommand(anyDesk, {
-      ...defaultOpts,
-      useVhdx: true,
-      useVss: true,
+    const cmd = formatArtifactCommand({
+      kapeName: anyDesk.kapeName,
+      vhdx: true,
+      vss: true,
     });
     expect(cmd).toContain("--vss");
     expect(cmd).toContain("--vhdx evidence");
@@ -152,10 +152,7 @@ describe("generatePowerShell — AnyDesk", () => {
   it("flattens a compound target into copy commands for resolved paths", () => {
     // Mirrors what [slug].astro does: server-side flatten via
     // `getResolvedEntries`, then hand the flat target to the generator.
-    const flat: KapeTarget = {
-      ...compound,
-      targets: getResolvedEntries(compound),
-    };
+    const flat = { ...compound, entries: getResolvedEntries(compound) };
     const out = generatePowerShell(flat, defaultOpts);
     expect(out).not.toContain("use KAPE directly");
     expect(out).toContain("Collect-Artifact");
@@ -173,8 +170,9 @@ const wildcardTarget: KapeTarget = {
   name: "ScreenConnect",
   referencedTargets: [],
   slug: "screenconnect",
+  kapeName: "ScreenConnect",
   sourceFile: "ScreenConnect.tkape",
-  targets: [
+  entries: [
     {
       category: "ApplicationLogs",
       fileMask: "Session.db",
@@ -323,8 +321,9 @@ const mixedTarget: KapeTarget = {
   ...anyDesk,
   name: "Mixed",
   slug: "mixed",
+  kapeName: "!Mixed",
   sourceFile: "!Mixed.tkape",
-  targets: [
+  entries: [
     {
       category: "FileSystem",
       fileMask: "$MFT",
@@ -363,7 +362,7 @@ const custodyOpts = {
 
 describe("KAPE target naming", () => {
   it("keeps the leading ! that KAPE needs to find compound targets", () => {
-    expect(generateKapeCommand(mixedTarget, defaultOpts)).toContain(
+    expect(formatArtifactCommand({ kapeName: mixedTarget.kapeName })).toContain(
       "--target !Mixed"
     );
   });

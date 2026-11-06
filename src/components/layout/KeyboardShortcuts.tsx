@@ -2,6 +2,8 @@ import { ArrowDown, ArrowUp, Command, CornerDownLeft, Keyboard, X } from 'lucide
 import type { LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from "react";
 
+import { NAV_SHORTCUTS } from "../../lib/navigation";
+
 interface ShortcutGroup {
   title: string;
   shortcuts: {
@@ -20,14 +22,10 @@ const keyIcons: Record<string, LucideIcon> = {
 
 const shortcutGroups: ShortcutGroup[] = [
   {
-    shortcuts: [
-      { description: "Go to home", keys: ["g", "h"] },
-      { description: "Go to all artifacts", keys: ["g", "a"] },
-      { description: "Go to collections", keys: ["g", "c"] },
-      { description: "Go to registry artifacts", keys: ["g", "r"] },
-      { description: "Go to event logs", keys: ["g", "e"] },
-      { description: "Go to builder", keys: ["g", "b"] },
-    ],
+    shortcuts: NAV_SHORTCUTS.map((shortcut) => ({
+      description: shortcut.description,
+      keys: shortcut.keys,
+    })),
     title: "Navigation",
   },
   {
@@ -82,16 +80,6 @@ export function KeyboardShortcuts() {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
-
-  // Also listen for the hidden trigger button
-  useEffect(() => {
-    const trigger = document.querySelector("#keyboard-help-trigger");
-    if (trigger) {
-      const handleClick = () => setIsOpen(true);
-      trigger.addEventListener("click", handleClick);
-      return () => trigger.removeEventListener("click", handleClick);
-    }
-  }, []);
 
   // Focus trap
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

@@ -1,14 +1,13 @@
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-import {
-  collectUniqueEntries,
-  resolveLeafTargets,
-} from "../../lib/builder/collection";
+import { resolveCollection } from "../../lib/builder/collection";
 import type { CollectionSummary } from "../../lib/builder/collection";
 import type { BuilderModule, BuilderTarget } from "../../lib/builder/config";
-import type { KapeTargetEntry } from "../../lib/kapefiles";
+import type { KapeTargetEntry } from "../../lib/kapeEntries";
+import { isPerUserEntry, joinPathAndMask } from "../../lib/kapeEntries";
 import { isLockedOnLiveSystem } from "../../lib/lockedFiles";
+import { artifactPath } from "../../lib/routes";
 import { Panel } from "../ui/Panel";
 
 interface CollectionPreviewProps {
@@ -18,8 +17,6 @@ interface CollectionPreviewProps {
   leafModules: BuilderModule[];
   selectedModuleCount: number;
 }
-
-const USER_VARIABLE = /%user%/iu;
 
 function pluralize(count: number, singular: string, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
@@ -33,7 +30,7 @@ function EntryFlags({ entry }: { entry: KapeTargetEntry }) {
           locked
         </span>
       )}
-      {USER_VARIABLE.test(entry.path) && (
+      {isPerUserEntry(entry) && (
         <span className="rounded border border-border px-1.5 text-[11px] text-muted-foreground">
           per user
         </span>
@@ -56,9 +53,16 @@ function LeafTargetEntries({ leaf }: { leaf: BuilderTarget }) {
           key={`${entry.path}|${entry.fileMask ?? ""}|${entry.name}`}
         >
           <span className="min-w-0 break-all text-muted-foreground">
-            {entry.path}
-            {entry.fileMask && (
-              <span className="text-foreground">{entry.fileMask}</span>
+            {entry.fileMask ? (
+              <>
+                {joinPathAndMask(entry.path, entry.fileMask).slice(
+                  0,
+                  -entry.fileMask.length
+                )}
+                <span className="text-foreground">{entry.fileMask}</span>
+              </>
+            ) : (
+              entry.path
             )}
           </span>
           <EntryFlags entry={entry} />
@@ -76,9 +80,7 @@ function SelectedTargetRow({
   targetIndex: Map<string, BuilderTarget>;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const leaves = resolveLeafTargets([target.slug], targetIndex);
-  const entries = collectUniqueEntries(leaves);
-  const lockedCount = entries.filter(isLockedOnLiveSystem).length;
+  const { leaves, summary } = resolveCollection([target.slug], targetIndex);
 
   return (
     <details
@@ -96,11 +98,12 @@ function SelectedTargetRow({
           <span className="truncate font-medium text-sm">{target.name}</span>
         </span>
         <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
-          {target.isCompound && `${pluralize(leaves.length, "target")} · `}
-          {pluralize(entries.length, "path")}
-          {lockedCount > 0 && (
+          {target.isCompound &&
+            `${pluralize(summary.leafTargets, "target")} · `}
+          {pluralize(summary.paths, "path")}
+          {summary.lockedPaths > 0 && (
             <span className="text-amber-700 dark:text-amber-400">
-              {` · ${lockedCount} locked`}
+              {` · ${summary.lockedPaths} locked`}
             </span>
           )}
         </span>
@@ -111,7 +114,7 @@ function SelectedTargetRow({
             <div key={leaf.slug}>
               <a
                 className="font-medium text-primary text-xs hover:underline"
-                href={`/artifact/${leaf.slug}`}
+                href={artifactPath(leaf.slug)}
               >
                 {leaf.name}
               </a>

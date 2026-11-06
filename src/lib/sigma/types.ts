@@ -32,14 +32,6 @@ export interface BackendConfig {
   waitingForPysigmaRelease?: boolean;
 }
 
-export interface SavedRule {
-  id: string;
-  name: string;
-  yaml: string;
-  lastModified: Date;
-  conversions: ConversionResult[];
-}
-
 export interface ExportPackageOptions {
   rule: string;
   conversions: Map<string, string>;
@@ -50,4 +42,70 @@ export interface ExportPackageOptions {
     description?: string;
     author?: string;
   };
+}
+
+export interface SigmaRuleEntry {
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  status: string;
+  logsource: { category?: string; product?: string; service?: string };
+  tags: string[];
+  author: string;
+  date: string;
+  filename: string;
+}
+
+export interface WorkerStatus {
+  stage: string;
+  progress: number;
+  ready: boolean;
+}
+
+export interface ConvertParams {
+  ruleYaml: string;
+  target: string;
+  packageName?: string;
+  pipelineNames?: string[];
+  pipelineYmls?: string[];
+  filterYml?: string;
+  outputFormat?: string;
+  correlationMethod?: string;
+  backendOptions?: Record<string, unknown>;
+}
+
+export interface ConvertResult {
+  success: boolean;
+  query?: string;
+  error?: string;
+}
+
+export interface ValidateResult {
+  success: boolean;
+  checks?: RuleCheck[];
+  error?: string;
+}
+
+export interface PipelineInfo {
+  name: string;
+  description: string;
+}
+
+export type MessageType =
+  | "convert"
+  | "validate"
+  | "install"
+  | "get_pipelines";
+
+export interface WorkerMessage {
+  type: MessageType;
+  payload?: Record<string, unknown>;
+}
+
+export interface StatusUpdate {
+  type: "status_update";
+  stage: string;
+  progress: number;
+  ready?: boolean;
 }

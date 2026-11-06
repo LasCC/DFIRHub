@@ -5,7 +5,6 @@ import type { KapeConfig } from "../config";
 import {
   formatKapeBatchFile,
   formatKapeCommand,
-  quoteArgument,
   validateKapeConfig,
 } from "../kapeCommand";
 
@@ -37,7 +36,8 @@ describe("formatKapeCommand", () => {
   });
 
   it("drops the trailing backslash inside quotes so it cannot escape the quote", () => {
-    expect(quoteArgument("E:\\My Cases\\")).toBe('"E:\\My Cases"');
+    const command = formatKapeCommand(configWith({ targets: ["Prefetch"], tdest: "E:\\My Cases\\" }));
+    expect(command).toContain('--tdest "E:\\My Cases"');
   });
 
   it("quotes SAS URIs that contain ampersands", () => {

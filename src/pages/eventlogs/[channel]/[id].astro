@@ -1,4 +1,5 @@
 ---
+import { parseReferenceLink } from "../../../lib/referenceLinks";
 import { ArrowUpRight, FileText, ListTree, ScrollText, Tag } from "lucide-react";
 import Footer from "../../../components/layout/Footer.astro";
 import { Header } from "../../../components/layout/Header";
@@ -70,18 +71,8 @@ const relatedEvents = loadEventLogEvents()
 
 const eventLogsTarget = loadAllTargets().find((target) => target.slug === EVENTLOGS_KAPE_TARGET);
 
-const toReferenceLink = (reference: EventLogReference) => {
-  try {
-    const parsed = new URL(reference.url);
-    return {
-      detail: reference.label ?? `${parsed.pathname}${parsed.search}`.replace(/^\/$/, ""),
-      host: parsed.hostname.replace(/^www\./, ""),
-      url: reference.url,
-    };
-  } catch {
-    return { detail: reference.label ?? "", host: reference.url, url: reference.url };
-  }
-};
+const toReferenceLink = (reference: EventLogReference) =>
+  parseReferenceLink(reference.url, reference.label);
 
 const referenceLinks = [
   ...new Map(

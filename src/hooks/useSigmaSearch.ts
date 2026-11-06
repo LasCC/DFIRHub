@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { SigmaRuleEntry } from "./sigma-search";
-
+import type { SigmaRuleEntry } from "../lib/sigma/types";
 import {
   getSigmaRuleCount,
   loadSigmaIndex,
   searchSigmaRules,
-} from "./sigma-search";
+} from "../lib/sigma/sigma-search";
 
 export function useSigmaSearch(enabled = false) {
   const [query, setQuery] = useState("");

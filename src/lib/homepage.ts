@@ -1,9 +1,14 @@
 import sigmaMeta from "../../public/sigma-rules/meta.json";
 import { DEFAULT_CONFIG } from "./builder/config";
-import { buildKapeArguments } from "./builder/kapeCommand";
+import {
+  buildKapeArguments,
+  formatArtifactCommand,
+  KAPE_EXECUTABLE,
+} from "./builder/kapeCommand";
 import { SCENARIO_PRESETS } from "./builder/presets";
-import { generateKapeCommand } from "./generators";
-import type { KapeTarget, KapeTargetEntry } from "./kapefiles";
+import type { KapeTargetEntry } from "./kapeEntries";
+import { joinPathAndMask } from "./kapeEntries";
+import type { KapeTarget } from "./kapefiles";
 import {
   findCollectionsContaining,
   getResolvedEntries,
@@ -28,6 +33,7 @@ export interface ConsolePreview {
   pathCount: number;
   artifactCount: number;
   collectionCount: number;
+  kapeName: string;
   command: string;
 }
 
@@ -72,8 +78,6 @@ export interface HomepageData {
   sigma: SigmaPreview;
 }
 
-const CONSOLE_SOURCE_DRIVE = "C:";
-const CONSOLE_DESTINATION = "D:\\Evidence";
 const CONSOLE_SLUGS = [
   "prefetch",
   "anydesk",
@@ -155,16 +159,16 @@ const QUESTION_DEFINITIONS = [
   },
 ];
 
-function getDirectEntries(target: KapeTarget): KapeTargetEntry[] {
-  return target.targets.filter((entry) => !entry.path.endsWith(".tkape"));
-}
-
 function toPathRow(entry: KapeTargetEntry): ConsolePathRow {
-  const mask = entry.fileMask ?? null;
-  const needsSeparator = mask !== null && !entry.path.endsWith("\\");
+  if (!entry.fileMask) {
+    return { directory: entry.path, mask: null };
+  }
   return {
-    directory: needsSeparator ? `${entry.path}\\` : entry.path,
-    mask,
+    directory: joinPathAndMask(entry.path, entry.fileMask).slice(
+      0,
+      -entry.fileMask.length
+    ),
+    mask: entry.fileMask,
   };
 }
 
@@ -173,7 +177,7 @@ function pickCompoundRows(target: KapeTarget): ConsolePathRow[] {
   const featuredRows = COMPOUND_FEATURED_SLUGS.flatMap((slug) => {
     const entry = leaves
       .find((leaf) => leaf.slug === slug)
-      ?.targets.find((candidate) => !candidate.path.endsWith(".tkape"));
+      ?.entries[0];
     return entry ? [toPathRow(entry)] : [];
   });
   if (featuredRows.length > 0) {
@@ -186,7 +190,7 @@ function buildConsolePreview(target: KapeTarget): ConsolePreview {
   const pathCount = getResolvedEntries(target).length;
   const rows = target.isCompound
     ? pickCompoundRows(target)
-    : getDirectEntries(target).slice(0, CONSOLE_MAX_ROWS).map(toPathRow);
+    : target.entries.slice(0, CONSOLE_MAX_ROWS).map(toPathRow);
 
   return {
     slug: target.slug,
@@ -199,10 +203,8 @@ function buildConsolePreview(target: KapeTarget): ConsolePreview {
       ? resolveCompoundReferences(target).length
       : 1,
     collectionCount: findCollectionsContaining(target.slug).length,
-    command: generateKapeCommand(target, {
-      source: CONSOLE_SOURCE_DRIVE,
-      destination: CONSOLE_DESTINATION,
-    }),
+    kapeName: target.kapeName,
+    command: formatArtifactCommand({ kapeName: target.kapeName }),
   };
 }
 
@@ -301,7 +303,7 @@ function buildBuilderLines(): string[] {
   );
   const lastIndex = groups.length - 1;
   return groups.map((group, index) => {
-    const prefix = index === 0 ? ".\\kape.exe " : "  ";
+    const prefix = index === 0 ? `${KAPE_EXECUTABLE} ` : "  ";
     const suffix = index < lastIndex ? POWERSHELL_LINE_CONTINUATION : "";
     return `${prefix}${group.join(" ")}${suffix}`;
   });
@@ -324,9 +326,21 @@ function buildSigmaPreview(): SigmaPreview {
 
 function countDistinctPaths(): number {
   const paths = loadAllTargets().flatMap((target) =>
-    getDirectEntries(target).map((entry) => entry.path.toLowerCase())
+    target.entries.map((entry) => entry.path.toLowerCase())
   );
   return new Set(paths).size;
+}
+
+export function getSiteCounts(): {
+  totalTargets: number;
+  distinctPathCount: number;
+  sigmaRuleCount: number;
+} {
+  return {
+    totalTargets: getStats().total,
+    distinctPathCount: countDistinctPaths(),
+    sigmaRuleCount: sigmaMeta.ruleCount,
+  };
 }
 
 export function getHomepageData(): HomepageData {

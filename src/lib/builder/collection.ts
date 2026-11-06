@@ -1,6 +1,14 @@
-import type { KapeTarget, KapeTargetEntry } from "../kapefiles";
+import type { KapeTargetEntry } from "../kapeEntries";
+import { collectLeafTargets, collectUniqueEntries, isPerUserEntry } from "../kapeEntries";
 import { isLockedOnLiveSystem } from "../lockedFiles";
-import type { BuilderModule, BuilderTarget, OutputFormat } from "./config";
+import type { ScriptTarget } from "../generators";
+import type {
+  BuilderModule,
+  BuilderTarget,
+  OutputFormat,
+  ScriptFormat,
+} from "./config";
+import { isScriptFormat } from "./config";
 
 export interface CollectionSummary {
   leafTargets: number;
@@ -9,19 +17,25 @@ export interface CollectionSummary {
   perUserPaths: number;
 }
 
-const USER_VARIABLE = /%user%/i;
-const MACHINE_NAME_VARIABLE = /%m/gi;
-const TIMESTAMP_VARIABLE = /%d/gi;
+export interface ResolvedCollection {
+  leaves: BuilderTarget[];
+  entries: KapeTargetEntry[];
+  summary: CollectionSummary;
+}
+
+const KAPE_VARIABLE = /%[md]/giu;
+const MACHINE_NAME_VARIABLE = "%m";
 
 function compactTimestamp(date: Date): string {
   return date
     .toISOString()
-    .replaceAll(/[-:]/g, "")
-    .replace(/\.\d{3}Z$/, "");
+    .replaceAll(/[-:]/gu, "")
+    .replace(/\.\d{3}Z$/u, "");
 }
 
-const SCRIPT_VARIABLES: Partial<
-  Record<OutputFormat, { machine: string; timestamp: () => string }>
+const SCRIPT_VARIABLES: Record<
+  ScriptFormat,
+  { machine: string; timestamp: () => string }
 > = {
   batch: {
     machine: "%COMPUTERNAME%",
@@ -38,111 +52,59 @@ export function translateKapeVariables(
   path: string,
   format: OutputFormat
 ): string {
-  const variables = SCRIPT_VARIABLES[format];
-  if (!variables) {
+  if (!isScriptFormat(format)) {
     return path;
   }
-  return path
-    .replace(MACHINE_NAME_VARIABLE, () => variables.machine)
-    .replace(TIMESTAMP_VARIABLE, () => variables.timestamp());
+  const variables = SCRIPT_VARIABLES[format];
+  return path.replace(KAPE_VARIABLE, (variable) =>
+    variable.toLowerCase() === MACHINE_NAME_VARIABLE
+      ? variables.machine
+      : variables.timestamp()
+  );
 }
 
-function entryKey(entry: KapeTargetEntry): string {
-  return [
-    entry.path.toLowerCase(),
-    (entry.fileMask ?? "").toLowerCase(),
-    entry.recursive === true ? "r" : "",
-  ].join("|");
+function lookupAll<Node>(
+  keys: readonly string[],
+  index: Map<string, Node>
+): Node[] {
+  return keys
+    .map((key) => index.get(key))
+    .filter((node): node is Node => node !== undefined);
 }
 
-export function resolveLeafTargets(
-  slugs: string[],
+export function resolveCollection(
+  slugs: readonly string[],
   index: Map<string, BuilderTarget>
-): BuilderTarget[] {
-  const leaves: BuilderTarget[] = [];
-  const visited = new Set<string>();
-
-  const visit = (slug: string) => {
-    if (visited.has(slug)) {
-      return;
-    }
-    visited.add(slug);
-    const target = index.get(slug);
-    if (!target) {
-      return;
-    }
-    if (target.entries.length > 0) {
-      leaves.push(target);
-    }
-    for (const childSlug of target.childSlugs) {
-      visit(childSlug);
-    }
-  };
-
-  for (const slug of slugs) {
-    visit(slug);
-  }
-  return leaves;
-}
-
-export function collectUniqueEntries(
-  leaves: BuilderTarget[]
-): KapeTargetEntry[] {
-  const seen = new Set<string>();
-  const entries: KapeTargetEntry[] = [];
-  for (const leaf of leaves) {
-    for (const entry of leaf.entries) {
-      const key = entryKey(entry);
-      if (!seen.has(key)) {
-        seen.add(key);
-        entries.push(entry);
-      }
-    }
-  }
-  return entries;
-}
-
-export function summarizeCollection(
-  leaves: BuilderTarget[],
-  entries: KapeTargetEntry[]
-): CollectionSummary {
+): ResolvedCollection {
+  const leaves = collectLeafTargets(lookupAll(slugs, index), (target) =>
+    lookupAll(target.childSlugs, index)
+  );
+  const entries = collectUniqueEntries(leaves);
   return {
-    leafTargets: leaves.length,
-    lockedPaths: entries.filter(isLockedOnLiveSystem).length,
-    paths: entries.length,
-    perUserPaths: entries.filter((entry) => USER_VARIABLE.test(entry.path))
-      .length,
+    entries,
+    leaves,
+    summary: {
+      leafTargets: leaves.length,
+      lockedPaths: entries.filter(isLockedOnLiveSystem).length,
+      paths: entries.length,
+      perUserPaths: entries.filter(isPerUserEntry).length,
+    },
   };
 }
 
-export function buildScriptTarget(
-  selected: BuilderTarget[],
+export function scriptTargetFor(
+  selected: readonly BuilderTarget[],
   entries: KapeTargetEntry[]
-): KapeTarget {
-  const name = selected.map((target) => target.name).join(", ");
-  return {
-    author: "DFIRHub",
-    category: "Custom",
-    description: "",
-    documentation: [],
-    id: "",
-    isCompound: false,
-    name,
-    recreateDirectories: true,
-    referencedTargets: [],
-    slug: "custom",
-    sourceFile: "",
-    targets: entries,
-    version: "1.0",
-  };
+): ScriptTarget {
+  return { entries, name: selected.map((target) => target.name).join(", ") };
 }
 
-export function uniqueKapeNames(selected: BuilderTarget[]): string[] {
+export function kapeNamesFor(selected: readonly BuilderTarget[]): string[] {
   return [...new Set(selected.map((target) => target.kapeName))];
 }
 
 export function resolveLeafModules(
-  names: string[],
+  names: readonly string[],
   index: Map<string, BuilderModule>
 ): BuilderModule[] {
   const leaves: BuilderModule[] = [];

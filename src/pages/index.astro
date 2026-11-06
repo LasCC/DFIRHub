@@ -42,8 +42,7 @@ const popular: HomeSearchItem[] = popularSlugs.flatMap((slug) => {
           s: target.slug,
           c: target.category,
           d: "",
-          p: target.targets.filter((entry) => !entry.path.endsWith(".tkape"))
-            .length,
+          p: target.entries.length,
         },
       ]
     : [];
@@ -54,7 +53,7 @@ const searchIndex: HomeSearchItem[] = getIndividualTargets().map((target) => ({
   s: target.slug,
   c: target.category,
   d: target.description || "",
-  p: target.targets.filter((entry) => !entry.path.endsWith(".tkape")).length,
+  p: target.entries.length,
 }));
 ---
 

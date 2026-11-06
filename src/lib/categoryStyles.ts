@@ -17,47 +17,47 @@ export interface CategoryStyle {
 }
 
 const categoryStyles: Record<string, CategoryStyle> = {
-  Antivirus: {
+  antivirus: {
     accent: "bg-lime-600",
     bg: "bg-lime-500/5",
     text: "text-lime-800 dark:text-lime-400",
   },
-  Apps: {
+  apps: {
     accent: "bg-emerald-600",
     bg: "bg-emerald-500/5",
     text: "text-emerald-800 dark:text-emerald-400",
   },
-  Browsers: {
+  browsers: {
     accent: "bg-orange-600",
     bg: "bg-orange-500/5",
     text: "text-orange-800 dark:text-orange-400",
   },
-  Compound: {
+  compound: {
     accent: "bg-cyan-600",
     bg: "bg-cyan-500/5",
     text: "text-cyan-800 dark:text-cyan-400",
   },
-  Logs: {
+  logs: {
     accent: "bg-yellow-700",
     bg: "bg-yellow-500/5",
     text: "text-yellow-800 dark:text-yellow-400",
   },
-  "Event log": {
+  "event log": {
     accent: "bg-teal-600",
     bg: "bg-teal-500/5",
     text: "text-teal-800 dark:text-teal-400",
   },
-  P2P: {
+  p2p: {
     accent: "bg-purple-600",
     bg: "bg-purple-500/5",
     text: "text-purple-800 dark:text-purple-400",
   },
-  Registry: {
+  registry: {
     accent: "bg-pink-600",
     bg: "bg-pink-500/5",
     text: "text-pink-800 dark:text-pink-400",
   },
-  Windows: {
+  windows: {
     accent: "bg-blue-600",
     bg: "bg-blue-500/5",
     text: "text-blue-800 dark:text-blue-400",
@@ -71,5 +71,5 @@ const defaultStyle: CategoryStyle = {
 };
 
 export function getCategoryStyle(category: string): CategoryStyle {
-  return categoryStyles[category] ?? defaultStyle;
+  return categoryStyles[category.toLowerCase()] ?? defaultStyle;
 }

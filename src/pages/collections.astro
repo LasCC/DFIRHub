@@ -96,11 +96,12 @@ const seoDescription = `Browse ${collections.length} pre-built KAPE triage colle
                 const resolved = resolveCompoundReferences(collection);
                 const totalPaths = resolved.reduce(
                   (acc, t) =>
-                    acc + t.targets.filter((e) => !e.path.endsWith(".tkape")).length,
+                    acc + t.entries.length,
                   0,
                 );
                 return (
                   <a
+                    data-artifact-link
                     href={`/artifact/${collection.slug}`}
                     class="group focus-ring block bg-background p-5 transition-colors hover:bg-muted"
                   >
@@ -147,6 +148,7 @@ const seoDescription = `Browse ${collections.length} pre-built KAPE triage colle
             {sortedCollections.map((collection) => (
               <li>
                 <a
+                  data-artifact-link
                   href={`/artifact/${collection.slug}`}
                   class="group focus-ring flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
                 >

@@ -160,8 +160,9 @@ const allTargetsJson = serializeJsonForScript(
     i: t.isCompound,
     d: t.description || "",
     count: !t.isCompound
-      ? t.targets.filter((e) => !e.path.endsWith(".tkape")).length
+      ? t.entries.length
       : t.referencedTargets.length,
+    accent: getCategoryStyle(t.category).accent,
   }))
 );
 const scenarioArtifactsJson = serializeJsonForScript(scenarioArtifacts);
@@ -330,10 +331,11 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
               </a>
               <ul class="divide-y divide-border">
                 {visibleTargets.map((target) => {
-                  const pathCount = target.targets.filter((e) => !e.path.endsWith(".tkape")).length;
+                  const pathCount = target.entries.length;
                   return (
                     <li>
                       <a
+                        data-artifact-link
                         href={`/artifact/${target.slug}`}
                         class="artifact-row group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
                       >
@@ -453,16 +455,6 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
     return node;
   }
 
-  const categoryDotClasses = {
-    Antivirus: "bg-lime-600",
-    Apps: "bg-emerald-600",
-    Browsers: "bg-orange-600",
-    Compound: "bg-cyan-600",
-    Logs: "bg-yellow-700",
-    P2P: "bg-purple-600",
-    Windows: "bg-blue-600",
-  };
-
   function createRow(t) {
     const li = el("li");
     const a = el(
@@ -470,12 +462,13 @@ const seoDescription = `List of ${stats.total} Windows forensic artifacts (artef
       "group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
     );
     a.href = "/artifact/" + t.s;
+    a.setAttribute("data-artifact-link", "");
 
     const name = el("span", "flex w-48 shrink-0 items-center gap-2 sm:w-56");
     const dot = el(
       "span",
       "h-2 w-2 shrink-0 self-center rounded-full " +
-        (categoryDotClasses[t.c] || "bg-zinc-500")
+        t.accent
     );
     dot.title = t.c;
     name.appendChild(dot);

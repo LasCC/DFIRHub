@@ -12,7 +12,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { loadSigmaRule } from "@/lib/sigma/sigma-search";
-import { useSigmaSearch } from "@/lib/sigma/useSigmaSearch";
+import { useSigmaSearch } from "@/hooks/useSigmaSearch";
 
 interface SigmaSearchDialogProps {
   open: boolean;

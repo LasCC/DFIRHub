@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   FileSearch,
@@ -14,6 +15,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { Search } from "../search/Search";
 import { ThemeToggle } from "./ThemeToggle";
+import { NAV_ITEMS } from "../../lib/navigation";
+import { GITHUB_URL } from "../../lib/site";
 
 const GitHubMark = ({ className }: { className?: string }) => (
   <svg
@@ -34,14 +37,14 @@ interface HeaderProps {
   currentPath?: string;
 }
 
-const navItems = [
-  { href: "/artifacts", label: "Artifacts", Icon: FileSearch },
-  { href: "/collections", label: "Collections", Icon: Layers },
-  { href: "/registry", label: "Registry", Icon: KeyRound },
-  { href: "/eventlogs", label: "Event logs", Icon: ScrollText },
-  { href: "/builder", label: "Builder", Icon: Wrench },
-  { href: "/converter", label: "Converter", Icon: Sigma },
-];
+const NAV_ICONS: Record<string, LucideIcon> = {
+  artifacts: FileSearch,
+  collections: Layers,
+  registry: KeyRound,
+  eventlogs: ScrollText,
+  builder: Wrench,
+  converter: Sigma,
+};
 
 export function Header({ showSearch = true, currentPath }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -133,7 +136,7 @@ export function Header({ showSearch = true, currentPath }: HeaderProps) {
         {/* Desktop navigation */}
         <nav aria-label="Main navigation" className="hidden md:block">
           <ul className="flex items-center gap-1">
-            {navItems.map((item) => (
+            {NAV_ITEMS.map((item) => (
               <li key={item.href}>
                 <a
                   aria-current={isActive(item.href) ? "page" : undefined}
@@ -156,7 +159,7 @@ export function Header({ showSearch = true, currentPath }: HeaderProps) {
           <a
             aria-label="DFIRHub on GitHub (opens in new tab)"
             className="focus-ring hidden h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-overlay/[0.05] hover:text-foreground md:flex"
-            href="https://github.com/LasCC/DFIRHub"
+            href={GITHUB_URL}
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -223,8 +226,8 @@ export function Header({ showSearch = true, currentPath }: HeaderProps) {
               Navigate
             </p>
 
-            {navItems.map((item) => {
-              const Icon = item.Icon;
+            {NAV_ITEMS.map((item) => {
+              const Icon = NAV_ICONS[item.key];
               const active = isActive(item.href);
 
               return (
@@ -266,7 +269,7 @@ export function Header({ showSearch = true, currentPath }: HeaderProps) {
 
             <a
               className="group focus-ring flex h-11 items-center gap-3 rounded-lg px-3 text-sm text-muted-foreground transition-colors hover:bg-overlay/[0.05] hover:text-foreground"
-              href="https://github.com/LasCC/DFIRHub"
+              href={GITHUB_URL}
               onClick={() => setMobileMenuOpen(false)}
               rel="noopener noreferrer"
               tabIndex={mobileMenuOpen ? 0 : -1}

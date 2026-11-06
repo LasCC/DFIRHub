@@ -1,7 +1,6 @@
 import { Layers, Monitor } from "lucide-react";
 
 import { getCategoryIcon } from "@/lib/categoryIcons";
-import type { CategoryStyle } from "@/lib/categoryStyles";
 import { getCategoryStyle } from "@/lib/categoryStyles";
 
 interface CategoryChipProps {
@@ -9,20 +8,11 @@ interface CategoryChipProps {
   isCompound?: boolean;
 }
 
-// categoryStyles keys are capitalized ("Windows", "P2P"); normalize lookup.
-const SPECIAL_KEYS: Record<string, string> = { p2p: "P2P" };
-
-function resolveCategoryStyle(category: string): CategoryStyle {
-  const lower = category.toLowerCase();
-  const key =
-    SPECIAL_KEYS[lower] ?? lower.charAt(0).toUpperCase() + lower.slice(1);
-  return getCategoryStyle(key);
-}
-
 export function CategoryChip({ category, isCompound }: CategoryChipProps) {
   const categoryLower = category.toLowerCase();
   const Icon = getCategoryIcon(categoryLower, Monitor);
-  const style = resolveCategoryStyle(category);
+  const style = getCategoryStyle(category);
+  const compoundStyle = getCategoryStyle("compound");
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -36,7 +26,7 @@ export function CategoryChip({ category, isCompound }: CategoryChipProps) {
 
       {isCompound && categoryLower !== "compound" && (
         <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-foreground text-sm">
-          <Layers className="h-3.5 w-3.5 text-cyan-800 dark:text-cyan-400" />
+          <Layers className={`h-3.5 w-3.5 ${compoundStyle.text}`} />
           <span>Compound</span>
         </span>
       )}

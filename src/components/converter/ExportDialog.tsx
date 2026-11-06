@@ -2,6 +2,7 @@ import { Download, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { trackConverterExport } from "@/lib/analytics";
+import { getFileExtension } from "@/lib/sigma/backends";
 
 interface ExportDialogProps {
   rule: string;
@@ -113,7 +114,7 @@ export function ExportDialog({
             <li className="text-foreground/80">rule.yml</li>
             {[...conversions.keys()].map((backend) => (
               <li className="text-foreground/80" key={backend}>
-                query-{backend}.txt
+                query-{backend}.{getFileExtension(backend)}
               </li>
             ))}
             <li className="text-foreground/80">README.md</li>

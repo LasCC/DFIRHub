@@ -1,4 +1,5 @@
-import { execFileSync } from "node:child_process";
+import { readGitDates } from "./gitDates";
+import { createSlug } from "./slug";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -66,8 +67,6 @@ const LABEL_SEPARATOR_PATTERN = /\s*(?:-|:)\s*$/u;
 const COMMENT_PREFIX_PATTERN = /^\s*#\s*/u;
 const BATCH_AUTHOR_PATTERN = /^Author:\s*(?<value>.+)$/mu;
 const BATCH_VERSION_PATTERN = /^Version:\s*(?<value>.+)$/mu;
-const SLUG_INVALID_PATTERN = /[^a-z0-9]+/gu;
-const SLUG_EDGE_PATTERN = /^-|-$/gu;
 const WHITESPACE_PATTERN = /\s+/gu;
 
 const HIVE_ALIASES: Record<string, string> = {
@@ -95,36 +94,12 @@ function batchFilePath(): string {
   return path.join(recmdRepoPath(), "BatchExamples", REGISTRY_BATCH_FILE);
 }
 
-function runRecmdGit(args: string[]): string {
-  return execFileSync("git", ["-C", recmdRepoPath(), ...args], {
-    encoding: "utf-8",
-    stdio: ["ignore", "pipe", "ignore"],
-  }).trim();
-}
-
-function readSourceDates(): RegistrySourceDates | null {
-  try {
-    if (runRecmdGit(["rev-parse", "--is-shallow-repository"]) !== "false") {
-      return null;
-    }
-    const dates = runRecmdGit([
-      "log",
-      "--follow",
-      "--format=%cI",
-      "--",
-      `BatchExamples/${REGISTRY_BATCH_FILE}`,
-    ]).split("\n");
-    const modified = dates.at(0);
-    const published = dates.at(-1);
-    return modified && published ? { modified, published } : null;
-  } catch {
-    return null;
-  }
-}
-
 export function getRegistrySourceDates(): RegistrySourceDates | null {
   if (sourceDatesCache === undefined) {
-    sourceDatesCache = readSourceDates();
+    sourceDatesCache = readGitDates(
+      recmdRepoPath(),
+      `BatchExamples/${REGISTRY_BATCH_FILE}`
+    );
   }
   return sourceDatesCache;
 }
@@ -145,10 +120,7 @@ function normalizeCategory(category: string): string {
 }
 
 function createRegistrySlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replaceAll(SLUG_INVALID_PATTERN, "-")
-    .replaceAll(SLUG_EDGE_PATTERN, "");
+  return createSlug(name);
 }
 
 function dedent(lines: string[]): string {

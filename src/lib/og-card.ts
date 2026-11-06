@@ -6,8 +6,12 @@ import satori from "satori";
 import type { Font } from "satori";
 
 import type { EventLogEvent } from "./eventlogs";
-import { generateKapeCommand } from "./generators";
-import { getHomepageData } from "./homepage";
+import {
+  artifactCommandConfig,
+  buildKapeArguments,
+  KAPE_EXECUTABLE,
+} from "./builder/kapeCommand";
+import { getSiteCounts } from "./homepage";
 import { getResolvedEntries } from "./kapefiles";
 import type { KapeTarget } from "./kapefiles";
 import type { RegistryArtifact } from "./registry";
@@ -24,8 +28,6 @@ const COMMAND_SAFETY_CHARACTERS = 2;
 const GRID_CELL_SIZE = 24;
 const GRID_REACH = 0.85;
 const GRID_LIT_THRESHOLD = 0.04;
-const SOURCE_DRIVE = "C:";
-const DESTINATION_FOLDER = "D:\\Evidence";
 const DEFAULT_EYEBROW = "Windows forensic artifacts reference";
 const DEFAULT_HEADLINE =
   "Where the evidence lives, and the command to collect it";
@@ -194,12 +196,14 @@ function pickTitleFontSize(title: string): number {
   return 52;
 }
 
-function buildCommandRow(commandTarget: string): CardNode {
-  const command = generateKapeCommand({ name: commandTarget } as KapeTarget, {
-    destination: DESTINATION_FOLDER,
-    source: SOURCE_DRIVE,
-  });
-  const tokens = command.split(" ");
+const TARGET_FLAG = "--target";
+
+function buildCommandRow(kapeName: string): CardNode {
+  const tokens = [
+    KAPE_EXECUTABLE,
+    ...buildKapeArguments(artifactCommandConfig({ kapeName })),
+  ];
+  const command = tokens.join(" ");
   const characterCount = `PS> ${command}`.length + COMMAND_SAFETY_CHARACTERS;
   const fontSize = Math.min(
     MAX_COMMAND_FONT_SIZE,
@@ -210,7 +214,7 @@ function buildCommandRow(commandTarget: string): CardNode {
   const gap = Math.round(fontSize * MONO_CHARACTER_WIDTH_RATIO);
 
   const tokenNodes = tokens.map((token, position): CardNode => {
-    const isTarget = position === tokens.length - 1;
+    const isTarget = tokens[position - 1] === TARGET_FLAG;
     const isFlag = token.startsWith("--");
     let color: string = COLORS.foreground;
     if (isTarget) {
@@ -539,7 +543,7 @@ function describeArtifact(target: KapeTarget): string {
 export function renderArtifactCard(target: KapeTarget): Promise<Uint8Array> {
   const content: ArtifactCardContent = {
     chip: target.category,
-    commandRow: buildCommandRow(target.name),
+    commandRow: buildCommandRow(target.kapeName),
     description: describeArtifact(target),
     eyebrow: target.isCompound ? COLLECTION_EYEBROW : ARTIFACT_EYEBROW,
     footer: describeContents(target),
@@ -574,12 +578,12 @@ export function renderRegistryCard(
 }
 
 export function renderDefaultCard(): Promise<Uint8Array> {
-  const { totalTargets, distinctPathCount, sigma } = getHomepageData();
+  const { totalTargets, distinctPathCount, sigmaRuleCount } = getSiteCounts();
   const formatCount = (count: number) => count.toLocaleString("en-US");
   const stats: DefaultCardStat[] = [
     { label: "forensic artifacts", value: formatCount(totalTargets) },
     { label: "paths on disk", value: formatCount(distinctPathCount) },
-    { label: "Sigma rules", value: formatCount(sigma.ruleCount) },
+    { label: "Sigma rules", value: formatCount(sigmaRuleCount) },
   ];
   return renderCard((logoUri) => buildDefaultCard(stats, logoUri));
 }

@@ -146,24 +146,27 @@ function readLogsourceField(value: unknown): string | undefined {
   return typeof value === "string" && value ? value : undefined;
 }
 
+export function readLogsource(raw: unknown): Logsource | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+
+  const fields = raw as Record<string, unknown>;
+  const logsource: Logsource = {
+    category: readLogsourceField(fields.category),
+    product: readLogsourceField(fields.product),
+    service: readLogsourceField(fields.service),
+  };
+  const hasAnyField = Boolean(
+    logsource.category || logsource.product || logsource.service
+  );
+  return hasAnyField ? logsource : null;
+}
+
 export function parseLogsourceFromYaml(yamlString: string): Logsource | null {
   try {
     const parsed = yaml.load(yamlString) as { logsource?: unknown } | null;
-    const rawLogsource = parsed?.logsource;
-    if (!rawLogsource || typeof rawLogsource !== "object") {
-      return null;
-    }
-
-    const fields = rawLogsource as Record<string, unknown>;
-    const logsource: Logsource = {
-      category: readLogsourceField(fields.category),
-      product: readLogsourceField(fields.product),
-      service: readLogsourceField(fields.service),
-    };
-    const hasAnyField = Boolean(
-      logsource.category || logsource.product || logsource.service
-    );
-    return hasAnyField ? logsource : null;
+    return readLogsource(parsed?.logsource);
   } catch {
     return null;
   }

@@ -1,4 +1,7 @@
 ---
+import { NAV_ITEMS } from "../../lib/navigation";
+import { GITHUB_URL, KAPEFILES_REPO_URL } from "../../lib/site";
+
 const currentYear = new Date().getFullYear();
 ---
 
@@ -21,42 +24,14 @@ const currentYear = new Date().getFullYear();
       <div>
         <h3 class="mb-3 font-medium text-foreground text-sm">Navigate</h3>
         <nav aria-label="Footer navigation" class="space-y-2">
-          <a
-            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="/artifacts"
-          >
-            All Artifacts
-          </a>
-          <a
-            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="/collections"
-          >
-            Collections
-          </a>
-          <a
-            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="/registry"
-          >
-            Registry Artifacts
-          </a>
-          <a
-            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="/eventlogs"
-          >
-            Event Logs
-          </a>
-          <a
-            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="/builder"
-          >
-            Command Builder
-          </a>
-          <a
-            class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="/converter"
-          >
-            Sigma Converter
-          </a>
+          {NAV_ITEMS.map((item) => (
+            <a
+              class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
+              href={item.href}
+            >
+              {item.footerLabel ?? item.label}
+            </a>
+          ))}
         </nav>
       </div>
 
@@ -66,7 +41,7 @@ const currentYear = new Date().getFullYear();
         <nav aria-label="External resources" class="space-y-2">
           <a
             class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="https://github.com/LasCC/DFIRHub"
+            href={GITHUB_URL}
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -74,7 +49,7 @@ const currentYear = new Date().getFullYear();
           </a>
           <a
             class="block text-muted-foreground text-sm transition-colors hover:text-foreground"
-            href="https://github.com/EricZimmerman/KapeFiles"
+            href={KAPEFILES_REPO_URL}
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -106,7 +81,7 @@ const currentYear = new Date().getFullYear();
         &copy; {currentYear} DFIRHub. Data sourced from{" "}
         <a
           class="text-primary transition-colors hover:underline"
-          href="https://github.com/EricZimmerman/KapeFiles"
+          href={KAPEFILES_REPO_URL}
           rel="noopener noreferrer"
           target="_blank"
         >

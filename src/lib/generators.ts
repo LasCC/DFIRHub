@@ -1,11 +1,14 @@
-import type { KapeTarget, KapeTargetEntry } from "./kapefiles";
-import { findLockedEntries } from "./lockedFiles";
+import type { EntryGroup, KapeTargetEntry } from "./kapeEntries";
+import { isPerUserEntry, stripTrailingBackslashes } from "./kapeEntries";
+import { isLockedOnLiveSystem } from "./lockedFiles";
 
-export interface GeneratorOptions {
+export interface ScriptTarget extends EntryGroup {
+  name: string;
+}
+
+export interface ScriptOptions {
   source: string;
   destination: string;
-  useVss?: boolean;
-  useVhdx?: boolean;
   chainOfCustody?: boolean;
   caseId?: string;
   examiner?: string;
@@ -43,10 +46,6 @@ function sanitizeFolderName(name: string): string {
     .replace(LEADING_UNDERSCORE, "");
 }
 
-function stripTrailingBackslash(value: string): string {
-  return value.replace(/\\+$/, "");
-}
-
 function applySourceDrive(pathStr: string, source: string): string {
   return pathStr.replace(DRIVE_LETTER, (_, _drive, rest) => `${source}${rest}`);
 }
@@ -73,7 +72,7 @@ function normalizeEntry(
   entry: KapeTargetEntry,
   source: string
 ): NormalizedEntry {
-  const hasUserVar = /%user%/i.test(entry.path);
+  const hasUserVar = isPerUserEntry(entry);
   const safeName = sanitizeFolderName(entry.name);
 
   let relativeFromUserRoot: string | undefined;
@@ -85,7 +84,7 @@ function normalizeEntry(
       const afterUser = entry.path.split(/%user%\\?/i)[1] ?? "";
       relativeFromUserRoot = afterUser;
     }
-    relativeFromUserRoot = stripTrailingBackslash(relativeFromUserRoot);
+    relativeFromUserRoot = stripTrailingBackslashes(relativeFromUserRoot);
   }
 
   return {
@@ -97,20 +96,6 @@ function normalizeEntry(
     relativeFromUserRoot,
     safeName,
   };
-}
-
-// Generators run client-side, so they cannot resolve compound references
-// themselves (resolution requires the on-disk KapeFiles index). Callers
-// pass a target whose `targets` already contain the flat entry list —
-// `getResolvedEntries` in lib/kapefiles.ts is the server-side helper.
-function getEntries(target: KapeTarget): KapeTargetEntry[] {
-  return target.targets.filter((e) => !e.path.endsWith(".tkape"));
-}
-
-export function kapeTargetName(target: KapeTarget): string {
-  return target.sourceFile
-    ? target.sourceFile.replace(/\.tkape$/, "")
-    : target.name;
 }
 
 function quotePowerShellSingle(value: string): string {
@@ -126,10 +111,10 @@ function stripBatchSpecialCharacters(value: string): string {
 }
 
 function lockedEntryWarning(
-  target: KapeTarget,
+  target: ScriptTarget,
   commentPrefix: string
 ): string[] {
-  const locked = findLockedEntries(getEntries(target));
+  const locked = target.entries.filter(isLockedOnLiveSystem);
   if (locked.length === 0) {
     return [];
   }
@@ -149,20 +134,6 @@ function lockedEntryWarning(
   return lines;
 }
 
-export function generateKapeCommand(
-  target: KapeTarget,
-  opts: GeneratorOptions
-): string {
-  let cmd = `kape.exe --tsource ${opts.source} --tdest ${opts.destination} --target ${kapeTargetName(target)}`;
-  if (opts.useVss) {
-    cmd += " --vss";
-  }
-  if (opts.useVhdx) {
-    cmd += " --vhdx evidence";
-  }
-  return cmd;
-}
-
 function powerShellCollectCall(
   entry: NormalizedEntry,
   sourceExpression: string,
@@ -177,7 +148,7 @@ function powerShellCollectCall(
   return parts.filter(Boolean).join(" ");
 }
 
-function powerShellCustodyStart(opts: GeneratorOptions): string[] {
+function powerShellCustodyStart(opts: ScriptOptions): string[] {
   if (!opts.chainOfCustody) {
     return [];
   }
@@ -189,7 +160,7 @@ function powerShellCustodyStart(opts: GeneratorOptions): string[] {
   ];
 }
 
-function powerShellCustodyEnd(opts: GeneratorOptions): string[] {
+function powerShellCustodyEnd(opts: ScriptOptions): string[] {
   if (!opts.chainOfCustody) {
     return [];
   }
@@ -216,10 +187,10 @@ function powerShellCustodyEnd(opts: GeneratorOptions): string[] {
 }
 
 export function generatePowerShell(
-  target: KapeTarget,
-  opts: GeneratorOptions
+  target: ScriptTarget,
+  opts: ScriptOptions
 ): string {
-  const entries = getEntries(target).map((e) => normalizeEntry(e, opts.source));
+  const entries = target.entries.map((e) => normalizeEntry(e, opts.source));
   const lines: string[] = [
     "# PowerShell Artifact Collection Script",
     `# Target: ${target.name}`,
@@ -275,7 +246,7 @@ export function generatePowerShell(
 
   for (const [idx, entry] of nonUserEntries.entries()) {
     lines.push(`# ${idx + 1}. ${entry.name}`);
-    const src = stripTrailingBackslash(entry.path);
+    const src = stripTrailingBackslashes(entry.path);
     lines.push(
       powerShellCollectCall(
         entry,
@@ -348,7 +319,7 @@ function batchCopy(
   return `robocopy "${sourceExpression}\\" "${destinationExpression}"${mask} ${batchRobocopyFlags(entry)} >nul 2>&1`;
 }
 
-function batchCustodyStart(opts: GeneratorOptions): string[] {
+function batchCustodyStart(opts: ScriptOptions): string[] {
   if (!opts.chainOfCustody) {
     return [];
   }
@@ -364,7 +335,7 @@ function batchCustodyStart(opts: GeneratorOptions): string[] {
   ];
 }
 
-function batchCustodyEnd(opts: GeneratorOptions): string[] {
+function batchCustodyEnd(opts: ScriptOptions): string[] {
   if (!opts.chainOfCustody) {
     return [];
   }
@@ -377,10 +348,10 @@ function batchCustodyEnd(opts: GeneratorOptions): string[] {
 }
 
 export function generateBatch(
-  target: KapeTarget,
-  opts: GeneratorOptions
+  target: ScriptTarget,
+  opts: ScriptOptions
 ): string {
-  const entries = getEntries(target).map((e) => normalizeEntry(e, opts.source));
+  const entries = target.entries.map((e) => normalizeEntry(e, opts.source));
   const userEntries = entries.filter((e) => e.hasUserVar);
   const nonUserEntries = entries.filter((e) => !e.hasUserVar);
 
@@ -401,7 +372,7 @@ export function generateBatch(
   ];
 
   for (const entry of nonUserEntries) {
-    const src = stripTrailingBackslash(entry.path);
+    const src = stripTrailingBackslashes(entry.path);
     const destination = `%DEST%\\${entry.safeName}`;
     lines.push(`REM ${entry.name}`);
     if (isRegexMask(entry.fileMask)) {
@@ -480,7 +451,7 @@ function wslCopyCall(
   return `copy_artifact ${sourceExpression} ${destinationExpression} ${mask} ${recurse}`;
 }
 
-function wslCustodyStart(opts: GeneratorOptions): string[] {
+function wslCustodyStart(opts: ScriptOptions): string[] {
   if (!opts.chainOfCustody) {
     return [];
   }
@@ -491,7 +462,7 @@ function wslCustodyStart(opts: GeneratorOptions): string[] {
   ];
 }
 
-function wslCustodyEnd(opts: GeneratorOptions): string[] {
+function wslCustodyEnd(opts: ScriptOptions): string[] {
   if (!opts.chainOfCustody) {
     return [];
   }
@@ -511,10 +482,10 @@ function wslCustodyEnd(opts: GeneratorOptions): string[] {
 }
 
 export function generateWsl(
-  target: KapeTarget,
-  opts: GeneratorOptions
+  target: ScriptTarget,
+  opts: ScriptOptions
 ): string {
-  const entries = getEntries(target).map((e) => normalizeEntry(e, opts.source));
+  const entries = target.entries.map((e) => normalizeEntry(e, opts.source));
   const userEntries = entries.filter((e) => e.hasUserVar);
   const nonUserEntries = entries.filter((e) => !e.hasUserVar);
 
@@ -567,7 +538,7 @@ export function generateWsl(
   ];
 
   for (const entry of nonUserEntries) {
-    const src = toWslPath(stripTrailingBackslash(entry.path));
+    const src = toWslPath(stripTrailingBackslashes(entry.path));
     lines.push(
       `# ${entry.name}`,
       wslCopyCall(entry, quoteBashSingle(src), quoteBashSingle(entry.safeName))

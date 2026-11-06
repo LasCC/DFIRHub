@@ -3,49 +3,40 @@ import path from "node:path";
 
 import * as yaml from "js-yaml";
 
+import type { KapeTargetEntry } from "./kapeEntries";
+import { collectLeafTargets, collectUniqueEntries } from "./kapeEntries";
+
+export type { KapeTargetEntry } from "./kapeEntries";
+
+export const KAPEFILES_DIRECTORY = "src/content/kapefiles";
+export const KAPE_DISABLED_FOLDER = "!Disabled";
+
 const VERSION_LINE_PATTERN = /^Version:[ \t]*["']?(?<value>[^"'\r\n]+?)["']?[ \t]*$/mu;
 const DEFAULT_TARGET_VERSION = "1.0";
+const TARGET_FILE_EXTENSION = ".tkape";
+const TARGET_FILE_EXTENSION_PATTERN = /\.tkape$/u;
+const COMPOUND_PREFIX_PATTERN = /^!/u;
+const DOCUMENTATION_MARKER = "# Documentation";
+const EMPTY_DOCUMENTATION_LINE = "N/A";
 
-function readVersionText(yamlContent: string): string {
-  return (
-    yamlContent.match(VERSION_LINE_PATTERN)?.groups?.value ??
-    DEFAULT_TARGET_VERSION
-  );
-}
-
-// KapeFile Target structure
 export interface KapeTarget {
-  name: string; // From filename (e.g., "Prefetch")
-  description: string; // From Description field
+  name: string;
+  kapeName: string;
+  description: string;
   author: string;
   version: string;
-  id: string; // GUID
-  recreateDirectories: boolean;
-  category: string; // Folder name (Windows, Browsers, Apps, etc.)
-  slug: string; // URL-safe identifier
-  sourceFile: string; // Original .tkape filename
-  isCompound: boolean; // References other targets?
-  targets: KapeTargetEntry[];
-  referencedTargets: string[]; // For compounds - list of referenced .tkape files
-  documentation: string[]; // Comments/documentation lines from file
-}
-
-export interface KapeTargetEntry {
-  name: string;
   category: string;
-  path: string;
-  fileMask?: string;
-  recursive?: boolean;
-  comment?: string;
+  slug: string;
+  sourceFile: string;
+  isCompound: boolean;
+  entries: KapeTargetEntry[];
+  referencedTargets: string[];
+  documentation: string[];
 }
 
-// Raw YAML structure from .tkape files
 interface RawKapeTarget {
   Description?: string;
   Author?: string;
-  Version?: string;
-  Id?: string;
-  RecreateDirectories?: boolean;
   Targets?: RawKapeTargetEntry[];
 }
 
@@ -58,86 +49,79 @@ interface RawKapeTargetEntry {
   Comment?: string;
 }
 
-// Cache for loaded targets
+interface TargetIndexes {
+  bySlug: Map<string, KapeTarget>;
+  byReferenceName: Map<string, KapeTarget[]>;
+}
+
 let targetCache: KapeTarget[] | null = null;
-let targetIndexesCache: {
-  slugMap: Map<string, KapeTarget>;
-  sourceMap: Map<string, KapeTarget[]>;
-} | null = null;
+let targetIndexesCache: TargetIndexes | null = null;
 let collectionLookupCache: Map<string, KapeTarget[]> | null = null;
 
-// Create URL-safe slug from filename
-function createSlug(filename: string): string {
-  return filename
-    .replace(/\.tkape$/, "")
-    .replace(/^!/, "") // Remove leading ! from compound targets
-    .replaceAll(/[^a-zA-Z0-9_-]+/g, "-")
-    .replaceAll(/^-|-$/g, "")
+export function readKapeYaml(content: string): string {
+  return content.split(/^#/mu)[0];
+}
+
+export function warnUnparsableKapeFile(filePath: string, error: unknown): void {
+  console.warn(`Failed to parse ${filePath}:`, error);
+}
+
+function isTargetReference(entryPath: string): boolean {
+  return entryPath.endsWith(TARGET_FILE_EXTENSION);
+}
+
+function referenceName(fileName: string): string {
+  return fileName
+    .replace(TARGET_FILE_EXTENSION_PATTERN, "")
+    .replace(COMPOUND_PREFIX_PATTERN, "");
+}
+
+function createSlug(fileName: string): string {
+  return referenceName(fileName)
+    .replaceAll(/[^a-zA-Z0-9_-]+/gu, "-")
+    .replaceAll(/^-|-$/gu, "")
     .toLowerCase();
+}
+
+function canonicalOrderKey(target: KapeTarget): string {
+  return `${target.category}/${target.sourceFile}`.toLowerCase();
+}
+
+function byCanonicalOrder(left: KapeTarget, right: KapeTarget): number {
+  return canonicalOrderKey(left).localeCompare(canonicalOrderKey(right));
 }
 
 function stableHash(input: string): string {
   let hash = 0;
   for (let index = 0; index < input.length; index++) {
-    hash = Math.trunc(
-      (hash * 31 + (input.codePointAt(index) ?? 0)) % 4_294_967_296
-    );
-    if (hash < 0) {
-      hash += 4_294_967_296;
-    }
+    hash = (hash * 31 + (input.codePointAt(index) ?? 0)) % 4_294_967_296;
   }
   return hash.toString(36).slice(0, 6);
 }
 
 function assignUniqueSlugs(targets: KapeTarget[]): void {
-  const groupedBySlug = new Map<string, KapeTarget[]>();
-
-  for (const target of targets) {
-    const existing = groupedBySlug.get(target.slug) ?? [];
-    existing.push(target);
-    groupedBySlug.set(target.slug, existing);
-  }
-
+  const groupedBySlug = Map.groupBy(targets, (target) => target.slug);
   const usedSlugs = new Set<string>();
 
   for (const [slug, grouped] of groupedBySlug) {
-    if (grouped.length === 1) {
-      usedSlugs.add(slug);
-      continue;
-    }
-
-    const sortedTargets = grouped.toSorted((left, right) => {
-      const leftKey = `${left.category}/${left.sourceFile}`.toLowerCase();
-      const rightKey = `${right.category}/${right.sourceFile}`.toLowerCase();
-      return leftKey.localeCompare(rightKey);
-    });
-
-    // Keep one canonical route unchanged to preserve existing links.
-    const [canonical, ...duplicates] = sortedTargets;
+    const [canonical, ...duplicates] = grouped.toSorted(byCanonicalOrder);
     canonical.slug = slug;
     usedSlugs.add(slug);
 
     for (const duplicate of duplicates) {
-      const sourceBase = duplicate.sourceFile.replace(/\.tkape$/, "");
       const categorySuffix = createSlug(duplicate.category) || "category";
-      const sourceSuffix = createSlug(sourceBase) || "target";
-      const discriminator = stableHash(
-        `${duplicate.category}/${duplicate.sourceFile}`.toLowerCase()
-      );
-
+      const sourceSuffix =
+        createSlug(duplicate.sourceFile.replace(TARGET_FILE_EXTENSION_PATTERN, "")) ||
+        "target";
+      const discriminator = stableHash(canonicalOrderKey(duplicate));
       const candidates = [
         `${slug}-${categorySuffix}`,
         `${slug}-${sourceSuffix}`,
         `${slug}-${categorySuffix}-${discriminator}`,
       ];
-
-      let uniqueSlug = candidates.find(
-        (candidate) => !usedSlugs.has(candidate)
-      );
-      if (!uniqueSlug) {
-        uniqueSlug = `${slug}-${categorySuffix}-${sourceSuffix}-${discriminator}`;
-      }
-
+      const uniqueSlug =
+        candidates.find((candidate) => !usedSlugs.has(candidate)) ??
+        `${slug}-${categorySuffix}-${sourceSuffix}-${discriminator}`;
       duplicate.slug = uniqueSlug;
       usedSlugs.add(uniqueSlug);
     }
@@ -152,143 +136,120 @@ function assignUniqueSlugs(targets: KapeTarget[]): void {
   }
 }
 
-function getTargetIndexes(): {
-  slugMap: Map<string, KapeTarget>;
-  sourceMap: Map<string, KapeTarget[]>;
-} {
+function getTargetIndexes(): TargetIndexes {
   if (targetIndexesCache) {
     return targetIndexesCache;
   }
-
   const allTargets = loadAllTargets();
-  const slugMap = new Map(allTargets.map((target) => [target.slug, target]));
-  const sourceMap = new Map<string, KapeTarget[]>();
-
-  for (const target of allTargets) {
-    const sourceKey = target.sourceFile
-      .replace(/\.tkape$/, "")
-      .replace(/^!/, "")
-      .toLowerCase();
-    const existing = sourceMap.get(sourceKey) ?? [];
-    existing.push(target);
-    sourceMap.set(sourceKey, existing);
-  }
-
-  targetIndexesCache = { slugMap, sourceMap };
+  targetIndexesCache = {
+    bySlug: new Map(allTargets.map((target) => [target.slug, target])),
+    byReferenceName: Map.groupBy(allTargets, (target) =>
+      referenceName(target.sourceFile).toLowerCase()
+    ),
+  };
   return targetIndexesCache;
 }
 
-// Parse a single .tkape file
+function readDocumentation(content: string): string[] {
+  const documentation: string[] = [];
+  let inDocSection = false;
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith(DOCUMENTATION_MARKER)) {
+      inDocSection = true;
+      continue;
+    }
+    if (inDocSection && trimmed.startsWith("#")) {
+      const docLine = trimmed.replace(/^#\s*/u, "").trim();
+      if (docLine && docLine !== EMPTY_DOCUMENTATION_LINE) {
+        documentation.push(docLine);
+      }
+    }
+  }
+  return documentation;
+}
+
+function toEntry(raw: RawKapeTargetEntry): KapeTargetEntry {
+  return {
+    name: raw.Name || "",
+    category: raw.Category || "",
+    path: raw.Path || "",
+    fileMask: raw.FileMask,
+    recursive: raw.Recursive,
+    comment: raw.Comment,
+  };
+}
+
 function parseKapeFile(filePath: string, category: string): KapeTarget | null {
   try {
     const content = fs.readFileSync(filePath, "utf-8");
-    const filename = path.basename(filePath);
-
-    // Extract documentation comments (lines starting with #)
-    const documentation: string[] = [];
-    const lines = content.split("\n");
-    let inDocSection = false;
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith("# Documentation")) {
-        inDocSection = true;
-        continue;
-      }
-      if (inDocSection && trimmed.startsWith("#")) {
-        const docLine = trimmed.replace(/^#\s*/, "").trim();
-        if (docLine && docLine !== "N/A") {
-          documentation.push(docLine);
-        }
-      }
-    }
-
-    // Parse YAML content (only the part before comments)
-    const yamlContent = content.split(/^#/m)[0];
+    const fileName = path.basename(filePath);
+    const yamlContent = readKapeYaml(content);
     const raw = yaml.load(yamlContent) as RawKapeTarget;
 
     if (!raw?.Targets) {
       return null;
     }
 
-    // Parse target entries
-    const targets: KapeTargetEntry[] = (raw.Targets || []).map(
-      (t: RawKapeTargetEntry) => ({
-        name: t.Name || "",
-        category: t.Category || "",
-        path: t.Path || "",
-        fileMask: t.FileMask,
-        recursive: t.Recursive,
-        comment: t.Comment,
-      })
-    );
-
-    // Detect if this is a compound target (references other .tkape files)
-    const isCompound = targets.some((t) => t.path.endsWith(".tkape"));
-
-    // Extract referenced targets for compounds
-    const referencedTargets = isCompound
-      ? targets.map((t) => t.path).filter((p) => p.endsWith(".tkape"))
-      : [];
+    const allEntries = raw.Targets.map(toEntry);
+    const referencedTargets = allEntries
+      .map((entry) => entry.path)
+      .filter(isTargetReference);
 
     return {
-      name: filename.replace(/\.tkape$/, "").replace(/^!/, ""),
+      name: referenceName(fileName),
+      kapeName: fileName.replace(TARGET_FILE_EXTENSION_PATTERN, ""),
       description: raw.Description || "",
       author: raw.Author || "Unknown",
-      version: readVersionText(yamlContent),
-      id: raw.Id || "",
-      recreateDirectories: raw.RecreateDirectories ?? true,
+      version:
+        yamlContent.match(VERSION_LINE_PATTERN)?.groups?.value ??
+        DEFAULT_TARGET_VERSION,
       category,
-      slug: createSlug(filename),
-      sourceFile: filename,
-      isCompound,
-      targets,
+      slug: createSlug(fileName),
+      sourceFile: fileName,
+      isCompound: referencedTargets.length > 0,
+      entries: allEntries.filter((entry) => !isTargetReference(entry.path)),
       referencedTargets,
-      documentation,
+      documentation: readDocumentation(content),
     };
   } catch (error) {
-    console.warn(`Failed to parse ${filePath}:`, error);
+    warnUnparsableKapeFile(filePath, error);
     return null;
   }
 }
 
-// Load all targets from the KapeFiles submodule
 export function loadAllTargets(): KapeTarget[] {
   if (targetCache) {
     return targetCache;
   }
 
-  const targets: KapeTarget[] = [];
-  const targetsDir = path.join(process.cwd(), "src/content/kapefiles/Targets");
-
+  const targetsDir = path.join(process.cwd(), KAPEFILES_DIRECTORY, "Targets");
   if (!fs.existsSync(targetsDir)) {
-    console.warn("KapeFiles Targets directory not found:", targetsDir);
-    return [];
+    throw new Error(
+      `KapeFiles Targets directory not found: ${targetsDir}. Run git submodule update --init.`
+    );
   }
 
-  // Get all category directories
   const categories = fs
     .readdirSync(targetsDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && !d.name.startsWith("."))
-    .map((d) => d.name)
+    .filter(
+      (dirent) =>
+        dirent.isDirectory() &&
+        !dirent.name.startsWith(".") &&
+        dirent.name !== KAPE_DISABLED_FOLDER
+    )
+    .map((dirent) => dirent.name)
     .toSorted();
 
+  const targets: KapeTarget[] = [];
   for (const category of categories) {
-    // Skip disabled targets
-    if (category === "!Disabled") {
-      continue;
-    }
-
     const categoryDir = path.join(targetsDir, category);
     const files = fs
       .readdirSync(categoryDir)
-      .filter((f) => f.endsWith(".tkape"))
+      .filter((file) => file.endsWith(TARGET_FILE_EXTENSION))
       .toSorted();
-
     for (const file of files) {
-      const filePath = path.join(categoryDir, file);
-      const target = parseKapeFile(filePath, category);
-
+      const target = parseKapeFile(path.join(categoryDir, file), category);
       if (target) {
         targets.push(target);
       }
@@ -296,148 +257,84 @@ export function loadAllTargets(): KapeTarget[] {
   }
 
   assignUniqueSlugs(targets);
-
   targetCache = targets;
   return targets;
 }
 
-// Get target by slug
 export function getTargetBySlug(slug: string): KapeTarget | undefined {
-  const targets = loadAllTargets();
-  return targets.find((t) => t.slug === slug);
+  return getTargetIndexes().bySlug.get(slug);
 }
 
-// Get targets by category
 export function getTargetsByCategory(category: string): KapeTarget[] {
-  const targets = loadAllTargets();
-  return targets.filter(
-    (t) => t.category.toLowerCase() === category.toLowerCase()
+  return loadAllTargets().filter(
+    (target) => target.category.toLowerCase() === category.toLowerCase()
   );
 }
 
-// Get all compound targets (triage collections)
 export function getCompoundTargets(): KapeTarget[] {
-  const targets = loadAllTargets();
-  return targets.filter((t) => t.isCompound);
+  return loadAllTargets().filter((target) => target.isCompound);
 }
 
-// Get non-compound targets only
 export function getIndividualTargets(): KapeTarget[] {
-  const targets = loadAllTargets();
-  return targets.filter((t) => !t.isCompound);
+  return loadAllTargets().filter((target) => !target.isCompound);
 }
 
-function findTargetByReference(ref: string): KapeTarget | undefined {
-  const { slugMap, sourceMap } = getTargetIndexes();
-  const refName = path
-    .basename(ref.replaceAll("\\", "/"))
-    .replace(/\.tkape$/, "")
-    .replace(/^!/, "");
-  const sourceCandidates = sourceMap.get(refName.toLowerCase()) ?? [];
+export function findTargetByReference(reference: string): KapeTarget | undefined {
+  const { bySlug, byReferenceName } = getTargetIndexes();
+  const name = referenceName(path.basename(reference.replaceAll("\\", "/")));
   return (
-    slugMap.get(createSlug(refName)) ||
-    sourceCandidates.toSorted((left, right) =>
-      `${left.category}/${left.sourceFile}`.localeCompare(
-        `${right.category}/${right.sourceFile}`
-      )
-    )[0]
+    bySlug.get(createSlug(name)) ??
+    byReferenceName.get(name.toLowerCase())?.toSorted(byCanonicalOrder)[0]
   );
+}
+
+export function getReferencedTargets(target: KapeTarget): KapeTarget[] {
+  const found = target.referencedTargets
+    .map(findTargetByReference)
+    .filter((candidate): candidate is KapeTarget => candidate !== undefined);
+  return [...new Set(found)];
 }
 
 export function getDirectReferenceSlugs(target: KapeTarget): string[] {
-  const slugs = target.referencedTargets
-    .map((ref) => findTargetByReference(ref)?.slug)
-    .filter((slug): slug is string => slug !== undefined);
-  return [...new Set(slugs)];
+  return getReferencedTargets(target).map((referenced) => referenced.slug);
 }
 
-// Resolve compound target to its individual targets
 export function resolveCompoundReferences(target: KapeTarget): KapeTarget[] {
   if (!target.isCompound) {
     return [target];
   }
-
-  const resolved: KapeTarget[] = [];
-  const seen = new Set<string>();
-
-  function resolve(refs: string[]) {
-    for (const ref of refs) {
-      const foundTarget = findTargetByReference(ref);
-      if (!foundTarget || seen.has(foundTarget.slug)) {
-        continue;
-      }
-      seen.add(foundTarget.slug);
-
-      // A hybrid target (compound with its own direct paths) contributes
-      // those paths as a leaf AND continues to forward its references.
-      const hasDirectPaths = foundTarget.targets.some(
-        (entry) => !entry.path.endsWith(".tkape")
-      );
-      if (hasDirectPaths) {
-        resolved.push(foundTarget);
-      }
-      if (foundTarget.isCompound) {
-        resolve(foundTarget.referencedTargets);
-      }
-    }
-  }
-
-  resolve(target.referencedTargets);
-  return resolved;
+  return collectLeafTargets(getReferencedTargets(target), getReferencedTargets);
 }
 
-// Find collections that include a specific target
+export function getResolvedEntries(target: KapeTarget): KapeTargetEntry[] {
+  return collectUniqueEntries(
+    collectLeafTargets([target], getReferencedTargets)
+  );
+}
+
+export function getCollectionMembers(target: KapeTarget): KapeTarget[] {
+  return collectLeafTargets([target], getReferencedTargets);
+}
+
 export function findCollectionsContaining(targetSlug: string): KapeTarget[] {
   if (!collectionLookupCache) {
     const lookup = new Map<string, KapeTarget[]>();
-    const compounds = getCompoundTargets();
-
-    for (const compound of compounds) {
-      const resolved = resolveCompoundReferences(compound);
-      for (const target of resolved) {
-        const existing = lookup.get(target.slug) ?? [];
+    for (const compound of getCompoundTargets()) {
+      for (const member of resolveCompoundReferences(compound)) {
+        const existing = lookup.get(member.slug) ?? [];
         existing.push(compound);
-        lookup.set(target.slug, existing);
+        lookup.set(member.slug, existing);
       }
     }
-
     collectionLookupCache = lookup;
   }
-
   return collectionLookupCache.get(targetSlug) ?? [];
 }
 
-// Search targets
-export function searchTargets(query: string): KapeTarget[] {
-  const targets = loadAllTargets();
-  const queryLower = query.toLowerCase();
-
-  return targets.filter((t) => {
-    const searchableText = [
-      t.name,
-      t.description,
-      t.author,
-      t.category,
-      ...t.targets.map(
-        (entry) => `${entry.name} ${entry.path} ${entry.fileMask || ""}`
-      ),
-      ...t.documentation,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    return searchableText.includes(queryLower);
-  });
-}
-
-// Get all unique categories
 export function getCategories(): string[] {
-  const targets = loadAllTargets();
-  return [...new Set(targets.map((t) => t.category))].toSorted();
+  return [...new Set(loadAllTargets().map((target) => target.category))].toSorted();
 }
 
-// Get statistics
 export function getStats(): {
   total: number;
   compounds: number;
@@ -445,49 +342,15 @@ export function getStats(): {
   byCategory: Record<string, number>;
 } {
   const targets = loadAllTargets();
-
   const byCategory: Record<string, number> = {};
-  let compounds = 0;
-  let individuals = 0;
-
   for (const target of targets) {
-    if (target.isCompound) {
-      compounds++;
-    } else {
-      individuals++;
-    }
-
     byCategory[target.category] = (byCategory[target.category] || 0) + 1;
   }
-
+  const compounds = targets.filter((target) => target.isCompound).length;
   return {
     total: targets.length,
     compounds,
-    individuals,
+    individuals: targets.length - compounds,
     byCategory,
   };
-}
-
-// Server-side: returns the flat list of `KapeTargetEntry` items a target
-// would actually copy — host's own direct paths plus every transitively-
-// resolved leaf's direct paths. Use this when feeding compound targets
-// into the client-side script generators, which cannot resolve references
-// themselves (resolution requires the on-disk KapeFiles index).
-export function getResolvedEntries(target: KapeTarget): KapeTargetEntry[] {
-  const own = target.targets.filter((e) => !e.path.endsWith(".tkape"));
-  if (!target.isCompound) {
-    return own;
-  }
-  const resolved = resolveCompoundReferences(target);
-  const refs = resolved.flatMap((leaf) =>
-    leaf.targets.filter((e) => !e.path.endsWith(".tkape"))
-  );
-  return [...own, ...refs];
-}
-
-// Clear the cache (useful for development)
-export function clearCache(): void {
-  targetCache = null;
-  targetIndexesCache = null;
-  collectionLookupCache = null;
 }

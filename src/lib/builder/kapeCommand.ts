@@ -1,4 +1,5 @@
-import { hasSecrets } from "./config";
+import { stripTrailingBackslashes } from "../kapeEntries";
+import { DEFAULT_CONFIG, hasSecrets } from "./config";
 import type { KapeConfig } from "./config";
 
 export type IssueLevel = "error" | "warning" | "info";
@@ -9,20 +10,29 @@ export interface ConfigIssue {
 }
 
 const NEEDS_QUOTES = /[\s&|<>^()]/;
-const TRAILING_BACKSLASHES = /\\+$/;
 const DRIVE_PREFIX = /^([A-Za-z]):?(\\|$)/;
 const FILE_EXTENSION_OR_PATH = /[\\/.]/;
-const DEFAULT_SFTP_PORT = "22";
-const DEFAULT_S3_PROVIDER = "spAmazonS3";
+export const ARTIFACT_COMMAND_DEFAULTS = {
+  source: "C:",
+  destination: "D:\\Evidence",
+} as const;
 
-export function quoteArgument(value: string): string {
+export interface ArtifactCommandOptions {
+  kapeName: string;
+  source?: string;
+  destination?: string;
+  vss?: boolean;
+  vhdx?: boolean;
+}
+
+function quoteArgument(value: string): string {
   if (value === "") {
     return '""';
   }
   if (!NEEDS_QUOTES.test(value)) {
     return value;
   }
-  return `"${value.replace(TRAILING_BACKSLASHES, "")}"`;
+  return `"${stripTrailingBackslashes(value)}"`;
 }
 
 function option(flag: string, value?: string): string[] {
@@ -114,7 +124,7 @@ function sftpArguments(config: KapeConfig): string[] {
   const port = config.sftpPort.trim();
   return [
     ...optionalValue("scs", config.sftpServer),
-    ...(port && port !== DEFAULT_SFTP_PORT ? option("scp", port) : []),
+    ...(port && port !== DEFAULT_CONFIG.sftpPort ? option("scp", port) : []),
     ...optionalValue("scu", config.sftpUser),
     ...optionalValue("scpw", config.sftpPassword),
     ...optionalValue("scd", config.sftpDirectory),
@@ -125,7 +135,7 @@ function sftpArguments(config: KapeConfig): string[] {
 function s3Arguments(config: KapeConfig): string[] {
   const provider = config.s3Provider.trim();
   return [
-    ...(provider && provider !== DEFAULT_S3_PROVIDER
+    ...(provider && provider !== DEFAULT_CONFIG.s3Provider
       ? option("s3p", provider)
       : []),
     ...optionalValue("s3r", config.s3Region),
@@ -160,9 +170,6 @@ function transferArguments(config: KapeConfig): string[] {
         ...keepLocal,
       ];
     }
-    default: {
-      return [];
-    }
   }
 }
 
@@ -185,8 +192,31 @@ export function buildKapeArguments(config: KapeConfig): string[] {
   ];
 }
 
+export const KAPE_EXECUTABLE = ".\\kape.exe";
+
 export function formatKapeCommand(config: KapeConfig): string {
-  return [".\\kape.exe", ...buildKapeArguments(config)].join(" ");
+  return [KAPE_EXECUTABLE, ...buildKapeArguments(config)].join(" ");
+}
+
+export function artifactCommandConfig({
+  kapeName,
+  source = ARTIFACT_COMMAND_DEFAULTS.source,
+  destination = ARTIFACT_COMMAND_DEFAULTS.destination,
+  vss = false,
+  vhdx = false,
+}: ArtifactCommandOptions): KapeConfig {
+  return {
+    ...DEFAULT_CONFIG,
+    container: vhdx ? "vhdx" : "none",
+    targets: [kapeName],
+    tdest: destination,
+    tsource: source,
+    vss,
+  };
+}
+
+export function formatArtifactCommand(options: ArtifactCommandOptions): string {
+  return formatKapeCommand(artifactCommandConfig(options));
 }
 
 export function formatKapeBatchFile(config: KapeConfig): string {
@@ -378,9 +408,6 @@ function transferIssues(config: KapeConfig): ConfigIssue[] {
             "Paste an Azure container SAS URI with write access (--asu).",
         });
       }
-      break;
-    }
-    default: {
       break;
     }
   }

@@ -1,7 +1,7 @@
 import * as yaml from "js-yaml";
 
 import type { KapeTargetRef, Logsource } from "./sigma-mapping";
-import { getRelatedKapeTargets } from "./sigma-mapping";
+import { getRelatedKapeTargets, readLogsource } from "./sigma-mapping";
 import type { AuditSubcategory } from "./windows-audit-policy";
 import { findAuditSubcategories } from "./windows-audit-policy";
 
@@ -566,25 +566,15 @@ function collectEventIds(node: unknown, found: Set<number>): void {
   }
 }
 
-function readString(value: unknown): string | undefined {
-  return typeof value === "string" && value ? value : undefined;
-}
-
 export function parseRuleLogging(
   ruleYaml: string
 ): { logsource: Logsource; eventIds: number[] } | null {
   try {
     const parsed = yaml.load(ruleYaml) as Record<string, unknown> | null;
-    const rawLogsource = parsed?.logsource;
-    if (!rawLogsource || typeof rawLogsource !== "object") {
+    const logsource = readLogsource(parsed?.logsource);
+    if (!logsource) {
       return null;
     }
-    const fields = rawLogsource as Record<string, unknown>;
-    const logsource: Logsource = {
-      category: readString(fields.category),
-      product: readString(fields.product),
-      service: readString(fields.service),
-    };
     const eventIds = new Set<number>();
     collectEventIds(parsed?.detection, eventIds);
     return {

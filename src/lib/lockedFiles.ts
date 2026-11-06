@@ -1,4 +1,5 @@
-import type { KapeTargetEntry } from "./kapefiles";
+import type { KapeTargetEntry } from "./kapeEntries";
+import { joinPathAndMask, stripTrailingBackslashes } from "./kapeEntries";
 
 const NTFS_METAFILE =
   /(^|\\)\$(mft|mftmirr|logfile|boot|secure|j|max|bitmap|badclus|extend|usnjrnl|t|tops|txflog)(\\|:|$)/i;
@@ -8,11 +9,6 @@ const SYSTEM_HIVE_NAME =
 const ALWAYS_LOCKED_FILE =
   /(ntuser\.dat|usrclass\.dat|amcache\.hve|syscache\.hve|srudb\.dat|webcachev\d*\.dat|windows\.edb|pagefile\.sys|hiberfil\.sys|swapfile\.sys|\.evtx)/i;
 const LOCKED_DIRECTORY = /\\(winevt\\logs|sru)\\?$/i;
-
-function combinedEntryPath(entry: KapeTargetEntry): string {
-  const trimmedPath = entry.path.replace(/\\+$/, "");
-  return entry.fileMask ? `${trimmedPath}\\${entry.fileMask}` : trimmedPath;
-}
 
 function isSystemHiveEntry(entry: KapeTargetEntry): boolean {
   if (!SYSTEM_HIVE_DIRECTORY.test(entry.path)) {
@@ -25,17 +21,14 @@ function isSystemHiveEntry(entry: KapeTargetEntry): boolean {
 }
 
 export function isLockedOnLiveSystem(entry: KapeTargetEntry): boolean {
-  const combined = combinedEntryPath(entry);
+  const combined = joinPathAndMask(
+    stripTrailingBackslashes(entry.path),
+    entry.fileMask
+  );
   return (
     NTFS_METAFILE.test(combined) ||
     ALWAYS_LOCKED_FILE.test(combined) ||
     LOCKED_DIRECTORY.test(entry.path) ||
     isSystemHiveEntry(entry)
   );
-}
-
-export function findLockedEntries(
-  entries: KapeTargetEntry[]
-): KapeTargetEntry[] {
-  return entries.filter(isLockedOnLiveSystem);
 }

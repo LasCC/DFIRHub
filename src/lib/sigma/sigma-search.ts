@@ -1,17 +1,12 @@
 import MiniSearch from "minisearch";
 
-export interface SigmaRuleEntry {
-  id: string;
-  title: string;
-  description: string;
-  level: string;
-  status: string;
-  logsource: { category?: string; product?: string; service?: string };
-  tags: string[];
-  author: string;
-  date: string;
-  filename: string;
-}
+import {
+  SIGMA_RULES_DATA_PATH,
+  SIGMA_RULES_INDEX_PATH,
+} from "./paths";
+import type { SigmaRuleEntry } from "./types";
+
+export type { SigmaRuleEntry } from "./types";
 
 let searchInstance: MiniSearch<SigmaRuleEntry> | null = null;
 let indexData: SigmaRuleEntry[] | null = null;
@@ -64,7 +59,7 @@ export async function loadSigmaIndex(): Promise<void> {
 
   if (!indexPromise) {
     indexPromise = (async () => {
-      const res = await fetch("/sigma-rules/index.json");
+      const res = await fetch(SIGMA_RULES_INDEX_PATH);
       if (!res.ok) {
         throw new Error(`Failed to load sigma index: ${res.status}`);
       }
@@ -97,7 +92,7 @@ export async function loadSigmaRule(id: string): Promise<string | null> {
   if (!rulesData) {
     if (!rulesPromise) {
       rulesPromise = (async () => {
-        const res = await fetch("/sigma-rules/rules.json");
+        const res = await fetch(SIGMA_RULES_DATA_PATH);
         if (!res.ok) {
           throw new Error(`Failed to load sigma rules: ${res.status}`);
         }

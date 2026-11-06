@@ -14,7 +14,11 @@ import Footer from "../../components/layout/Footer.astro";
 import { Header } from "../../components/layout/Header";
 import Panel from "../../components/ui/Panel.astro";
 import Layout from "../../layouts/Layout.astro";
-import { findCollectionsContaining, getResolvedEntries, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
+import { findCollectionsContaining, findTargetByReference, getCollectionMembers, getResolvedEntries, loadAllTargets, resolveCompoundReferences } from '../../lib/kapefiles';
+import { isPerUserEntry } from '../../lib/kapeEntries';
+import { builderHref } from '../../lib/builder/urlState';
+import { parseReferenceLink } from '../../lib/referenceLinks';
+import { artifactOgImagePath, artifactPath } from '../../lib/routes';
 import type { KapeTarget } from '../../lib/kapefiles';
 import { getEventLogEventsForKapeTarget } from '../../lib/eventlogs';
 import { findRelatedArtifacts, getArtifactEvidence } from '../../lib/artifactEvidence';
@@ -32,17 +36,7 @@ import {
 } from '../../lib/seo';
 
 export async function getStaticPaths() {
-  const targets = loadAllTargets();
-  const seen = new Set<string>();
-
-  for (const target of targets) {
-    if (seen.has(target.slug)) {
-      throw new Error(`Duplicate artifact slug in static paths: ${target.slug}`);
-    }
-    seen.add(target.slug);
-  }
-
-  return targets.map((target) => ({
+  return loadAllTargets().map((target) => ({
     params: { slug: target.slug },
     props: { target },
   }));
@@ -54,29 +48,14 @@ interface Props {
 
 const { target } = Astro.props;
 
-// Resolve compound targets to their individual targets. Hybrid targets
-// (compounds that also declare their own direct paths) need the host
-// itself prepended so its paths appear alongside the resolved references.
-const referencedResolved = target.isCompound
-  ? resolveCompoundReferences(target)
-  : [];
-const hostHasDirectPaths = target.targets.some(
-  (entry) => !entry.path.endsWith(".tkape")
-);
-const resolvedTargets = target.isCompound
-  ? hostHasDirectPaths
-    ? [target, ...referencedResolved]
-    : referencedResolved
-  : undefined;
+const resolvedTargets = target.isCompound ? getCollectionMembers(target) : undefined;
+const resolvedEntries = getResolvedEntries(target);
+const commandTarget = {
+  entries: resolvedEntries,
+  kapeName: target.kapeName,
+  name: target.name,
+};
 
-// CommandGenerator runs in the browser and can't reach the on-disk index.
-// Pre-flatten compound targets server-side so the script generators only
-// have to iterate `target.targets`.
-const commandTarget: KapeTarget = target.isCompound
-  ? { ...target, targets: getResolvedEntries(target) }
-  : target;
-
-// Find collections that include this target
 const includedInCollections = findCollectionsContaining(target.slug);
 
 const MAX_REGISTRY_LINKS = 16;
@@ -120,17 +99,15 @@ const hiddenLocationCount = Math.max(0, evidence.locations.length - MAX_SUMMARY_
 const relatedArtifacts = findRelatedArtifacts(target);
 const insight = getArtifactInsight(target.slug);
 const parserModules = insight ? getParserModules(insight) : [];
-const builderUrl = `/builder?t=${encodeURIComponent(target.slug)}${
-  parserModules.length > 0
-    ? `&m=${parserModules.map((module) => encodeURIComponent(module.name)).join(",")}`
-    : ""
-}`;
+const builderUrl = builderHref({
+  modules: parserModules.map((module) => module.name),
+  targets: [target.slug],
+});
 const shouldNoindex = isThinArtifact(target);
 const showDescription =
   Boolean(target.description) &&
   target.description.trim().toLowerCase() !== target.name.toLowerCase();
 
-const resolvedEntries = getResolvedEntries(target);
 const pathCount = resolvedEntries.length;
 const searchKind = target.isCompound ? "Collection" : "Artifact";
 const MAX_FILE_TYPES = 3;
@@ -146,26 +123,17 @@ const allFileTypes = target.isCompound
     ];
 const visibleFileTypes =
   allFileTypes.length <= MAX_FILE_TYPES ? allFileTypes : [];
-const hasPerUserData = resolvedEntries.some((entry) =>
-  /%user%/i.test(entry.path)
-);
+const hasPerUserData = resolvedEntries.some(isPerUserEntry);
 
 const MAX_INCLUDED_LINKS = 20;
 const includedArtifacts = target.referencedTargets
   .slice(0, MAX_INCLUDED_LINKS)
   .map((reference) => {
-    const name = reference.replace(/\.tkape$/, "");
-    const found = referencedResolved.find(
-      (candidate) =>
-        candidate.sourceFile.replace(/\.tkape$/, "").toLowerCase() ===
-        name.toLowerCase()
-    );
+    const found = findTargetByReference(reference);
     return {
-      name,
+      name: reference.replace(/\.tkape$/u, ""),
+      pathCount: found ? getResolvedEntries(found).length : 0,
       slug: found?.slug,
-      pathCount: found
-        ? found.targets.filter((entry) => !entry.path.endsWith(".tkape")).length
-        : 0,
     };
   });
 const hiddenIncludedCount = Math.max(
@@ -173,26 +141,15 @@ const hiddenIncludedCount = Math.max(
   target.referencedTargets.length - MAX_INCLUDED_LINKS
 );
 
-const referenceLinks = docReferences.map((url) => {
-  try {
-    const parsed = new URL(url);
-    return {
-      url,
-      host: parsed.hostname.replace(/^www\./, ""),
-      detail: `${parsed.pathname}${parsed.search}`.replace(/^\/$/, ""),
-    };
-  } catch {
-    return { url, host: url, detail: "" };
-  }
-});
+const referenceLinks = docReferences.map((url) => parseReferenceLink(url));
 
 const chipLinkClass =
   "inline-flex rounded-md border border-border bg-card px-2.5 py-1 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground";
 
 const seoTitle = buildArtifactTitle(target);
 const seoDescription = buildArtifactDescription(target);
-const artifactUrl = `${SITE_URL}/artifact/${target.slug}`;
-const socialImagePath = `/og/${target.slug}.png`;
+const artifactUrl = `${SITE_URL}${artifactPath(target.slug)}`;
+const socialImagePath = artifactOgImagePath(target.slug);
 const socialImageAlt = `${target.name} forensic artifact and KAPE target on DFIRHub`;
 const targetDates = getTargetDates(target);
 
@@ -271,6 +228,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     <span hidden data-pagefind-meta={`category:${target.category}`}></span>
     <span hidden data-pagefind-filter={`category:${target.category}`}></span>
     <span hidden data-pagefind-meta={`paths:${pathCount}`}></span>
+    <span hidden data-pagefind-meta={`kapeName:${target.kapeName}`}></span>
     <div class="mx-auto max-w-6xl px-4 py-8 sm:py-10">
       <ArtifactPageContainer client:load>
         <ArtifactBreadcrumb className="mb-8 text-xs text-muted-foreground page-enter">
@@ -363,7 +321,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
               <Folder aria-hidden="true" className="h-4 w-4" />
               <span>
                 {numberFormat.format(pathCount)} {pathCount === 1 ? "path" : "paths"}
-                {target.isCompound && ` from ${numberFormat.format(referencedResolved.length)} artifacts`}
+                {target.isCompound && ` from ${numberFormat.format(resolveCompoundReferences(target).length)} artifacts`}
               </span>
             </li>
             {visibleFileTypes.length > 0 && (
@@ -561,7 +519,7 @@ const breadcrumbJsonLd = buildBreadcrumbJsonLd([
             data-pagefind-ignore
             class="flex min-w-0 flex-col gap-8 lg:sticky lg:top-20 lg:col-span-5 lg:-mx-2 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto lg:overflow-x-hidden lg:px-2"
           >
-            <CommandGenerator client:idle target={commandTarget} />
+            <CommandGenerator client:idle referencedTargetCount={target.referencedTargets.length} target={commandTarget} />
 
             {includedInCollections.length > 0 && (
               <Panel headingId="collections-heading">

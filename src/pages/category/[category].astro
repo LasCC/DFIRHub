@@ -127,15 +127,14 @@ const collectionJsonLd = {
         <ul class="divide-y divide-border">
           {
             targets.map((target) => {
-              const pathCount = target.targets.filter(
-                (entry) => !entry.path.endsWith(".tkape")
-              ).length;
+              const pathCount = target.entries.length;
               const countLabel = target.isCompound
                 ? `${target.referencedTargets.length} targets`
                 : `${pathCount} ${pathCount === 1 ? "path" : "paths"}`;
               return (
                 <li>
                   <a
+                    data-artifact-link
                     href={`/artifact/${target.slug}`}
                     class="group flex items-baseline gap-4 px-4 py-2.5 transition-colors hover:bg-muted"
                   >

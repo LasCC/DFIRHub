@@ -136,81 +136,17 @@ export function getRecipesForTarget(target: KapeTarget): CyberChefRecipe[] {
     target.name,
     target.description,
     target.category,
-    ...target.targets.map(
+    ...target.entries.map(
       (entry) => `${entry.name} ${entry.path} ${entry.fileMask || ""}`
     ),
+    ...target.referencedTargets,
   ].join(" ");
   return getRecipesForArtifact(searchText);
 }
 
 // Generate CyberChef URL with recipe
-export function generateCyberChefUrl(
-  recipe: CyberChefRecipe,
-  input?: string
-): string {
+export function generateCyberChefUrl(recipe: CyberChefRecipe): string {
   const params = new URLSearchParams();
   params.set("recipe", recipe.recipe);
-
-  if (input) {
-    params.set("input", btoa(input));
-  }
-
   return `${CYBERCHEF_BASE}/#${params.toString()}`;
 }
-
-// Generate CyberChef URL for a specific operation
-export function generateCustomRecipeUrl(
-  operations: { op: string; args: unknown[] }[],
-  input?: string
-): string {
-  const params = new URLSearchParams();
-  params.set("recipe", JSON.stringify(operations));
-
-  if (input) {
-    params.set("input", btoa(input));
-  }
-
-  return `${CYBERCHEF_BASE}/#${params.toString()}`;
-}
-
-// Common one-off recipe generators
-export const quickRecipes = {
-  rot13: (input?: string) =>
-    generateCustomRecipeUrl(
-      [{ op: "ROT13", args: [true, true, false, 13] }],
-      input
-    ),
-
-  base64Decode: (input?: string) =>
-    generateCustomRecipeUrl(
-      [{ op: "From Base64", args: ["A-Za-z0-9+/=", true, false] }],
-      input
-    ),
-
-  hexDecode: (input?: string) =>
-    generateCustomRecipeUrl([{ op: "From Hex", args: ["Auto"] }], input),
-
-  urlDecode: (input?: string) =>
-    generateCustomRecipeUrl([{ op: "URL Decode", args: [] }], input),
-
-  windowsFiletime: (input?: string) =>
-    generateCustomRecipeUrl(
-      [
-        {
-          op: "Windows Filetime to UNIX Timestamp",
-          args: ["Nanoseconds (ns)", "Seconds (s)"],
-        },
-        { op: "From UNIX Timestamp", args: ["Seconds (s)"] },
-      ],
-      input
-    ),
-
-  registryBinary: (input?: string) =>
-    generateCustomRecipeUrl(
-      [
-        { op: "From Hex", args: ["Auto"] },
-        { op: "Decode text", args: ["UTF-16LE (1200)"] },
-      ],
-      input
-    ),
-};

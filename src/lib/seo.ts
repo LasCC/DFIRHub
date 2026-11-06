@@ -7,10 +7,13 @@ import type { EventLogEvent } from "./eventlogs";
 import type { KapeTarget } from "./kapefiles";
 import type { RegistryArtifact } from "./registry";
 
-export const SITE_URL = "https://dfirhub.com";
-export const SITE_NAME = "DFIRHub";
-export const GITHUB_URL = "https://github.com/LasCC/DFIRHub";
-export const LOGO_URL = `${SITE_URL}/icon-512.png`;
+export {
+  GITHUB_URL,
+  LOGO_URL,
+  SITE_NAME,
+  SITE_URL,
+} from "./site";
+import { SITE_NAME, SITE_URL } from "./site";
 
 const MAX_DESCRIPTION_LENGTH = 158;
 const MIN_DESCRIPTION_LENGTH = 100;
@@ -63,7 +66,7 @@ function countCollectablePaths(target: KapeTarget): string {
   if (target.isCompound) {
     return `${target.referencedTargets.length} targets`;
   }
-  const count = target.targets.filter((e) => !e.path.endsWith(".tkape")).length;
+  const count = target.entries.length;
   return `${count} ${count === 1 ? "path" : "paths"}`;
 }
 

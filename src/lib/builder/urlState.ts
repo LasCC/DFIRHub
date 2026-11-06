@@ -1,14 +1,17 @@
-import { DEFAULT_CONFIG } from "./config";
-import type {
-  ContainerType,
-  KapeConfig,
-  OutputFormat,
-  TransferType,
+import {
+  CONTAINER_TYPES,
+  DEFAULT_CONFIG,
+  OUTPUT_FORMATS,
+  TRANSFER_TYPES,
 } from "./config";
+import type { KapeConfig, SecretField } from "./config";
 
-type StringField = {
-  [Key in keyof KapeConfig]: string extends KapeConfig[Key] ? Key : never;
-}[keyof KapeConfig];
+type StringField = Exclude<
+  {
+    [Key in keyof KapeConfig]: string extends KapeConfig[Key] ? Key : never;
+  }[keyof KapeConfig],
+  SecretField
+>;
 
 type BooleanField = {
   [Key in keyof KapeConfig]: KapeConfig[Key] extends boolean ? Key : never;
@@ -49,27 +52,8 @@ const BOOLEAN_PARAMS: Record<string, BooleanField> = {
   zv: "zipContainer",
 };
 
-const CONTAINER_TYPES: readonly ContainerType[] = [
-  "none",
-  "vhdx",
-  "vhd",
-  "zip",
-];
-const TRANSFER_TYPES: readonly TransferType[] = [
-  "none",
-  "sftp",
-  "s3",
-  "s3url",
-  "azure",
-];
-const OUTPUT_FORMATS: readonly OutputFormat[] = [
-  "kape",
-  "cli",
-  "powershell",
-  "batch",
-  "wsl",
-];
-
+const TARGETS_PARAM = "t";
+const MODULES_PARAM = "m";
 const LIST_SEPARATOR = ",";
 
 function pickAllowed<T extends string>(
@@ -93,10 +77,10 @@ function parseList(value: string | null): string[] {
 export function configToSearchParams(config: KapeConfig): URLSearchParams {
   const params = new URLSearchParams();
   if (config.targets.length > 0) {
-    params.set("t", config.targets.join(LIST_SEPARATOR));
+    params.set(TARGETS_PARAM, config.targets.join(LIST_SEPARATOR));
   }
   if (config.modules.length > 0) {
-    params.set("m", config.modules.join(LIST_SEPARATOR));
+    params.set(MODULES_PARAM, config.modules.join(LIST_SEPARATOR));
   }
   for (const [param, field] of Object.entries(STRING_PARAMS)) {
     if (config[field] !== DEFAULT_CONFIG[field]) {
@@ -123,8 +107,8 @@ export function configToSearchParams(config: KapeConfig): URLSearchParams {
 export function configFromSearchParams(params: URLSearchParams): KapeConfig {
   const config: KapeConfig = {
     ...DEFAULT_CONFIG,
-    modules: parseList(params.get("m")),
-    targets: parseList(params.get("t")),
+    modules: parseList(params.get(MODULES_PARAM)),
+    targets: parseList(params.get(TARGETS_PARAM)),
   };
   for (const [param, field] of Object.entries(STRING_PARAMS)) {
     const value = params.get(param);
@@ -154,4 +138,15 @@ export function configFromSearchParams(params: URLSearchParams): KapeConfig {
     DEFAULT_CONFIG.format
   );
   return config;
+}
+
+export function builderHref(selection: {
+  targets: string[];
+  modules: string[];
+}): string {
+  const query = configToSearchParams({
+    ...DEFAULT_CONFIG,
+    ...selection,
+  }).toString();
+  return query ? `/builder?${query}` : "/builder";
 }

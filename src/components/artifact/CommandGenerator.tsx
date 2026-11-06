@@ -2,14 +2,18 @@ import { Check, Copy } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
+import { announce } from "../../lib/announce";
 import { trackCopyCommand } from "../../lib/analytics";
 import {
+  ARTIFACT_COMMAND_DEFAULTS,
+  formatArtifactCommand,
+} from "../../lib/builder/kapeCommand";
+import {
   generateBatch,
-  generateKapeCommand,
   generatePowerShell,
   generateWsl,
 } from "../../lib/generators";
-import type { KapeTarget } from "../../lib/kapefiles";
+import type { ScriptTarget } from "../../lib/generators";
 import { CodeBlock } from "../ui/CodeBlock";
 import { Panel } from "../ui/Panel";
 
@@ -27,7 +31,8 @@ const COMMAND_TABS: {
 ];
 
 interface CommandGeneratorProps {
-  target: KapeTarget;
+  target: ScriptTarget & { kapeName: string };
+  referencedTargetCount: number;
 }
 
 const CODE_LANGUAGES = {
@@ -86,54 +91,47 @@ function FormatHint({ format }: { format: CommandFormat }) {
   }
 }
 
-export function CommandGenerator({ target }: CommandGeneratorProps) {
+export function CommandGenerator({
+  target,
+  referencedTargetCount,
+}: CommandGeneratorProps) {
   const [format, setFormat] = useState<CommandFormat>("kape");
-  const [source, setSource] = useState("C:");
-  const [destination, setDestination] = useState("D:\\Evidence");
+  const [source, setSource] = useState<string>(ARTIFACT_COMMAND_DEFAULTS.source);
+  const [destination, setDestination] = useState<string>(
+    ARTIFACT_COMMAND_DEFAULTS.destination
+  );
   const [useVss, setUseVss] = useState(false);
   const [useVhdx, setUseVhdx] = useState(false);
   const [copiedId, triggerCopied] = useCopyFeedbackKeyed<string>();
 
-  const opts = useMemo(
-    () => ({ destination, source, useVhdx, useVss }),
-    [destination, source, useVss, useVhdx]
-  );
-
-  const kapeCommand = useMemo(
-    () => generateKapeCommand(target, opts),
-    [target, opts]
-  );
-
   const currentCommand = useMemo(() => {
+    const scriptOptions = { destination, source };
     switch (format) {
       case "kape":
-        return kapeCommand;
+        return formatArtifactCommand({
+          destination,
+          kapeName: target.kapeName,
+          source,
+          vhdx: useVhdx,
+          vss: useVss,
+        });
       case "powershell":
-        return generatePowerShell(target, opts);
+        return generatePowerShell(target, scriptOptions);
       case "batch":
-        return generateBatch(target, opts);
+        return generateBatch(target, scriptOptions);
       case "wsl":
-        return generateWsl(target, opts);
-      default:
-        return kapeCommand;
+        return generateWsl(target, scriptOptions);
     }
-  }, [format, kapeCommand, target, opts]);
+  }, [format, target, destination, source, useVss, useVhdx]);
 
   const handleCopy = async (command: string, id: string) => {
     try {
       await navigator.clipboard.writeText(command);
       trackCopyCommand(id, target.name);
       triggerCopied(id);
-      // Announce to screen readers
-      const announcer = document.querySelector("#live-announcer");
-      if (announcer) {
-        announcer.textContent = "Command copied to clipboard";
-        setTimeout(() => {
-          announcer.textContent = "";
-        }, 1000);
-      }
-    } catch (error) {
-      console.error("Failed to copy:", error);
+      announce("Command copied to clipboard");
+    } catch {
+      announce("Could not copy the command");
     }
   };
 
@@ -195,7 +193,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
             className={`${inputClassName} w-16`}
             id="source-input"
             onChange={(e) => setSource(e.target.value)}
-            placeholder="C:"
+            placeholder={ARTIFACT_COMMAND_DEFAULTS.source}
             type="text"
             value={source}
           />
@@ -209,7 +207,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
             className={`${inputClassName} w-40`}
             id="dest-input"
             onChange={(e) => setDestination(e.target.value)}
-            placeholder="D:\Evidence"
+            placeholder={ARTIFACT_COMMAND_DEFAULTS.destination}
             type="text"
             value={destination}
           />
@@ -247,7 +245,7 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
         />
       </div>
 
-      {target.isCompound && (
+      {referencedTargetCount > 0 && (
         <div className="border-border border-t p-3">
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
             <span className="font-medium text-amber-700 dark:text-amber-400">
@@ -255,8 +253,8 @@ export function CommandGenerator({ target }: CommandGeneratorProps) {
             </span>{" "}
             <span className="text-muted-foreground">
               This is a compound target that references{" "}
-              {target.referencedTargets.length} other target
-              {target.referencedTargets.length === 1 ? "" : "s"}. The KAPE
+              {referencedTargetCount} other target
+              {referencedTargetCount === 1 ? "" : "s"}. The KAPE
               command resolves them natively; the PowerShell/Batch/WSL scripts
               flatten every referenced path into explicit copy commands.
             </span>

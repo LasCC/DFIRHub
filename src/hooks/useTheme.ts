@@ -14,7 +14,17 @@ interface ThemeController {
   apply(): void;
 }
 
-const THEME_EVENT = "dfir-theme-change";
+const THEME_EVENT_FALLBACK = "dfir-theme-change";
+
+function themeEventName(): string {
+  if (typeof window === "undefined") {
+    return THEME_EVENT_FALLBACK;
+  }
+  return (
+    (window as unknown as { __dfirThemeEvent?: string }).__dfirThemeEvent ??
+    THEME_EVENT_FALLBACK
+  );
+}
 
 function getController(): ThemeController | undefined {
   if (typeof window === "undefined") {
@@ -37,8 +47,9 @@ export function useTheme() {
       setThemeState(next ?? getController()?.get() ?? "dark");
     };
 
-    window.addEventListener(THEME_EVENT, handleChange);
-    return () => window.removeEventListener(THEME_EVENT, handleChange);
+    const eventName = themeEventName();
+    window.addEventListener(eventName, handleChange);
+    return () => window.removeEventListener(eventName, handleChange);
   }, []);
 
   const setTheme = (next: ThemePreference) => {

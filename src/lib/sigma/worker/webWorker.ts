@@ -1,5 +1,11 @@
 import registerPromiseWorker from "promise-worker/register";
 
+import type {
+  MessageType,
+  StatusUpdate,
+  WorkerMessage,
+} from "../types";
+import { SIGMA_RULES_VALIDATORS_PATH } from "../paths";
 import sigmaConverterPy from "../python/sigma_converter.py?raw";
 import {
   CORE_PACKAGES,
@@ -9,6 +15,8 @@ import {
   VALIDATOR_PACKAGE,
   toLockPackageName,
 } from "./pyodide-packages";
+
+export type { MessageType, StatusUpdate, WorkerMessage } from "../types";
 
 const SIGMA_LOCK_URL = `${self.location.origin}${SIGMA_PACKAGES_PATH}${SIGMA_LOCK_FILE}`;
 
@@ -24,25 +32,6 @@ interface PyodideInterface {
     set: (name: string, value: unknown) => void;
   };
   pyimport: (name: string) => unknown;
-}
-
-type MessageType =
-  | "convert"
-  | "validate"
-  | "install"
-  | "get_pipelines"
-  | "status";
-
-interface WorkerMessage {
-  type: MessageType;
-  payload?: Record<string, unknown>;
-}
-
-interface StatusUpdate {
-  type: "status_update";
-  stage: string;
-  progress: number;
-  ready?: boolean;
 }
 
 let pyodide: PyodideInterface | null = null;
@@ -94,7 +83,7 @@ async function fetchSigmahqValidatorData(): Promise<Record<string, string>> {
     Object.entries(SIGMAHQ_VALIDATOR_DATA_MODULES).map(
       async ([moduleName, filename]) => {
         const response = await fetch(
-          `${self.location.origin}/sigma-rules/validators/${filename}`
+          `${self.location.origin}${SIGMA_RULES_VALIDATORS_PATH}/${filename}`
         );
         if (!response.ok) {
           throw new Error(`Failed to load ${filename}: ${response.status}`);
@@ -262,18 +251,8 @@ registerPromiseWorker(async (msg: WorkerMessage) => {
     case "validate": {
       return validate(msg.payload ?? {});
     }
-    case "install": {
-      const pkg = msg.payload?.packageName;
-      if (typeof pkg === "string") {
-        await installBackendPackage(pkg);
-      }
-      return { success: true };
-    }
     case "get_pipelines": {
       return getPipelines(msg.payload ?? {});
-    }
-    case "status": {
-      return { ready: pyodide !== null };
     }
     default: {
       throw new Error(`Unknown message type: ${msg.type}`);

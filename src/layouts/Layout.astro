@@ -74,6 +74,7 @@ const fullTitle =
     <script is:inline>
       (() => {
         const KEY = "dfirhub-theme";
+        const THEME_EVENT = "dfir-theme-change";
         const read = () => {
           try {
             const v = localStorage.getItem(KEY);
@@ -100,6 +101,7 @@ const fullTitle =
           }
         };
         apply();
+        window.__dfirThemeEvent = THEME_EVENT;
         window.__dfirTheme = {
           get: read,
           apply,
@@ -111,7 +113,7 @@ const fullTitle =
             }
             apply();
             window.dispatchEvent(
-              new CustomEvent("dfir-theme-change", { detail: t })
+              new CustomEvent(THEME_EVENT, { detail: t })
             );
           },
         };
@@ -126,7 +128,7 @@ const fullTitle =
             if (e.key === KEY) {
               apply();
               window.dispatchEvent(
-                new CustomEvent("dfir-theme-change", { detail: read() })
+                new CustomEvent(THEME_EVENT, { detail: read() })
               );
             }
           });
@@ -224,10 +226,13 @@ const fullTitle =
 
     <!-- Keyboard Shortcuts Help Modal -->
     <KeyboardShortcuts client:idle />
-    <div id="keyboard-help-trigger" class="hidden"></div>
 
     <!-- Global Keyboard Shortcuts Handler -->
     <script>
+      import { announce } from "../lib/announce";
+      import { NAV_ITEMS } from "../lib/navigation";
+      import { HOME_PATH } from "../lib/routes";
+
       // Keyboard navigation state
       let isKeyboardUser = false;
 
@@ -274,42 +279,23 @@ const fullTitle =
           announce("Search focused");
         }
 
-        // "?" - Show keyboard shortcuts help
-        if (e.key === "?" && e.shiftKey) {
-          e.preventDefault();
-          const helpTrigger = document.querySelector<HTMLElement>("#keyboard-help-trigger");
-          if (helpTrigger) {
-            helpTrigger.click();
-          }
-        }
+        // "g" then a route key - vim-style navigation
+        if (e.key === "g" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+          const destinationByKey = new Map<string, string>([
+            ["h", HOME_PATH],
+            ...NAV_ITEMS.map(
+              (item) => [item.shortcut, item.href] as [string, string]
+            ),
+          ]);
 
-        // "g" then "h" - Go home (vim-style navigation)
-        if (e.key === "g" && !e.metaKey && !e.ctrlKey) {
           const handleSecondKey = (secondEvent: KeyboardEvent) => {
             document.removeEventListener("keydown", handleSecondKey);
             clearTimeout(timeout);
 
-            if (secondEvent.key === "h") {
+            const destination = destinationByKey.get(secondEvent.key);
+            if (destination) {
               secondEvent.preventDefault();
-              window.location.href = "/";
-            } else if (secondEvent.key === "a") {
-              secondEvent.preventDefault();
-              window.location.href = "/artifacts";
-            } else if (secondEvent.key === "c") {
-              secondEvent.preventDefault();
-              window.location.href = "/collections";
-            } else if (secondEvent.key === "r") {
-              secondEvent.preventDefault();
-              window.location.href = "/registry";
-            } else if (secondEvent.key === "e") {
-              secondEvent.preventDefault();
-              window.location.href = "/eventlogs";
-            } else if (secondEvent.key === "b") {
-              secondEvent.preventDefault();
-              window.location.href = "/builder";
-            } else if (secondEvent.key === "s") {
-              secondEvent.preventDefault();
-              window.location.href = "/converter";
+              window.location.href = destination;
             }
           };
 
@@ -328,14 +314,21 @@ const fullTitle =
           }
         }
 
-        // Arrow key navigation for lists
-        if (e.key === "j" || e.key === "k") {
-          const focusableItems = document.querySelectorAll<HTMLElement>(
-            '[role="listitem"] a, [role="option"], .artifact-link'
-          );
+        // j/k navigation for lists (search results and artifact links)
+        if (
+          (e.key === "j" || e.key === "k") &&
+          !e.metaKey &&
+          !e.ctrlKey &&
+          !e.altKey
+        ) {
+          const focusableItems = [
+            ...document.querySelectorAll<HTMLElement>(
+              '[role="option"], [data-artifact-link]'
+            ),
+          ].filter((element) => element.offsetParent !== null);
 
           if (focusableItems.length > 0) {
-            const currentIndex = [...focusableItems].indexOf(
+            const currentIndex = focusableItems.indexOf(
               document.activeElement as HTMLElement
             );
 
@@ -353,21 +346,6 @@ const fullTitle =
           }
         }
       });
-
-      // Screen reader announcement helper
-      function announce(message: string) {
-        const announcer = document.querySelector("#live-announcer");
-        if (announcer) {
-          announcer.textContent = message;
-          // Clear after announcement
-          setTimeout(() => {
-            announcer.textContent = "";
-          }, 1000);
-        }
-      }
-
-      // Expose announce function globally
-      (window as any).announce = announce;
 
       // Focus management for SPA-like navigation
       document.addEventListener("astro:page-load", () => {

@@ -2,10 +2,12 @@ import { ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import type { KapeTarget, KapeTargetEntry } from "../../lib/kapefiles";
-import type { CategoryStyle } from "../../lib/categoryStyles";
+import { joinPathAndMask } from "../../lib/kapeEntries";
+
 
 import { useCopyFeedbackKeyed } from "../../hooks/useCopyFeedback";
 import { trackCopyPath } from "../../lib/analytics";
+import { announce } from "../../lib/announce";
 import { getCategoryStyle } from "../../lib/categoryStyles";
 import { Panel } from "../ui/Panel";
 
@@ -15,34 +17,17 @@ interface PathBrowserProps {
 }
 
 // ─── Category → accent classes (rounded pill badges) ───
-// categoryStyles keys are capitalized ("Windows", "P2P"); normalize lookup.
-const SPECIAL_KEYS: Record<string, string> = { p2p: "P2P" };
-
-function getCategoryStyleFor(category: string): CategoryStyle {
-  const lower = category.toLowerCase();
-  const key =
-    SPECIAL_KEYS[lower] ?? lower.charAt(0).toUpperCase() + lower.slice(1);
-  return getCategoryStyle(key);
-}
-
 function getCategoryClasses(category: string): string {
-  const style = getCategoryStyleFor(category);
+  const style = getCategoryStyle(category);
   return `${style.bg} ${style.text} border-current/40`;
 }
 
-// ─── Clipboard helper ───
 async function copyToClipboard(text: string, label: string) {
   try {
     await navigator.clipboard.writeText(text);
-    const announcer = document.querySelector("#live-announcer");
-    if (announcer) {
-      announcer.textContent = `${label} copied to clipboard`;
-      setTimeout(() => {
-        announcer.textContent = "";
-      }, 1000);
-    }
-  } catch (error) {
-    console.error("Failed to copy:", error);
+    announce(`${label} copied to clipboard`);
+  } catch {
+    announce(`Could not copy the ${label.toLowerCase()}`);
   }
 }
 
@@ -50,21 +35,6 @@ async function copyToClipboard(text: string, label: string) {
 interface PathSegment {
   text: string;
   type: "drive" | "separator" | "envvar" | "dir" | "mask";
-}
-
-// Joins a KAPE `Path` and `FileMask` with an inferred separator.
-// .tkape authors may or may not include a trailing `\`; without this,
-// a path like `...\AnyDesk` + mask `file_transfer_trace.txt` collapses
-// into `...\AnyDeskfile_transfer_trace.txt`.
-function joinPathAndMask(pathStr: string, fileMask?: string): string {
-  if (!fileMask) {
-    return pathStr;
-  }
-  if (pathStr.endsWith("\\") || pathStr.endsWith("/")) {
-    return `${pathStr}${fileMask}`;
-  }
-  const sep = pathStr.includes("/") && !pathStr.includes("\\") ? "/" : "\\";
-  return `${pathStr}${sep}${fileMask}`;
 }
 
 function parsePathSegments(pathStr: string, fileMask?: string): PathSegment[] {
@@ -115,44 +85,24 @@ export function PathBrowser({ target, resolvedTargets }: PathBrowserProps) {
     new Set()
   );
 
-  // Memoized path entries
-  const pathEntries = useMemo(
+  const groupedPaths = useMemo(
     () =>
-      target.isCompound && resolvedTargets
-        ? resolvedTargets.flatMap((t) =>
-            t.targets
-              .filter((e) => !e.path.endsWith(".tkape"))
-              .map((e) => ({
-                ...e,
-                sourceName: t.name,
-              }))
-          )
-        : target.targets
-            .filter((e) => !e.path.endsWith(".tkape"))
-            .map((e) => ({
-              ...e,
-              sourceName: target.name,
-            })),
+      (target.isCompound && resolvedTargets ? resolvedTargets : [target]).map(
+        (member) => ({
+          entries: member.entries,
+          name: member.name,
+          slug: member.slug,
+        })
+      ),
     [target, resolvedTargets]
   );
 
-  // Memoized grouped paths for compound targets
-  const groupedPaths = useMemo(
+  const pathEntries = useMemo(
     () =>
-      target.isCompound && resolvedTargets
-        ? resolvedTargets.map((t) => ({
-            entries: t.targets.filter((e) => !e.path.endsWith(".tkape")),
-            name: t.name,
-            slug: t.slug,
-          }))
-        : [
-            {
-              entries: target.targets.filter((e) => !e.path.endsWith(".tkape")),
-              name: target.name,
-              slug: target.slug,
-            },
-          ],
-    [target, resolvedTargets]
+      groupedPaths.flatMap((group) =>
+        group.entries.map((entry) => ({ ...entry, sourceName: group.name }))
+      ),
+    [groupedPaths]
   );
 
   // Unique categories for filter chips

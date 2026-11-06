@@ -1,4 +1,5 @@
 ---
+import { parseReferenceLink } from "../../lib/referenceLinks";
 import { ArrowUpRight, Database, KeyRound, Tag } from "lucide-react";
 import Footer from "../../components/layout/Footer.astro";
 import { Header } from "../../components/layout/Header";
@@ -68,18 +69,9 @@ const relatedArtifacts = loadRegistryArtifacts()
   )
   .slice(0, MAX_RELATED_ARTIFACTS);
 
-const referenceLinks = artifact.references.map((reference) => {
-  try {
-    const parsed = new URL(reference.url);
-    return {
-      detail: reference.label ?? `${parsed.pathname}${parsed.search}`.replace(/^\/$/, ""),
-      host: parsed.hostname.replace(/^www\./, ""),
-      url: reference.url,
-    };
-  } catch {
-    return { detail: reference.label ?? "", host: reference.url, url: reference.url };
-  }
-});
+const referenceLinks = artifact.references.map((reference) =>
+  parseReferenceLink(reference.url, reference.label)
+);
 
 const recmdCommand = `RECmd.exe -d "D:\\Evidence" --bn BatchExamples\\${REGISTRY_BATCH_FILE} --csv "D:\\Parsed"`;
 const kapeCommand = String.raw`kape.exe --msource D:\Evidence --mdest D:\Parsed --module RECmd_DFIRBatch`;

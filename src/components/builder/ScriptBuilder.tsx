@@ -9,14 +9,13 @@ import {
 } from "@/lib/analytics";
 
 import {
-  buildScriptTarget,
-  collectUniqueEntries,
+  kapeNamesFor,
+  resolveCollection,
   resolveLeafModules,
-  resolveLeafTargets,
-  summarizeCollection,
+  scriptTargetFor,
   translateKapeVariables,
-  uniqueKapeNames,
 } from "../../lib/builder/collection";
+import type { ResolvedCollection } from "../../lib/builder/collection";
 import { DEFAULT_CONFIG } from "../../lib/builder/config";
 import type {
   BuilderModule,
@@ -100,25 +99,21 @@ function sameMembers(left: string[], right: string[]): boolean {
 
 function buildOutput(
   config: KapeConfig,
+  kapeConfig: KapeConfig,
   selectedTargets: BuilderTarget[],
-  leaves: BuilderTarget[]
+  collection: ResolvedCollection
 ): string {
   const hasSelection = config.targets.length > 0 || config.modules.length > 0;
-  const commandConfig = {
-    ...config,
-    targets: uniqueKapeNames(selectedTargets),
-  };
   if (config.format === "kape") {
-    return hasSelection ? formatKapeCommand(commandConfig) : "";
+    return hasSelection ? formatKapeCommand(kapeConfig) : "";
   }
   if (config.format === "cli") {
-    return hasSelection ? formatKapeBatchFile(commandConfig) : "";
+    return hasSelection ? formatKapeBatchFile(kapeConfig) : "";
   }
-  const entries = collectUniqueEntries(leaves);
-  if (entries.length === 0) {
+  if (collection.entries.length === 0) {
     return "";
   }
-  const scriptTarget = buildScriptTarget(selectedTargets, entries);
+  const scriptTarget = scriptTargetFor(selectedTargets, collection.entries);
   const options = {
     caseId: config.caseId,
     chainOfCustody: true,
@@ -187,13 +182,9 @@ export function ScriptBuilder({
         .filter((target): target is BuilderTarget => target !== undefined),
     [config.targets, targetIndex]
   );
-  const leaves = useMemo(
-    () => resolveLeafTargets(config.targets, targetIndex),
+  const collection = useMemo(
+    () => resolveCollection(config.targets, targetIndex),
     [config.targets, targetIndex]
-  );
-  const summary = useMemo(
-    () => summarizeCollection(leaves, collectUniqueEntries(leaves)),
-    [leaves]
   );
   const leafModules = useMemo(
     () => resolveLeafModules(config.modules, moduleIndex),
@@ -206,17 +197,14 @@ export function ScriptBuilder({
       ].toSorted(),
     [leafModules]
   );
-  const issues = useMemo(
-    () =>
-      validateKapeConfig({
-        ...config,
-        targets: uniqueKapeNames(selectedTargets),
-      }),
+  const kapeConfig = useMemo(
+    () => ({ ...config, targets: kapeNamesFor(selectedTargets) }),
     [config, selectedTargets]
   );
+  const issues = useMemo(() => validateKapeConfig(kapeConfig), [kapeConfig]);
   const output = useMemo(
-    () => buildOutput(config, selectedTargets, leaves),
-    [config, selectedTargets, leaves]
+    () => buildOutput(config, kapeConfig, selectedTargets, collection),
+    [config, kapeConfig, selectedTargets, collection]
   );
 
   const activePresetId = useMemo(
@@ -321,7 +309,7 @@ export function ScriptBuilder({
         leafModules={leafModules}
         selectedModuleCount={config.modules.length}
         selectedTargets={selectedTargets}
-        summary={summary}
+        summary={collection.summary}
         targetIndex={targetIndex}
       />
 
@@ -336,7 +324,7 @@ export function ScriptBuilder({
         format={config.format}
         issues={issues}
         linkCopied={linkCopied}
-        lockedPaths={summary.lockedPaths}
+        lockedPaths={collection.summary.lockedPaths}
         moduleCount={config.modules.length}
         onCopy={handleCopy}
         onDownload={handleDownload}

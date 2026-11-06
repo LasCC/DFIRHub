@@ -14,6 +14,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { announce } from "@/lib/announce";
 import { trackSearchQuery, trackSearchResultSelected } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -30,12 +31,6 @@ import { SearchResultItem } from "./SearchResultItem";
 import { usePagefindSearch } from "./usePagefindSearch";
 import type { RecentArtifact } from "./useRecentArtifacts";
 import { useRecentArtifacts } from "./useRecentArtifacts";
-
-declare global {
-  interface Window {
-    announce?: (message: string) => void;
-  }
-}
 
 interface SearchProps {
   showTrigger?: boolean;
@@ -58,7 +53,6 @@ const KINDS_WITHOUT_KAPE_COMMAND = new Set<RecentArtifact["kind"]>([
   "Registry",
 ]);
 
-const ANNOUNCEMENT_CLEAR_DELAY_MS = 1000;
 const COPIED_FEEDBACK_MS = 1500;
 const SKELETON_ROW_COUNT = 3;
 
@@ -106,7 +100,6 @@ export function Search({ showTrigger = true }: SearchProps) {
   const { categoryCounts, hits, reset, search, status, total } =
     usePagefindSearch();
   const { recent, refresh, remember } = useRecentArtifacts();
-  const announcerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -147,21 +140,6 @@ export function Search({ showTrigger = true }: SearchProps) {
     }
     return selectedQuickLink ? `Go to ${selectedQuickLink.label}` : "Open";
   };
-
-  const announce = useCallback((message: string) => {
-    if (window.announce) {
-      window.announce(message);
-      return;
-    }
-    const announcer = announcerRef.current;
-    if (!announcer) {
-      return;
-    }
-    announcer.textContent = message;
-    setTimeout(() => {
-      announcer.textContent = "";
-    }, ANNOUNCEMENT_CLEAR_DELAY_MS);
-  }, []);
 
   const changeOpen = useCallback(
     (nextOpen: boolean) => {
@@ -319,13 +297,6 @@ export function Search({ showTrigger = true }: SearchProps) {
 
   return (
     <>
-      <div
-        aria-atomic="true"
-        aria-live="polite"
-        className="sr-only"
-        ref={announcerRef}
-      />
-
       {showTrigger && (
         <button
           aria-keyshortcuts="Control+K"

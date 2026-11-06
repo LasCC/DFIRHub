@@ -1,4 +1,5 @@
-import { execFileSync } from "node:child_process";
+import { readGitDates } from "./gitDates";
+import { createSlug } from "./slug";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -110,8 +111,6 @@ const LABEL_SEPARATOR_PATTERN = /\s*(?:-|:)\s*$/u;
 const NOT_APPLICABLE_PATTERN = /^N\/?A\.?$/iu;
 const MICROSOFT_WINDOWS_PREFIX_PATTERN = /^Microsoft-Windows-/iu;
 const OPERATIONAL_SUFFIX_PATTERN = /\/Operational$/iu;
-const SLUG_INVALID_PATTERN = /[^a-z0-9]+/gu;
-const SLUG_EDGE_PATTERN = /^-|-$/gu;
 const AUTHOR_EMAIL_PATTERN = /\s*\S+@\S+\s*/gu;
 const WHITESPACE_PATTERN = /\s+/gu;
 
@@ -156,54 +155,15 @@ function mapsDirectoryPath(): string {
   return path.join(evtxRepoPath(), MAPS_RELATIVE_DIR);
 }
 
-function runEvtxGit(args: string[]): string {
-  return execFileSync("git", ["-C", evtxRepoPath(), ...args], {
-    encoding: "utf-8",
-    stdio: ["ignore", "pipe", "ignore"],
-  }).trim();
-}
-
-function readSourceDates(): EventLogSourceDates | null {
-  try {
-    if (runEvtxGit(["rev-parse", "--is-shallow-repository"]) !== "false") {
-      return null;
-    }
-    const modified = runEvtxGit([
-      "log",
-      "-1",
-      "--format=%cI",
-      "--",
-      MAPS_RELATIVE_DIR,
-    ]);
-    const published = runEvtxGit([
-      "log",
-      "--reverse",
-      "--format=%cI",
-      "--",
-      MAPS_RELATIVE_DIR,
-    ]).split("\n")[0];
-    return modified && published ? { modified, published } : null;
-  } catch {
-    return null;
-  }
-}
-
 export function getEventLogSourceDates(): EventLogSourceDates | null {
   if (sourceDatesCache === undefined) {
-    sourceDatesCache = readSourceDates();
+    sourceDatesCache = readGitDates(evtxRepoPath(), MAPS_RELATIVE_DIR);
   }
   return sourceDatesCache;
 }
 
 function toText(value: unknown): string {
   return value === undefined || value === null ? "" : String(value).trim();
-}
-
-function createSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .replaceAll(SLUG_INVALID_PATTERN, "-")
-    .replaceAll(SLUG_EDGE_PATTERN, "");
 }
 
 export function getEventLogChannelLabel(channel: string): string {

@@ -1,41 +1,20 @@
 import PromiseWorker from "promise-worker";
 
-import type { RuleCheck } from "../types";
+import type {
+  ConvertParams,
+  ConvertResult,
+  PipelineInfo,
+  ValidateResult,
+  WorkerStatus,
+} from "../types";
 
-export interface WorkerStatus {
-  stage: string;
-  progress: number;
-  ready: boolean;
-}
-
-export interface ConvertParams {
-  ruleYaml: string;
-  target: string;
-  packageName?: string;
-  pipelineNames?: string[];
-  pipelineYmls?: string[];
-  filterYml?: string;
-  outputFormat?: string;
-  correlationMethod?: string;
-  backendOptions?: Record<string, unknown>;
-}
-
-export interface ConvertResult {
-  success: boolean;
-  query?: string;
-  error?: string;
-}
-
-export interface ValidateResult {
-  success: boolean;
-  checks?: RuleCheck[];
-  error?: string;
-}
-
-export interface PipelineInfo {
-  name: string;
-  description: string;
-}
+export type {
+  ConvertParams,
+  ConvertResult,
+  PipelineInfo,
+  ValidateResult,
+  WorkerStatus,
+} from "../types";
 
 type StatusListener = (status: WorkerStatus) => void;
 
@@ -105,14 +84,6 @@ export async function validate(ruleYaml: string): Promise<ValidateResult> {
     type: "validate",
     payload: { ruleYaml },
   }) as Promise<ValidateResult>;
-}
-
-export async function installBackend(packageName: string): Promise<void> {
-  const pw = getPromiseWorker();
-  await pw.postMessage({
-    type: "install",
-    payload: { packageName },
-  });
 }
 
 export async function getAvailablePipelines(

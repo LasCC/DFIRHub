@@ -4,18 +4,14 @@ import { join } from "node:path";
 import * as yaml from "js-yaml";
 import JSZip from "jszip";
 
-interface SigmaRuleEntry {
-  id: string;
-  title: string;
-  description: string;
-  level: string;
-  status: string;
-  logsource: { category?: string; product?: string; service?: string };
-  tags: string[];
-  author: string;
-  date: string;
-  filename: string;
-}
+import type { SigmaRuleEntry } from "../src/lib/sigma/types";
+import {
+  SIGMA_RULES_DATA_FILE,
+  SIGMA_RULES_DIRECTORY,
+  SIGMA_RULES_INDEX_FILE,
+  SIGMA_RULES_META_FILE,
+  SIGMA_RULES_VALIDATORS_DIRECTORY,
+} from "../src/lib/sigma/paths";
 
 interface SigmaMeta {
   releaseTag: string;
@@ -27,10 +23,10 @@ const OUTPUT_DIR = join(
   new URL(".", import.meta.url).pathname,
   "..",
   "public",
-  "sigma-rules"
+  SIGMA_RULES_DIRECTORY
 );
 const GITHUB_API = "https://api.github.com/repos/SigmaHQ/sigma/releases";
-const VALIDATOR_DATA_DIR = join(OUTPUT_DIR, "validators");
+const VALIDATOR_DATA_DIR = join(OUTPUT_DIR, SIGMA_RULES_VALIDATORS_DIRECTORY);
 const VALIDATOR_DATA_BASE_URL =
   "https://raw.githubusercontent.com/SigmaHQ/pySigma-validators-sigmaHQ/refs/heads/main/tools";
 const VALIDATOR_DATA_FILES = [
@@ -139,7 +135,10 @@ function parseRule(
 
 async function checkExistingMeta(): Promise<SigmaMeta | null> {
   try {
-    const content = await readFile(join(OUTPUT_DIR, "meta.json"), "utf8");
+    const content = await readFile(
+      join(OUTPUT_DIR, SIGMA_RULES_META_FILE),
+      "utf8"
+    );
     return JSON.parse(content) as SigmaMeta;
   } catch {
     return null;
@@ -226,9 +225,9 @@ async function main() {
   await mkdir(OUTPUT_DIR, { recursive: true });
 
   await Promise.all([
-    writeFile(join(OUTPUT_DIR, "index.json"), JSON.stringify(index)),
-    writeFile(join(OUTPUT_DIR, "rules.json"), JSON.stringify(rules)),
-    writeFile(join(OUTPUT_DIR, "meta.json"), JSON.stringify(meta, null, 2)),
+    writeFile(join(OUTPUT_DIR, SIGMA_RULES_INDEX_FILE), JSON.stringify(index)),
+    writeFile(join(OUTPUT_DIR, SIGMA_RULES_DATA_FILE), JSON.stringify(rules)),
+    writeFile(join(OUTPUT_DIR, SIGMA_RULES_META_FILE), JSON.stringify(meta, null, 2)),
   ]);
 
   console.log(`Written to ${OUTPUT_DIR}:`);
